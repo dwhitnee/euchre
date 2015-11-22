@@ -25,6 +25,9 @@ Euchre.Deck = (function()
   }
 
   Deck.prototype = {
+    /**
+     *
+     */
     shuffle: function() {
       var array = this.cards;
       var m = array.length, t, i;

@@ -5,7 +5,10 @@ Copyright (c) 2015 <a href="http://dwhitnee.s3-website-us-east-1.amazonaws.com/"
 http://dwhitnee.s3-website-us-east-1.amazonaws.com/js/euchre/  (coming soon)
 
 ## About
-The Daleks video game, written entirely in HTML5 and javascript.
+Euchre card game playable by 3 or 4 people online.
+TBD
+* Facebook login
+* central server to administer game (AWS Lambda or DynamoDB maybe)
 
 No canvas, just HTML elements and CSS.
 
