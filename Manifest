@@ -1,0 +1,9 @@
+# Manifest file of Daleks JS files in dependency order
+# Pass this to build with jquery externs
+# http://code.jquery.com/jquery-1.8.0.js
+
+#../build/jquery-1.8.0.min.js
+#../build/jgestures.min.js
+
+euchre.js
+card.js
