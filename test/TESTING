@@ -1,0 +1,30 @@
+To set up and run tests in the spec/ direcory, install Jasmine:
+
+ npm install -g jasmine
+ jasmine init
+ jasmine examples
+
+Then run:
+  jasmine
+
+But jasmine alone sucks ass. Can't set source files?
+
+ npm install -g karma
+ npm install -g karma-phantomjs-launcher --save-dev
+ karma init
+ karma start
+
+
+
+ npm install karma-jquery --save-dev
+
+
+ npm install -g bower
+ bower install jquery-ui
+
+
+
+Also potentially useful is Yeoman to build scaffolding, though so far it's annoying too
+ npm install -g yo
+ npm install -g generator-karma
+ yo karma

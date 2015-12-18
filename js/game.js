@@ -1,6 +1,18 @@
 
 $(document).ready( function()
 {
+
+  $(".droppable").droppable({
+      activeClass: "ui-state-default",
+      hoverClass: "ui-state-hover",
+      drop: function( event, ui ) {
+        $( this )
+          .addClass( "ui-state-highlight" )
+          .find( "p" )
+            .html( "Played!" );
+      }});
+
+
   var deck = new Euchre.Deck();
   deck.shuffle();
 

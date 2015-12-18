@@ -195,6 +195,8 @@ a.button.disabled {
   margin: 4px;
 }
 
-.hearts {
-      background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAYAAAA71pVKAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAR0lEQVQoz2P8//8/A7mAiYECwAJjMDIyYnXC////GcmyGZ9GvJoJacSrGZc38GpGtpGQAUzYNBJrABMuPxLjZ8YBSyQjUTMAt0wiEXEpzqIAAAAASUVORK5CYII=) no-repeat;
+#playField {
+  border: 1px solid;
+  background: lightGreen;
+  height: 6em;
 }
