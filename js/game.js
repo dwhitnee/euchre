@@ -1,4 +1,6 @@
-
+/**
+ * Euchre game controller
+ */
 $(document).ready( function()
 {
 
