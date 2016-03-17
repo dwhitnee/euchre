@@ -1,0 +1,30 @@
+#regionSelector {
+  display: none;
+}
+
+.cell {
+  display: table-cell;
+  padding-right: 1em;
+}
+.row {
+  display: table-row;
+}
+.dataTable {
+  display: table;
+}
+
+#periodicTable {
+  padding: 2em;
+  display: none;
+}
+
+
+.loading {
+  display: none;
+  background-image: url("https://my.ucla.edu/iwe/img/bg-spinner.gif");
+  background-repeat: no-repeat;
+  background-size: 5em 5em;
+  height: 5em;
+  width: 5em;
+  margin: 1em;
+}
