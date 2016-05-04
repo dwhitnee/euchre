@@ -2,12 +2,26 @@
 // websocket server endpoint
 //----------------------------------------------------------------------
 
+var users = [];
+var id = 1;
 function onConnect(socket) {
   console.log('a user connected');
 
-  socket.on('messageEvent', function(msg) {
-              console.log('message: ' + msg);
-              socket.broadcast.emit('messageEvent', "User X said " + msg);
+  socket.on('messageEvent', function( data ) {
+              console.log('message: ' + data.msg);
+              socket.broadcast.emit(
+                'messageEvent',
+                {
+                  user: data.user,
+                  msg: data.msg
+                });
+            });
+
+  socket.on('username', function( username ) {
+              console.log('New user! ' + username );
+              users.push( { id: id++, name: username });
+              socket.broadcast.emit('messageEvent',
+                                    "User " + username + " joined");
             });
 
   socket.on('disconnect', function(){
@@ -15,13 +29,25 @@ function onConnect(socket) {
             });
 };
 
-var socketServer = {
+var io;
+
+var server = {
   init: function( http ) {
-    var io = require('socket.io')(http);
+    io = require('socket.io')(http);
 
     io.on('connection', onConnect );
+  },
+  broadcastState: function() {
+    // sends to all sockets
+    io.emit('stateUpdate',
+            {
+              fun: true,
+              gimme: "chocolate",
+              dogs: 4
+            });
+
   }
 };
 
 
-module.exports = socketServer;
+module.exports = server;

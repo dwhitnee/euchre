@@ -7,13 +7,17 @@ var socketListener = require('socketListener');
 
 socketListener.init( http );
 
-app.use("/", express.static(__dirname + '/public/js'));
+app.use("/", express.static(__dirname + '/public'));
 // app.use( express.static('public'));
-// app.use('', express.static('public/js'));
 
 // route handlers
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+app.get('/update', function(req, res) {
+          socketListener.broadcastState();
+          res.send();
 });
 
 

@@ -1,16 +1,34 @@
-// open a websocket and send data over it onSubmit
+var server = new Server();
 
-var socket = io();
+function onNewMessage( data ) {
+  $('#messages').append( $('<li/>').text( data.user + ": " +  data.msg ));
+};
 
-$('form').submit(
+function onStateChange( state ) {
+  $('#state').text( JSON.stringify( state ));
+};
+
+server.listenForIMs( onNewMessage );
+server.listenForStateChange( onStateChange );
+
+
+// Send new chat message to server
+$('form[name="newMessage"]').submit(
   function(){
-    var msg = $('#m').val();
-    socket.emit('messageEvent', msg );
+    var msg = $('#msg').val();
+    server.sendIM( msg );
     $("#messages").append( $("<li/>").text( msg ));
-    $('#m').val('');
+    $('#msg').val('');
     return false;
   });
 
-socket.on('messageEvent', function(msg) {
-            $('#messages').append( $('<li/>').text( msg ));
-          });
+
+// Send new user name
+$('form[name="username"]').submit(
+  function(){
+    var name = $('#newUsername').val();
+    server.setUserName( name );
+    $("#name").text("Welcome, " + name );
+    $('form[name="username"').hide();
+    return false;
+  });
