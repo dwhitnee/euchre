@@ -3,20 +3,74 @@
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
-var socketListener = require('socketListener');
 
-socketListener.init( http );
 
+
+
+var Switchboard = require("switchboard"),
+    Player = require("player");
+
+var gameServer = new Switchboard( http );
+
+var players = {};
+
+const chatMessageEvent = "chatMessage";
+const setUserNameEvent = "username";
+const stateUpdateEvent = "stateUpdate";
+
+
+
+function newChatMessage( player, data ) {
+  console.log('message from ' + player.getName() +  ': ' + data);
+
+  gameServer.broadcast( chatMessageEvent, {
+                         user: player.id,
+                         msg: data
+                       });
+};
+
+function setName( player, data ) {
+  player.setName( data );
+  gameServer.broadcast( chatMessageEvent,
+                       { user: "admin", msg: player.getName() + " joined"});
+};
+
+
+
+// handlers take a user and braodcast state afterwards
+gameServer.addMessageHandler( chatMessageEvent, newChatMessage );
+gameServer.addMessageHandler( setUserNameEvent, setName );
+
+gameServer.onUserJoin( function() {
+                         var player =  new Player();
+                         players[player.id] = player;
+                         return player;  // so Switchboard can hand this back to us on events
+                       });
+gameServer.onUserLeave( function( player ) {
+                          players[player.id] = undefined;
+                          console.log( player.name + " disconnected");
+                        });
+
+// WTF?
+gameServer.broadcastStateFn(
+  function( player ) {
+    gameServer.broadcast( stateUpdateEvent, { players: players });
+  }
+);
+
+
+
+
+// routes for assets
 app.use("/", express.static(__dirname + '/public'));
-// app.use( express.static('public'));
 
-// route handlers
+// Actions
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/public/index.html');
 });
 
 app.get('/update', function(req, res) {
-          socketListener.broadcastState();
+          gameServer.broadcastState();
           res.send();
 });
 

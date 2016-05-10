@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>Welcome</title>
+  <title>Socket.IO chat</title>
   <link rel="stylesheet" type="text/css" href="css/styles.css">
 </head>
 
@@ -10,7 +10,6 @@
   <div id="name">Please enter your name</div>
 
   <div id="state"></div>
-  <div id="playerList"></div>
 
   <form name="username" action="">
     <div class="container">
@@ -19,8 +18,7 @@
     </div>
   </form>
 
-  <ul id="messages" class="bottom"></ul>
-
+  <ul id="messages"></ul>
   <form name="newMessage" action="">
     <div class="container">
       <input class="left" id="msg" autocomplete="off" />
@@ -29,11 +27,9 @@
   </form>
 
 
-  <!-- ========================= -->
   <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="js/server.js"></script>
   <script src="js/client.js"></script>
-  <script src="js/events.js"></script>
-
 </body>
 </html>

@@ -1,34 +1,40 @@
-var server = new Server();
+// Handles sending and receiving messages to remote
+// Open a websocket and send and receive data over it synchronously
 
-function onNewMessage( data ) {
-  $('#messages').append( $('<li/>').text( data.user + ": " +  data.msg ));
-};
+const chatMessageEvent = "chatMessage";
+const setUserNameEvent = "username";
+const stateUpdateEvent = "stateUpdate";
 
-function onStateChange( state ) {
-  $('#state').text( JSON.stringify( state ));
-};
+var Client = (function()
+{
+  function Client() {
+    this.socket = io();  // Socket.io websocket
+  };
 
-server.listenForIMs( onNewMessage );
-server.listenForStateChange( onStateChange );
+  Client.prototype = {
+    /**
+     * Talkers
+     */
+    sendIM: function( msg ) {
+      this.socket.emit( chatMessageEvent, msg );  // server can figure out who sent this
+      // this.socket.emit('messageEvent', { user: this.username,
+      //                                    msg: msg } );
+    },
+    setUserName: function( name ) {
+      this.socket.emit( setUserNameEvent, name );
+      this.username = name;
+    },
 
+    /**
+     * Listeners
+     */
+    listenForIMs: function( callback ) {
+      this.socket.on( chatMessageEvent, callback );
+    },
+    listenForStateChange: function( callback ) {
+      this.socket.on( stateUpdateEvent, callback );
+    }
+  };
 
-// Send new chat message to server
-$('form[name="newMessage"]').submit(
-  function(){
-    var msg = $('#msg').val();
-    server.sendIM( msg );
-    $("#messages").append( $("<li/>").text( msg ));
-    $('#msg').val('');
-    return false;
-  });
-
-
-// Send new user name
-$('form[name="username"]').submit(
-  function(){
-    var name = $('#newUsername').val();
-    server.setUserName( name );
-    $("#name").text("Welcome, " + name );
-    $('form[name="username"').hide();
-    return false;
-  });
+  return Client;
+})();
