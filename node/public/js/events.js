@@ -12,7 +12,7 @@ function onNewMessage( data ) {
 function onStateChange( state ) {
   $('#state').text( JSON.stringify( state ));
 
-  $('#playerList').empty().append( $("<ul/>").text("PLAYERS"));
+  $('#playerList').empty().append( $("<ul/>").text("Joined"));
   $.each( state.players, function( i, player ) {
             $('#playerList').append( $("<li/>").text( player.name ));
           });

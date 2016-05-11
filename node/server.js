@@ -20,6 +20,8 @@ const stateUpdateEvent = "stateUpdate";
 
 
 
+
+// FIXME: do we need the notion of a Game (set of players) to broadcast to?
 function newChatMessage( player, data ) {
   console.log('message from ' + player.getName() +  ': ' + data);
 
@@ -28,14 +30,6 @@ function newChatMessage( player, data ) {
                          msg: data
                        });
 };
-
-function setName( player, data ) {
-  player.setName( data );
-  gameServer.broadcast( chatMessageEvent,
-                       { user: "admin", msg: player.getName() + " joined"});
-};
-
-
 
 // handlers take a user and braodcast state afterwards
 gameServer.addMessageHandler( chatMessageEvent, newChatMessage );
@@ -57,7 +51,7 @@ gameServer.onUserLeave( function( player ) {
 // WTF?
 gameServer.broadcastStateFn(
   function( player ) {
-    gameServer.broadcast( stateUpdateEvent, { players: players });
+    gameServer.broadcast( stateUpdateEvent, { members: players });
   }
 );
 
