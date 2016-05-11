@@ -83,12 +83,12 @@ var SwitchBoard = (function()
       // closure for eventHandler
       function createEventHandler( self, eventHandler, socket ) {
         return function( data ) {
-          if (eventHandler.config.useUserContext) {
-            eventHandler.callback.call( self.getUser( socket ), data ); // method on User
-          } else {
-            eventHandler.callback( self.getUser( socket ), data );      // static call
+          if (eventHandler.config.useUserContext) {     // method on User
+            eventHandler.callback.call( self.getUser( socket ), data );
+          } else {                                      // static call
+            eventHandler.callback( self.getUser( socket ), data );
           }
-          self.broadcastState();      // update the world every time an event happens?
+          self.broadcastState(); // update the world every time an event happens?
         };
       };
 

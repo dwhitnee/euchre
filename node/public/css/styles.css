@@ -68,7 +68,7 @@ form button {
 }
 
 .bottom {  /* bottom scroll area 5 lines of page */
-  height: 6em;
+  height: 30%;
   position: fixed;
   bottom: 2.5em;
   overflow: scroll;
