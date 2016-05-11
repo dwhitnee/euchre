@@ -13,7 +13,7 @@ function onStateChange( state ) {
   $('#state').text( JSON.stringify( state ));
 
   $('#playerList').empty().append( $("<ul/>").text("Joined"));
-  $.each( state.players, function( i, player ) {
+  $.each( state.members, function( i, player ) {
             $('#playerList').append( $("<li/>").text( player.name ));
           });
 };
