@@ -8,3 +8,9 @@ Simple chat server that uses Websockets
 
 
     open http://localhost:3000/
+
+
+Debugging node:
+
+    npm install -g devtool
+    npm install -g node-inspector

@@ -11,14 +11,14 @@ var Player = (function()
   };
 
   Player.prototype = {
-    getName: function() {
+    getName: function getName() {
       return this.name;
     },
-    setName: function( name ) {
+    setName: function setName( name ) {
       this.name = name;
       console.log('New player! ' + this.name );
     },
-    quit: function() {
+    quit: function quit() {
       console.log( this.name  + " left.  Awww");
       // disconnected, save state?
     }
