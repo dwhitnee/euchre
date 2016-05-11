@@ -6,6 +6,7 @@ var client = new Client();
 
 function onNewMessage( data ) {
   $('#messages').append( $('<li/>').text( data.user + ": " +  data.msg ));
+  $("#messages").animate({ scrollTop: $('#messages')[0].scrollHeight}, 500);
 };
 
 function onStateChange( state ) {
@@ -26,10 +27,10 @@ $('form[name="newMessage"]').submit(
   function(){
     var msg = $('#msg').val();
     client.sendIM( msg );
-    $("#messages").append( $("<li/>").text( msg ));
+    // $("#messages").append( $("<li/>").text( msg ));
     $('#msg').val('');
     // keep scrolled to the bottom
-    $("#messages").animate({ scrollTop: $('#messages')[0].scrollHeight}, 1000);
+    $("#messages").animate({ scrollTop: $('#messages')[0].scrollHeight}, 500);
     return false;
   });
 

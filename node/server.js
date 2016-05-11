@@ -24,7 +24,7 @@ function newChatMessage( player, data ) {
   console.log('message from ' + player.getName() +  ': ' + data);
 
   gameServer.broadcast( chatMessageEvent, {
-                         user: player.id,
+                         user: player.name,
                          msg: data
                        });
 };
@@ -39,7 +39,10 @@ function setName( player, data ) {
 
 // handlers take a user and braodcast state afterwards
 gameServer.addMessageHandler( chatMessageEvent, newChatMessage );
-gameServer.addMessageHandler( setUserNameEvent, setName );
+// gameServer.addMessageHandler( setUserNameEvent, setName );
+gameServer.addMessageHandler( setUserNameEvent, Player.prototype.setName, {
+                                useUserContext: true
+                              } );
 
 gameServer.onUserJoin( function() {
                          var player =  new Player();

@@ -62,9 +62,12 @@ var SwitchBoard = (function()
      * call this function( data, user ) when this event (message) occurs
      * passes the data from the event payload, and the User who sent the message.
      */
-    addMessageHandler: function( eventName, callback ) {
+    addMessageHandler: function( eventName, callback, config ) {
       if (callback instanceof Function) {
-        this.eventHandlers[eventName] = callback;
+        this.eventHandlers[eventName] = {
+          callback: callback,
+          config: config || {}
+        };
       } else {
         console.error( eventName + " callback is not a function");
       }
@@ -77,20 +80,25 @@ var SwitchBoard = (function()
     enableMessageHandlers: function( socket ) {
       var eventNames = Object.keys( this.eventHandlers );
 
+      // closure for eventHandler
+      function createEventHandler( self, eventHandler, socket ) {
+        return function( data ) {
+          if (eventHandler.config.useUserContext) {
+            eventHandler.callback.call( self.getUser( socket ), data ); // method on User
+          } else {
+            eventHandler.callback( self.getUser( socket ), data );      // static call
+          }
+          self.broadcastState();      // update the world every time an event happens?
+        };
+      };
+
       for (var i=0; i < eventNames.length; i++) {
         var eventName = eventNames[i];
         var eventHandler = this.eventHandlers[eventName];
 
         // should this call a method on User?  FIXME
-        var self = this;
-        socket.on( eventName, function handleEvent( data ) {
-                     var user = self.getUser( socket );
-                     eventHandler( user, data );
-
-                     // update the world every time an event happens?
-                     self.broadcastState();
-                   });
-      }
+        socket.on( eventName, createEventHandler( this, eventHandler, socket ));
+     }
     },
 
     broadcastStateFn: function( callback ) {
