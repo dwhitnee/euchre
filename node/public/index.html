@@ -20,40 +20,58 @@
     </form>
   </div>
 
-  <div class="page2">
+
+
+  <div class="page2 container-fluid">
     <div id="stateFOO"></div>
 
-    <div class="lobby">
-      <h3>Lobby</h3>
+    <div class="otherStuff col-xs-6 col-sm-6 col-lg-8">
+      <ul id="messages" class="bottom"></ul>
 
-      <div class="upperHalf container-fluid">
-        <h4>Players</h4>
-        <div id="playerList" class="listBlock"></div>
-      </div>
-
-      <div class="lowerHalf container-fluid table-hover">
-        <h4 class="row">Games</h4>
-        <div  class ="listBlock">
-          <div id="gameList"></div>  <!-- replaced by data -->
-          <form class="row">
-            <div class="col-xs-7 col-sm-7 col-lg-9">
-              <input type="text" name="gameName" />
-            </div>
-            <button class="col-xs-4 col-sm-4 col-lg-2 btn btn-secondary btn-sm">New Game</button>
-          </form>
+      <form name="newMessage" class="textField"  action="">
+        <div class="textFieldContainer">
+          <input class="left" id="msg" autocomplete="off" />
+          <button class="right  btn btn-secondary">Send</button>
         </div>
-      </div>
+      </form>
     </div>
 
-    <ul id="messages" class="bottom"></ul>
+    <div class="col-xs-1 col-sm-1 col-lg-1">
+    </div>
 
-    <form name="newMessage" class="textField"  action="">
-      <div class="textFieldContainer">
-        <input class="left" id="msg" autocomplete="off" />
-        <button class="right  btn btn-secondary">Send</button>
+    <div class="lobby col-xs-5 col-sm-5 col-lg-3">
+      <h3>Lobby</h3>
+
+      <table class="table-hover table-striped" style="width:100%">
+        <thead>
+          <tr><th>Players</th></tr>
+        </thead>
+        <tbody id="playerList">
+        </tbody>
+      </table>
+
+      <div class="lowerHalf">
+        <table class="table-hover table-striped" style="width:100%">
+          <thead>
+            <tr><th>Games</th></tr>
+          </thead>
+          <tbody id="gameList">
+          </tbody>
+          <tbody>
+            <tr><td>
+                <form name="newGameName" class="form-inline" autocomplete="off">
+                <div class="form-inline">
+                  <input type="text" class="form-control" id="gameName" ></input>
+                  <button class="btn btn-secondary btn-sm">New Game</button>
+                </div>
+                </form>
+              </td></tr>
+          </tbody>
+        </table>
       </div>
-    </form>
+    </div>
   </div>
+
 
   <!-- ========================= -->
   <script src="https://code.jquery.com/jquery-2.2.3.min.js" crossorigin></script>

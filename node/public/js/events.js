@@ -11,21 +11,32 @@ function onNewMessage( data ) {
 
 function onStateChange( state ) {
   $('#state').text( JSON.stringify( state ));
+  console.log( JSON.stringify( state ));
 
   $('#playerList').empty();
-  $.each( state.members, function( i, player ) {
-            $('#playerList').append( $("<li/>").text( player.name ));
-          });
-  $('#gameList').empty();
-
-  $.each( state.members, function( i, player ) {
-            $('#gameList').append(
-              $('<div class="row"/>')
-                .append( $('<div class="col-xs-7 col-sm-7 col-lg-9"/>').text( player.name))
-
+  $.each( state.players, function( i, player ) {
+            $('#playerList').append(
+              $('<tr/>').append( $('<td/>').text( player.name ))
             );
           });
 
+  $('#gameList').empty();
+  $("#gameList > tr").off("click");
+  // clear events
+  $.each( state.games, function( i, game ) {
+            $('#gameList').append(
+              $('<tr/>').append( $('<td/>').text( game.name ).attr("game-id", game.id )
+            ));
+          });
+
+  $("#gameList > tr > td").on("click", function( event ) {
+                                var gameId = $(event.target).attr("game-id");
+                                var gameName = $(event.target).text();
+                                if (window.confirm("Join " + gameName + "?")) {
+                                  client.joinGame( gameId );
+                                  console.log("You've joined " + gameName +"("+ gameId +")");
+                                }
+                              });
 };
 
 client.listenForIMs( onNewMessage );
@@ -54,5 +65,14 @@ $('form[name="username"]').submit(
     document.title = name;
     $('.page1').hide();
     $('.page2').show();
+    return false;
+  });
+
+
+// Create a new table on the server
+$('form[name="newGameName"]').submit(
+  function(){
+    var name = $('#gameName').val();
+    client.createGame( name );
     return false;
   });

@@ -36,12 +36,7 @@
 
 .lobby {
   position: fixed;
-  right: 1em;
   height: 90%;
-}
-
-.upperHalf {
-  top: 2em;
 }
 
 .listBlock {
@@ -49,32 +44,20 @@
   background: lightBlue;
   border-radius: 5px;
   padding: 1em;
-  width: 20em;
 }
 
 .lowerHalf {
   position: fixed;
-  right: 1em;
   bottom: 2em;
+  width: inherit;
 }
 
 #playerList { }
 
-#gameList li {
-  padding: .2em;
-  /* text-align: right; */
-  display: flex;
-
-}
-
-#gameList button {
-  display: inline;
-}
-
 .textField {
   background: #00583C;
   padding: .2em;
-  width: 50%;
+  width: inherit;
 }
 
 .row input {
@@ -93,8 +76,7 @@ form[name="username"] {}
 form[name="newMessage"] {
   position: fixed;
   bottom: 0;
-  width: 50%;
-  margin: .5em;
+  margin-bottom: 1em;
   border-radius: .6em;
 }
 
@@ -107,10 +89,9 @@ form[name="newMessage"] {
 
 #messages {
   list-style-type: none;
-  margin: 0;
   padding: 0;
   padding-right: 1em;
-  width: 50%;
+  width: inherit;
 }
 #messages li {
   padding: 5px 10px;

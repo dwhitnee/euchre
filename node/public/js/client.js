@@ -1,9 +1,12 @@
 // Handles sending and receiving messages to remote
 // Open a websocket and send and receive data over it synchronously
 
+// import these? browserify?
 const chatMessageEvent = "chatMessage";
 const setUserNameEvent = "username";
 const stateUpdateEvent = "stateUpdate";
+const newGameNameEvent = "newGameName";
+const joinGameEvent = "joinGame";
 
 var Client = (function()
 {
@@ -23,6 +26,12 @@ var Client = (function()
     setUserName: function( name ) {
       this.socket.emit( setUserNameEvent, name );
       this.username = name;
+    },
+    createGame: function( name ) {
+      this.socket.emit( newGameNameEvent, name );
+    },
+    joinGame: function( name ) {
+      this.socket.emit( joinGameEvent, name );
     },
 
     /**
