@@ -12,10 +12,20 @@ function onNewMessage( data ) {
 function onStateChange( state ) {
   $('#state').text( JSON.stringify( state ));
 
-  $('#playerList').empty().append( $("<ul/>").text("Joined"));
+  $('#playerList').empty();
   $.each( state.members, function( i, player ) {
             $('#playerList').append( $("<li/>").text( player.name ));
           });
+  $('#gameList').empty();
+
+  $.each( state.members, function( i, player ) {
+            $('#gameList').append(
+              $('<div class="row"/>')
+                .append( $('<div class="col-xs-7 col-sm-7 col-lg-9"/>').text( player.name))
+
+            );
+          });
+
 };
 
 client.listenForIMs( onNewMessage );
@@ -42,6 +52,7 @@ $('form[name="username"]').submit(
     client.setUserName( name );
     $("#name").text("Welcome, " + name );
     document.title = name;
-    $('form[name="username"').hide();
+    $('.page1').hide();
+    $('.page2').show();
     return false;
   });

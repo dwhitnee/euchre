@@ -1,22 +1,22 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* assume bootstrap.css included */
+
+.page1 {
+  margin: 1em;
+}
+.page2 {
+  display: none;
 }
 
-body {
-  font: 13px Helvetica, Arial;
-}
 
 /* fixed right element, left el fills remaining space */
-.container {
+.textFieldContainer {
   width: 100%;
   display: flex;
 }
-.container .left {
+.textFieldContainer .left {
   width: 100%;
 }
-.container .right {
+.textFieldContainer .right {
   display: inline-flex;
 }
 
@@ -24,47 +24,78 @@ body {
   font-weight: bold;
 }
 
-
 #state {
   position: fixed;
   top: 10em;
-  right: 1em;
+  left: 1em;
   width: 20em;
   padding: 1em;
   opacity: .80;
   background: lightBlue;
 }
 
-#playerList {
+.lobby {
   position: fixed;
-  top: 2em;
   right: 1em;
-  width: 20em;
-  padding: 1em;
-  opacity: .80;
-  background: lightBlue;
+  height: 90%;
 }
 
-form {
-  background: #000;
+.upperHalf {
+  top: 2em;
+}
+
+.listBlock {
+  opacity: .80;
+  background: lightBlue;
+  border-radius: 5px;
+  padding: 1em;
+  width: 20em;
+}
+
+.lowerHalf {
+  position: fixed;
+  right: 1em;
+  bottom: 2em;
+}
+
+#playerList { }
+
+#gameList li {
+  padding: .2em;
+  /* text-align: right; */
+  display: flex;
+
+}
+
+#gameList button {
+  display: inline;
+}
+
+.textField {
+  background: #00583C;
   padding: .2em;
   width: 50%;
 }
 
+.row input {
+  margin: 0 .3em;
+}
+
+.textField input {
+  border: 0;
+  padding: .33em;
+  margin-right: .3em;
+  border-radius: .4em;
+}
+
+form[name="username"] {}
+
 form[name="newMessage"] {
   position: fixed;
   bottom: 0;
-}
-form input {
-  border: 0;
-  padding: .6em;
-  margin-right: .3em;
-}
-form button {
-  background: rgb(130, 224, 255);
-  border: none;
-  white-space: nowrap;
-  padding: .5em 1em;
+  width: 50%;
+  margin: .5em;
+  border-radius: .6em;
 }
 
 .bottom {  /* bottom scroll area 5 lines of page */

@@ -3,34 +3,61 @@
 <head>
   <title>Welcome</title>
   <link rel="stylesheet" type="text/css" href="css/styles.css">
-</head>
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          crossorigin="anonymous">
+  </head>
 
 <body>
 
-  <div id="name">Please enter your name</div>
+  <div class="page1 form-inline">
+    <form name="username" action="">
+      <div class="form-group">
+        <label for="newUsername">What do you want to be called?</label>
+        <input type="text" class="form-control" id="newUsername" />
+      </div>
+      <button class="btn btn-primary btn-sm">Enter name</button>
+    </form>
+  </div>
 
-  <div id="state"></div>
-  <div id="playerList"></div>
+  <div class="page2">
+    <div id="stateFOO"></div>
 
-  <form name="username" action="">
-    <div class="container">
-      <input class="left" id="newUsername" />
-      <button class="right">Enter Name</button>
+    <div class="lobby">
+      <h3>Lobby</h3>
+
+      <div class="upperHalf container-fluid">
+        <h4>Players</h4>
+        <div id="playerList" class="listBlock"></div>
+      </div>
+
+      <div class="lowerHalf container-fluid table-hover">
+        <h4 class="row">Games</h4>
+        <div  class ="listBlock">
+          <div id="gameList"></div>  <!-- replaced by data -->
+          <form class="row">
+            <div class="col-xs-7 col-sm-7 col-lg-9">
+              <input type="text" name="gameName" />
+            </div>
+            <button class="col-xs-4 col-sm-4 col-lg-2 btn btn-secondary btn-sm">New Game</button>
+          </form>
+        </div>
+      </div>
     </div>
-  </form>
 
-  <ul id="messages" class="bottom"></ul>
+    <ul id="messages" class="bottom"></ul>
 
-  <form name="newMessage" action="">
-    <div class="container">
-      <input class="left" id="msg" autocomplete="off" />
-      <button class="right">Send</button>
-    </div>
-  </form>
-
+    <form name="newMessage" class="textField"  action="">
+      <div class="textFieldContainer">
+        <input class="left" id="msg" autocomplete="off" />
+        <button class="right  btn btn-secondary">Send</button>
+      </div>
+    </form>
+  </div>
 
   <!-- ========================= -->
-  <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js" crossorigin></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin></script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/client.js"></script>
   <script src="js/events.js"></script>
