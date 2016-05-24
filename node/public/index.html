@@ -11,7 +11,7 @@
 <body>
 
   <div class="page1 form-inline">
-    <form name="username" action="">
+    <form name="login" action="">
       <div class="form-group">
         <label for="newUsername">What do you want to be called?</label>
         <input type="text" class="form-control" id="newUsername" />
@@ -21,51 +21,60 @@
   </div>
 
 
-
+  <!-- two column with top and bottom parts in each -->
   <div class="page2 container-fluid">
-    <div id="stateFOO"></div>
 
-    <div class="otherStuff col-xs-6 col-sm-6 col-lg-8">
-      <ul id="messages" class="bottom"></ul>
+    <div class="tallColumn col-xs-12 col-sm-6 col-lg-8">
 
-      <form name="newMessage" class="textField"  action="">
-        <div class="textFieldContainer">
-          <input class="left" id="msg" autocomplete="off" />
-          <button class="right  btn btn-secondary">Send</button>
+      <div id="gameBoard" class="">
+        <div class="gameName">
         </div>
-      </form>
+      </div>
+
+
+      <div class="messageArea">
+        <form name="newMessage" class="textInputBox"  action="">
+          <div class="flex-2-col">
+            <input class="left-flex" id="msg" autocomplete="off" />
+            <button class="right-fixed  btn btn-secondary">Send</button>
+          </div>
+        </form>
+
+        <ul id="messages" class="bottomScrollArea"></ul>
+      </div>
     </div>
 
-    <div class="col-xs-1 col-sm-1 col-lg-1">
-    </div>
 
-    <div class="lobby col-xs-5 col-sm-5 col-lg-3">
-      <h3>Lobby</h3>
+    <div class="tallColumn lobby col-xs-5 col-sm-5 col-lg-3">
+      <h3></h3>
 
-      <table class="table-hover table-striped" style="width:100%">
+      <div class="top">
+      <table class="table-striped wide">
         <thead>
           <tr><th>Players</th></tr>
         </thead>
         <tbody id="playerList">
         </tbody>
       </table>
+      </div>
 
-      <div class="lowerHalf">
-        <table class="table-hover table-striped" style="width:100%">
+      <div class="bottom">
+        <table class="table-hover wide">
           <thead>
-            <tr><th>Games</th></tr>
+            <tr><th>Join a game</th></tr>
           </thead>
           <tbody id="gameList">
           </tbody>
           <tbody>
             <tr><td>
-                <form name="newGameName" class="form-inline" autocomplete="off">
-                <div class="form-inline">
-                  <input type="text" class="form-control" id="gameName" ></input>
-                  <button class="btn btn-secondary btn-sm">New Game</button>
-                </div>
-                </form>
-              </td></tr>
+              <form name="newGameName" autocomplete="off">
+              <div class="flex-2-col">
+                <input type="text" class="form-control left-flex" id="gameName"></input>
+                <button class="btn btn-primary btn-sm right-button
+                               right-fixed">Set up a New Game</button>
+              </div>
+              </form>
+            </td></tr>
           </tbody>
         </table>
       </div>

@@ -2,6 +2,7 @@ Simple chat server that uses Websockets
 ===
 
     npm install express
+    npm install body-parser
     npm install --save socket.io
 
     NODE_PATH=lib; node server.js

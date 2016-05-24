@@ -3,33 +3,83 @@
 
 // import these? browserify?
 const chatMessageEvent = "chatMessage";
-const setUserNameEvent = "username";
-const stateUpdateEvent = "stateUpdate";
 const newGameNameEvent = "newGameName";
-const joinGameEvent = "joinGame";
+const joinGameEvent    = "joinGame";
+
+const lobbyStateUpdateEvent = "lobbyStateUpdate";
+const gameStateUpdateEvent  = "gameStateUpdate";
+
+const newUserEvent  = "newUser";
+
 
 var Client = (function()
 {
   function Client() {
-    this.socket = io();  // Socket.io websocket
+    // how do we re-eastablish a previous session with the server if
+    // this was just a page reload?
   };
 
   Client.prototype = {
+    /**
+     * Open socket and "authenticate" (associate player object with socket)
+     * This should connect us to the server's "lobby" braodcast channel at first,
+     * and later a "game" multicast channel.
+     * That logic is on the server side.
+     */
+    connectToServer: function( player ) {
+      if (!this.socket) {
+        this.socket = io();  // Socket.io websocket
+      }
+      this.socket.emit( newUserEvent, player );
+    },
+
     /**
      * Talkers
      */
     sendIM: function( msg ) {
       this.socket.emit( chatMessageEvent, msg );  // server can figure out who sent this
-      // this.socket.emit('messageEvent', { user: this.username,
-      //                                    msg: msg } );
     },
-    setUserName: function( name ) {
-      this.socket.emit( setUserNameEvent, name );
-      this.username = name;
+
+
+    /**
+     * Connect with server, get player id and open socket
+     * @return Promise with player object
+     */
+    login: function( name ) {
+      // this.username = name;
+
+      return new Promise(
+        function(resolve, reject) {
+          $.ajax("/login", {
+                   data : JSON.stringify({ name: name}),
+                   contentType : 'application/json',
+                   type : 'POST'
+                 })
+            .done( function( data ) {
+                     var player = data;  // cache player somewhere?
+                     this.setAuthInfo( player.id );
+
+                     resolve( player );
+                   })
+            .fail( reject );
+        });
     },
+    /**
+     * Add authentication info to each request.  Crappy right now, just playerId
+     * @param authTOekn add auth header to all further requests
+     */
+    setAuthInfo: function( authToken ) {
+      $.ajaxSetup({
+                    beforeSend: function(xhr) {
+                      xhr.setRequestHeader('x-userid', authToken );
+                    }
+                  });
+    },
+
     createGame: function( name ) {
       this.socket.emit( newGameNameEvent, name );
     },
+
     joinGame: function( name ) {
       this.socket.emit( joinGameEvent, name );
     },
@@ -40,9 +90,13 @@ var Client = (function()
     listenForIMs: function( callback ) {
       this.socket.on( chatMessageEvent, callback );
     },
-    listenForStateChange: function( callback ) {
-      this.socket.on( stateUpdateEvent, callback );
+    listenForLobbyStateChange: function( callback ) {
+      this.socket.on( lobbyStateUpdateEvent, callback );
+    },
+    listenForGameStateChange: function( callback ) {
+      this.socket.on( gameStateUpdateEvent, callback );
     }
+
   };
 
   return Client;

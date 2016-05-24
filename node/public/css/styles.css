@@ -7,18 +7,16 @@
   display: none;
 }
 
+#gameBoard {
+  margin: 1em 0;
+  border: .4em solid #B8860B;
+  height: 20em;
+  background: #66aa66;
+}
+#gameBoard .gameName {
+  padding-left: 10em;
+}
 
-/* fixed right element, left el fills remaining space */
-.textFieldContainer {
-  width: 100%;
-  display: flex;
-}
-.textFieldContainer .left {
-  width: 100%;
-}
-.textFieldContainer .right {
-  display: inline-flex;
-}
 
 #name {
   font-weight: bold;
@@ -35,68 +33,92 @@
 }
 
 .lobby {
-  position: fixed;
+/*  position: fixed; */
   height: 90%;
 }
 
-.listBlock {
-  opacity: .80;
-  background: lightBlue;
-  border-radius: 5px;
-  padding: 1em;
-}
-
-.lowerHalf {
-  position: fixed;
-  bottom: 2em;
-  width: inherit;
-}
-
-#playerList { }
-
-.textField {
-  background: #00583C;
-  padding: .2em;
-  width: inherit;
+.tallColumn {
+  height:100%;
 }
 
 .row input {
   margin: 0 .3em;
 }
 
-.textField input {
+.textInputBox {
+  background: #00583C;
+  padding: .2em;
+}
+.textInputBox input {
   border: 0;
-  padding: .33em;
   margin-right: .3em;
   border-radius: .4em;
 }
 
-form[name="username"] {}
-
 form[name="newMessage"] {
+/*
   position: fixed;
   bottom: 0;
   margin-bottom: 1em;
+*/
   border-radius: .6em;
 }
 
-.bottom {  /* bottom scroll area 5 lines of page */
+.bottomScrollArea {
   height: 30%;
+/*
   position: fixed;
   bottom: 2.5em;
+*/
   overflow: scroll;
 }
 
+.lowerHalf {
+/*  position: fixed;
+  bottom: 2em;
+  width: inherit;
+*/
+}
+
+
+/* fixed right element, left el fills remaining space */
+.flex-2-col {  /* parent */
+  display: flex;
+}
+.left-flex {
+  width :100%;
+}
+.right-fixed {
+  display: inline-flex;
+}
+
+.wide {
+  width: 100%;
+}
+/* for child in a position: relative parent */
+.align-right {
+  position: absolute;
+  right:0;
+}
+
+.top {
+  height:20em;
+}
+.bottom {
+  height:20em;
+}
+.messageArea {
+  height: 50em;
+}
 #messages {
   list-style-type: none;
   padding: 0;
   padding-right: 1em;
-  width: inherit;
+  border: 1px solid #ccc;
 }
 #messages li {
-  padding: 5px 10px;
+  padding: .3em .6em;
 }
-
 #messages li:nth-child(odd) {
   background: #eee;
 }
