@@ -69,7 +69,7 @@ var Handlers = {
 
     // notify player left lobby
     Game.getLobby().sendLobbyState();
-    Game.getLobby().sendChat("Joined " + game.name, player );
+    Game.getLobby().sendChat("[Joined " + game.name + "]", player );
   },
 
   /**

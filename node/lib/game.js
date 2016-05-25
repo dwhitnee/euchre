@@ -31,7 +31,7 @@ var Game = (function()
     delete: function() {
       _games[this.id] = undefined;
       _gameNames[this.name] = undefined;
-      switchboard.deleteRoom( this.getChatRoomName() );
+      _switchboard.deleteRoom( this.getChatRoomName() );
     },
 
     reset: function() {
@@ -58,13 +58,14 @@ var Game = (function()
       }
 
       this.players[player.id] = player;
-      switchboard.joinRoom( player.id, game.getChatRoomName() );
+      _switchboard.joinRoom( player.id, game.getChatRoomName() );
       player.setGameId( game.id );
-
     },
 
     /**
-     * Remove player from room and chair (if occupied)
+     * Not necessary to call externally, addPlayer handles cleanup.
+     * Remove player from game room and chair (if occupied)
+     * switchboard handles its own cleanup, too
      */
     removePlayer: function( player ) {
       // delete this.players[player.id];    // bad performance?
@@ -73,6 +74,7 @@ var Game = (function()
       for (var i=0; i < 4; i++) {
         if (this.seats[i].id === player.id) {
           this.seats[i] = undefined;
+          this.setAction( WAITING_TO_START );
           // FIXME - if game started, need to abandon/pause?
         }
       }
@@ -125,6 +127,7 @@ var Game = (function()
     },
 
 
+    // name for webSocket multicast room
     getChatRoomName: function() {
       return this.id;
     },
@@ -137,13 +140,13 @@ var Game = (function()
         user: from.name,
         msg: msg
       };
-      switchboard.multicast( this.getChatRoomName(), chatMessageEvent, data );
+      _switchboard.multicast( this.getChatRoomName(), chatMessageEvent, data );
       console.log( from.name + ": " + msg);
     },
 
     // Tell all members of game our current state
     sendState: function() {
-      switchboard.multicast( this.getChatRoomName(), gameStateUpdateEvent, this );
+      _switchboard.multicast( this.getChatRoomName(), gameStateUpdateEvent, this );
     },
     sendLobbyState: function() {
       var data = {
@@ -151,7 +154,7 @@ var Game = (function()
         games: _games,
         gameNames: _gameNames
       };
-      switchboard.multicast( this.name, gameStateUpdateEvent, data );
+      _switchboard.multicast( this.name, gameStateUpdateEvent, data );
     }
   };
 
@@ -163,12 +166,17 @@ var Game = (function()
 //----------------------------------------------------------------------
 var _games = {};
 var _gameNames = {}; // hash of game names so client can display and check for uniqueness
+var _switchboard;
 
 /**
  * Special "game" that holds all players not in a game.
  */
 Game.getLobby = function() {
   return _lobby;
+};
+
+Game.setSwitchboard = function( switchboard ) {
+  _switchboard = switchboard;
 };
 
 /**
@@ -193,7 +201,6 @@ Game.getByName = function( name ) {
 
 
 Game.getByPlayerId = function( playerId ) {
-
   return _games[id];
 };
 

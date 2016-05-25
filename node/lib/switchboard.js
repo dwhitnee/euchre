@@ -5,8 +5,19 @@
  * Can broadcast events and manages join/leave events.
  *
  * First a "connect" event happens, then the client must tell us what User object is
- * talking on that socket. Then the server can
+ * talking on that socket. Then the server can link userIds and sockets.
  *
+ * Generally it is easiest for WebSockets to be used as a push-only mechanism.
+ * If the client wants to pass data to us, a POST is easier to manage.
+ *
+ * Theoretically an http POST and a socket event can be handled
+ * equally well since we know who is calling (authentication) in both
+ * cases. In practice the framework for handling POSTs is cleaner than
+ * registering a bunch of event handlers.
+ *
+ *
+ *
+ * DEPRECATED: (event handlers are hard to manage and POSTs are much cleaner for input)
  * Must call onUserJoin() that returns a user object if you want that passed
  * back in event handlers
 
@@ -47,7 +58,8 @@ var Switchboard = (function()
     this.switchboard = io.attach( http );  // attach to server port for WebSocket connections
 
     this.eventHandlers = [];
-    this.users = {};  // keyed by socket.id
+    this.users = {};    // keyed by socket.id
+    this.sockets = {};  // keyed by user.id
     this.rooms = {};  // collections of users
 
     var self = this;  // crappy bind (use arrow notation?)
@@ -59,13 +71,8 @@ var Switchboard = (function()
       function( socket ) {
         console.log( socket.id );
 
-        // FIXME: how to manage rooms of users?  Do we need a list, or
-        // can socket.io do it for us?
-
-        // at this point we only have a socket in a list, we don't have a user object yet
-        this.addConnection( socket );
-
         // listen for all events on this new socket
+        // most importantly the "newUser" event so we can authenticate the user on this socket
         self.enableMessageHandlers( socket );
 
         socket.on('disconnect', function() {
@@ -79,7 +86,7 @@ var Switchboard = (function()
     // Auth Filter
     // this.switchboard.use(
     //   function( socket, next ) {
-    //     if (socket.request.headers.cookie) {
+    //     if (socket.request.headers["x-userid"]) {
     //       return next();
     //     } else {
     //       next(new Error('Authentication error'));
@@ -87,9 +94,43 @@ var Switchboard = (function()
     //   });
   };
 
+
   Switchboard.onNewUserEvent = "newUser";
 
   Switchboard.prototype = {
+    /**
+     * Tell a group of clients what's going on
+     * @param room multicast group of clients to send to
+     * @param messageType
+     * @param data to send
+     *
+     * state: NEWGAME, NEWHAND, BIDDING, PLAYING ?
+     */
+    multicast: function( room, messageType, data ) {
+      this.switchboard.to( room ).emit( messageType, data );
+    },
+
+    /**
+     *  associate user data with this socket to be passed to event handlers
+     *  Check to see if this user exists and/or is already connected.
+     */
+    associateUserData: function( socket, userdata ) {
+      console.log("User " + user.name + "(" + user.id+ ") -> " + socket.id );
+
+      // check all sockets for identical user data?  Handled outside switchboard?
+
+      this.users[socket.id] = userdata;
+      this.sockets[userdata.id] = socket;
+    },
+
+    /**
+     * Get the object (userid) associated with this socket (who we think we're talking to)
+     * Authenticated?
+     */
+    getUserData: function( socket ) {
+      return this.users[socket.id];
+    },
+
     /**
      * Create multicast group, id is name since we own it and wont change it
      * @param name internal id of room
@@ -97,14 +138,12 @@ var Switchboard = (function()
     createRoom: function( name ) {
       this.rooms[name] = {};
     },
-    // joinRoom: function( socket, name ) {
-    //   this.rooms[name][socket.id] = 1;
-    //   socket.join( name );
-    // },
     /**
      * Join a new multicast group (and leave old one if any)
      */
-    joinRoom: function( socket, room ) {
+    // joinRoom: function( socket, room ) {
+    joinRoom: function( userId, room ) {
+      var socket = this.getSocketForUserId( userId );
       var oldRoom = this.getRoomForSocket( socket.id );
 
       if (oldRoom) {
@@ -114,6 +153,10 @@ var Switchboard = (function()
 
       socket.join( room );
       this.rooms[room][socket.id] = 1;
+    },
+
+    getSocketForUserId: function( userId ) {
+      return this.sockets[userId];
     },
 
     getRoomForSocket: function( socketId ) {
@@ -127,46 +170,32 @@ var Switchboard = (function()
       return undefined;  // oops!  This socket is not mapped to any room.
     },
 
-    // disconnect: function( socket ) {
-    //   // socket.io automatically removes sockets from Rooms
-    // },
 
-    /**
-     * Tell a group of clients what's going on
-     * @param room multicast group of clients to send to
-     * @param messageType
-     * @param data to send
-     *
-     * state: NEWGAME, NEWHAND, BIDDING, PLAYING ?
-     */
-    multicast: function( room, messageType, data ) {
-      this.switchboard.to( room ).emit( messageType, data );
-    },
     /**
      * Something about this socket changed, tell others in the same channel
      */
-    broadcastUpdateToRoom: function( socket ) {
-      var room = this.getRoomNameFromSocket( socket.id );
+    // broadcastUpdateToRoom: function( socket ) {
+    //   var room = this.getRoomNameFromSocket( socket.id );
 
-      var updateCallback = this.getUpdateFnForRoom( room );
+    //   var updateCallback = this.getUpdateFnForRoom( room );
 
-      // callback to create message? eventName and data
-      var self = this;
-      updateCallback( function( updateEvent, data ) {
-                        self.multicast( room, updateEvent, data );
-                      } );
+    //   // callback to create message? eventName and data
+    //   var self = this;
+    //   updateCallback( function( updateEvent, data ) {
+    //                     self.multicast( room, updateEvent, data );
+    //                   } );
 
-      // where does eventType and data come from?  FIXME?
+    //   // where does eventType and data come from?  FIXME?
 
-      this.multicast( room, updateEvent, data );
-    },
+    //   this.multicast( room, updateEvent, data );
+    // },
 
-    getUpdateFnForRoom: function updateRoom( room ) {
-      return this.updateFns[room];
-    },
+    // getUpdateFnForRoom: function updateRoom( room ) {
+    //   return this.updateFns[room];
+    // },
 
     /**
-     * call this function( data, user ) when this event (message) occurs
+     * call this function(data, user) when this event (message) occurs
      * passes the data from the event payload, and the User who sent the message.
      */
     addMessageHandler: function( eventName, callback, config ) {
@@ -191,7 +220,7 @@ var Switchboard = (function()
       var self = this;
       socket.on( Switchboard.onNewUserEvent, function( user ) {
                    self.associateUserData( socket, user );
-                   self.broadcastUpdateToRoom( socket );  // introduce new guy to the group
+                   self.callOnUserJoinCB( user );
                  });
 
       var eventNames = Object.keys( this.eventHandlers );
@@ -206,9 +235,9 @@ var Switchboard = (function()
           }
 
           // update the user's world every time an event happens
-          if (eventHandler.config.broadcastOnUpdate !== false) {
-            self.broadcastUpdateToRoom( socket );
-          }
+          // if (eventHandler.config.broadcastOnUpdate !== false) {
+          //   self.broadcastUpdateToRoom( socket );
+          // }
         };
       };
 
@@ -216,49 +245,25 @@ var Switchboard = (function()
         var eventName = eventNames[i];
         var eventHandler = this.eventHandlers[eventName];
 
-        // should this call a method on User?  FIXME
+        // should this call a method on User?  FIXME  nah
         socket.on( eventName, createEventHandler( this, eventHandler, socket ));
      }
     },
 
-    setBroadcastStateFn: function( callback ) {
-      if (callback instanceof Function) {
-        this.broadcastState = callback;
-      } else {
-        console.error("broadcastState callback is not a function");
-      }
-    },
+
+
 
     /**
      * callback( socket ) when we get a new connection.
      * We don't know anything about the user at this point, just a socket.
      * FIXME (can we reconnect an old session?)
      */
-    // onUserJoin: function( callback ) {
-    //   if (callback instanceof Function) {
-    //     this.userJoinCB = callback;
-    //   } else {
-    //     console.error("onUserJoin callback is not a function");
-    //   }
-    // },
-
-    // onConnect. We only have a socketId at this point, no user data
-    addConnection: function( socket ) {
-      this.users[socket.id] = {};      // To be filled with user data by associateUser
-
-      // socket.join( d );   // later we will join a game room
-    },
-
-    /**
-     *  associate user data with this socket to be passed to event handlers
-     *  Check to see if this user exists and/or is already connected.
-     */
-    associateUserData: function( socket, userdata ) {
-      console.log("User " + user.name + "(" + user.id+ ") -> " + socket.id );
-
-      // check all sockets for identical user data?  Handled outside switchboard?
-
-      this.users[socket.id] = userdata;
+    onUserJoin: function( callback ) {
+      if (callback instanceof Function) {
+        this.userJoinCB = callback;
+      } else {
+        console.error("onUserJoin callback is not a function");
+      }
     },
 
     /**
@@ -273,52 +278,28 @@ var Switchboard = (function()
     },
 
     /**
-     * accessors for users by socketId, a user is defined by setUser() by the consumer
+     * things that should happen when a new user connects
      */
-    getUserData: function( socket ) {
-      return this.users[socket.id];
+    callOnUserJoinCB: function( user ) {
+      if (this.userJoinCB instanceof Function) {
+        this.userJoinCB( user );
+      } else {
+        console.error( socket.id + " does not have a valid userJoin handler");
+      }
     },
 
-    // we can have socket "rooms" for each game
-    createRoom: function( name ) {
-      var room = new Room( name );
-      this.rooms[room.id] = room;
-    },
-    getRoom: function( roomId ) {
-      return this.rooms[roomId];
-    },
-    changeRoom: function( room, socket ) {
-      var user = this.getUserData( socket );
-      room.bootUser( user );
-      room.addUser( user );
-      // if (user.room) {
-      //   socket.leave( user.room );
-      // }
-      // socket.join( room );
-      // user.room = room;
-    },
-
-    removeFromGroup: function( group, socket ) {
-      // ???
-    },
-    multicast: function( group, msg ) {
-      io.to( group.name ).emit( msg );
-    },
-
-    // addUser: function( socket ) {
-    //   if (this.userJoinCB instanceof Function) {
-    //     this.users[socket.id] = this.userJoinCB(); // pass socket? // new Player() ?
-    //   } else {
-    //     console.error( scocket.id + " does not have a valid userJoin handler");
-    //   }
-    // },
+    /**
+     * we lost the connection with this user, what do we need to do to allow a reconnect
+     * on a new socket?
+     */
     removeUser: function( socket )  {
       if (this.userLeaveCB instanceof Function) {
         this.userLeaveCB( this.getUserData( socket ));
       } else {
-        console.error( scocket.id + " does not have a valid userLeave handler");
+        console.log( scocket.id + " does not have a userLeave handler");
       }
 
+      this.sockets[this.getUserData(socket).id] = undefined;
       this.users[socket.id] = undefined;
     }
   };

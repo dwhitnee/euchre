@@ -9,11 +9,6 @@ app.use(bodyParser.json());  // parse application/json  LAME!
 
 var euchreRouter = require('requestHandlers/gameResponses');
 
-
-const LOBBY_NAME = "Lobby";
-const GAME_PREFIX = "Game";
-
-
 var Switchboard = require("switchboard"),
     Player = require("player"),
     Game = require("game");
@@ -22,65 +17,39 @@ var AuthRequestHandlers = require("requestHandlers/auth");
 require("requestHandlers/game");
 
 
-var gameServer = new Switchboard( http );  // manages communications to/from players
+var socketManager = new Switchboard( http );  // manages communications to/from players
 
-gameServer.createRoom( LOBBY, { default: true });
+Game.setSwitchboard( socketManager );
 
+// Add new player to Lobby and tell everyone
+socketManager.onUserJoin( function( user ) {
+                            var player = Player.getById( user.id );
+                            Game.getLobby().addPlayer( player );
+                            Game.getLobby().sendLobbyState();
+                            Game.getLobby().sendChat("[Joined]", player );
+                          }
+                        );
 
-
-/**
- * Create data structure, add Creator to game, tell Lobby about new Game
- */
-function createGame( player, data ) {
-  var msg = "Created a new game called " + data;
-  console.log( player.name + msg );
-
-  // check name uniqueness?  TBD, on client currently which is stupid(?)
-  var game = new Game( data );
-  games[game.id] = game;
-  gameNames[data] = game.id;
-
-  game.addPlayer( player );
-
-  gameServer.broadcastUpdateToRoom( );
-  newChatMessage( player, msg );
-};
-
-
-// THE BIG PROBLEM, associating a PLayer object with it's socket group
-function newPlayer() {
-  switchboard.associateUserData( socket, user );
-}
-
-
-/**
- * UserConnects (added to Lobby)
- * ChatMessage (sent to current room)
- * CreateGame
- * DisbandGame
- * JoinGame
- *
- * Fundamental problem is associating sockets and Players, ioRooms and Games
- */
-
-gameServer.addMessageHandler( newPlayerEvent, newPlayer );
-
-// gameServer.onUserJoin( function() {
-//                          var player =  new Player();
-//                          players[player.id] = player;
-//                          return player;  // so Switchboard can hand this back to us on events
-//                        });
-gameServer.onUserLeave( function( player ) {
-                          players[player.id] = undefined;
-                          console.log( player.name + " disconnected");
-                        });
+// player lost connection, remove from game and update state
+socketManager.onUserLeave( function( user ) {
+                             var player = Player.getById( user.id );
+                             var game = Game.getById( player.getGameId() );
+                             if (game) {
+                               game.sendChat("[Lost connection]", player );
+                               game.removePlayer( player );
+                               game.sendState();
+                             } else {
+                               Game.getLobby().sendChat("[Lost connection]", player );
+                               Game.getLobby().sendLobbyState();
+                             }
+                           }
+                         );
 
 
 
 // assets and route handlers
 app.use("/", express.static(__dirname + '/public'));
 app.use('/game', euchreRouter);
-
 app.post('/login', AuthHandler.login );
 
 // Single page app
