@@ -48,7 +48,7 @@ var Switchboard = (function()
 
     this.eventHandlers = [];
     this.users = {};  // keyed by socket.id
-    this.groups = {};  // colection of users
+    this.rooms = {};  // collections of users
 
     var self = this;  // crappy bind (use arrow notation?)
 
@@ -94,31 +94,37 @@ var Switchboard = (function()
      * Create multicast group, id is name since we own it and wont change it
      * @param name internal id of room
      */
-    createGroup: function( name ) {
-      this.groups[name] = {};
+    createRoom: function( name ) {
+      this.rooms[name] = {};
     },
-    joinGroup: function( socket, name ) {
-      this.groups[name][socket.id] = 1;
-      socket.join( name );
-    },
-    changeGroup: function( socket, newGroupName ) {
-      var oldGroupName = this.getGroupForSocket( socket.id );
+    // joinRoom: function( socket, name ) {
+    //   this.rooms[name][socket.id] = 1;
+    //   socket.join( name );
+    // },
+    /**
+     * Join a new multicast group (and leave old one if any)
+     */
+    joinRoom: function( socket, room ) {
+      var oldRoom = this.getRoomForSocket( socket.id );
 
-      socket.leave( oldGroupName );
-      socket.join( newGroupName );
+      if (oldRoom) {
+        socket.leave( oldRoom );
+        this.rooms[oldRoom][socket.id] = undefined;
+      }
 
-      this.groups[newGroupName][socket.id] = 1;
-      this.groups[oldGroupName][socket.id] = undefined;
+      socket.join( room );
+      this.rooms[room][socket.id] = 1;
     },
-    getGroupForSocket: function( socketId ) {
-      for (var name in this.groups) {
-        if (this.groups[name][socketId]) {
+
+    getRoomForSocket: function( socketId ) {
+      for (var name in this.rooms) {
+        if (this.rooms[name][socketId]) {
           return name;
         }
       }
 
-      console.error("Could not find a group membership for socket " + socketId );
-      return undefined;  // oops!  This socket is not mapped to any group.
+      console.error("Could not find a room membership for socket " + socketId );
+      return undefined;  // oops!  This socket is not mapped to any room.
     },
 
     // disconnect: function( socket ) {

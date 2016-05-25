@@ -2,8 +2,6 @@
 // One guy, and the Factory that makes them.
 //----------------------------------------------------------------------
 
-var players = {};
-
 var Player = (function()
 {
   var nextId = 100;
@@ -21,16 +19,16 @@ var Player = (function()
       this.name = name;
       console.log('New player! ' + this.name );
     },
-    joinGame: function( game ) {
-      this.gameId = game.id;
-      console.log( this.name + ' joined ' + game.name );
+    getGameId: function() {
+      return this.gameId;
     },
-    isInAGame: function() {
-      return !!this.gameId;
+    setGameId: function( gameId ) {
+      this.gameId = gameId;
     },
+
     quit: function quit() {
       console.log( this.name  + " left.  Awww");
-      // disconnected, save state?
+      // disconnected, save state?  FIXME
     }
   };
   return Player;
@@ -40,11 +38,12 @@ var Player = (function()
 //----------------------------------------------------------------------
 //    PlayerFactory
 //----------------------------------------------------------------------
+var _players = {};
 
 /**
  * @return player oject by name
  */
-Player.getPlayerByName = function( name ) {
+Player.getByName = function( name ) {
   for (var id in _players) {    // $.each also works, but no good analog yet
     var player = _players[id];
     if (player.name === name) {
@@ -57,7 +56,7 @@ Player.getPlayerByName = function( name ) {
 /**
  * @return player oject by name
  */
-Player.getPlayerById = function( id ) {
+Player.getById = function( id ) {
   return _players[id];
 };
 
@@ -65,7 +64,7 @@ Player.getPlayerById = function( id ) {
  * Create a new player and add to the pool
  */
 Player.newPlayer = function( name ) {
-  var player = Player.getPlayerByName( name );
+  var player = Player.getByName( name );
 
   if (!player) {
     player = new Player( name );

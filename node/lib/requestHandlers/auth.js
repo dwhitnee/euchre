@@ -4,6 +4,7 @@
  */
 
 var Player = require("player");
+var Game = require("game" );  // just for the Lobby
 
 
 var AuthRequestHandler = {
@@ -30,7 +31,9 @@ var AuthRequestHandler = {
       response.writeHead(200, {"Content-Type": "application/json"});
       response.json({ player: player });
 
-      // tell the world about new player in newUser event handler
+      // tell the world about new player
+      Game.getLobby().addPlayer( player );
+      Game.getLobby().sendState();
 
     } else {
       response.writeHead( 400, {"Content-Type": "application/json"});

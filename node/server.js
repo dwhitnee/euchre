@@ -25,33 +25,7 @@ require("requestHandlers/game");
 var gameServer = new Switchboard( http );  // manages communications to/from players
 
 gameServer.createRoom( LOBBY, { default: true });
-gameServer.createRoom( GAME+"01");
 
-
-var games = {};
-var gameNames = {};
-
-// import these shared with client?  NOPE, see euchreRouter
-const chatMessageEvent = "chatMessage";
-const newGameNameEvent = "newGameName";
-const joinGameEvent = "joinGame";
-
-const lobbyStateUpdateEvent = "lobbyStateUpdate";
-const gameStateUpdateEvent  = "gameStateUpdate";
-
-
-
-
-// FIXME: we need the notion of a Game (set of players) to broadcast to
-function newChatMessage( player, data ) {
-  console.log('message from ' + player.getName() +  ': ' + data);
-
-  // lobby.broadcast( ...
-  gameServer.broadcast( chatMessageEvent, {
-                         user: player.name,
-                         msg: data
-                       });
-};
 
 
 /**
@@ -78,24 +52,6 @@ function newPlayer() {
   switchboard.associateUserData( socket, user );
 }
 
-function joinGame( player, gameId ) {
-  var game = games[gameId];
-  var msg = "Joined " + game.name;
-  console.log( player.name + msg );
-
-  if (player.isInAGame()) {
-    games[player.gameId].removePlayer( player );
-  }
-
-  // player.joinGame( game );  // both needed?
-  game.addPlayer( player );
-
-  gameServer.broadcastState();
-
-  newChatMessage( player, msg );
-};
-
-
 
 /**
  * UserConnects (added to Lobby)
@@ -107,18 +63,7 @@ function joinGame( player, gameId ) {
  * Fundamental problem is associating sockets and Players, ioRooms and Games
  */
 
-// handlers take a user and braodcast state afterwards
-// These are ridiculous, they should be POSTs
-
-gameServer.addMessageHandler( chatMessageEvent, newChatMessage );
-gameServer.addMessageHandler( newGameNameEvent, createGame );
-gameServer.addMessageHandler( joinGameEvent, joinGame );
 gameServer.addMessageHandler( newPlayerEvent, newPlayer );
-
-// gameServer.addMessageHandler( setUserNameEvent, Player.prototype.setPlayer, {
-//                                 useUserContext: true
-//                               } );
-
 
 // gameServer.onUserJoin( function() {
 //                          var player =  new Player();
@@ -129,29 +74,6 @@ gameServer.onUserLeave( function( player ) {
                           players[player.id] = undefined;
                           console.log( player.name + " disconnected");
                         });
-
-
-//
-function updateState( broadcastFn ) {
-  console.log("Updating room");
-  broadcasFn( lobbyStateUpdate, {
-                players: players,
-                games: games,
-                gameNames: gameNames
-              });
-};
-
-// WTF?  We need several types of these  FIXME
-gameServer.setBroadcastStateFn(
-  function( player ) {
-    gameServer.broadcast( lobbyStateUpdateEvent, {
-                            players: players,
-                            games: games,
-                            gameNames: gameNames
-                          });
-  }
-);
-
 
 
 

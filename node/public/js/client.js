@@ -26,11 +26,11 @@ var Client = (function()
      * and later a "game" multicast channel.
      * That logic is on the server side.
      */
-    connectToServer: function( player ) {
+    connectToServer: function() {
       if (!this.socket) {
         this.socket = io();  // Socket.io websocket
       }
-      this.socket.emit( newUserEvent, player );
+      this.socket.emit( newUserEvent, this.user );
     },
 
     /**
@@ -56,10 +56,9 @@ var Client = (function()
                    type : 'POST'
                  })
             .done( function( data ) {
-                     var player = data;  // cache player somewhere?
-                     this.setAuthInfo( player.id );
-
-                     resolve( player );
+                     this.user = data;      // the id/name of this player
+                     this.setAuthInfo( user.id );
+                     resolve( user );
                    })
             .fail( reject );
         });
