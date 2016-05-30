@@ -39,10 +39,8 @@
 
 
 var Server = require('socket.io');
-var io = new Server();
+var socket = new Server();
 
-// FIXME, this should probably be configurable from outside
-// names of socket.io Rooms.  Rooms are only visible on server side
 // Namespaces can be used by the client.  Should server do the room management or client?
 // I think server.  Client is just connected to the server and gets the messages the server
 // thinks it should receive.  Lobby messages at login, and game messages when playing.
@@ -53,9 +51,10 @@ var Switchboard = (function()
   /**
    * Open a multicast connection on this http port
    */
-  function Switchboard( http ) {
+  function Switchboard( httpServer ) {
 
-    this.switchboard = io.attach( http );  // attach to server port for WebSocket connections
+    // listen on http port for WebSocket connections
+    this.socket = this.connectSocket( httpServer );
 
     this.eventHandlers = [];
     this.users = {};    // keyed by socket.id
@@ -66,10 +65,10 @@ var Switchboard = (function()
 
     // a client has opened up a socket to us.
     // we don't know anything about the client yet
-    this.switchboard.on(
+    this.socket.on(
       'connection',
       function( socket ) {
-        console.log( socket.id );
+        console.log("New socket connection " + socket.id );
 
         // listen for all events on this new socket
         // most importantly the "newUser" event so we can authenticate the user on this socket
@@ -84,7 +83,7 @@ var Switchboard = (function()
       });
 
     // Auth Filter
-    // this.switchboard.use(
+    // this.socket.use(
     //   function( socket, next ) {
     //     if (socket.request.headers["x-userid"]) {
     //       return next();
@@ -98,6 +97,11 @@ var Switchboard = (function()
   Switchboard.onNewUserEvent = "newUser";
 
   Switchboard.prototype = {
+
+    connectSocket: function( httpServer ) {
+      return socket.attach( httpServer );
+    },
+
     /**
      * Tell a group of clients what's going on
      * @param room multicast group of clients to send to
@@ -107,20 +111,20 @@ var Switchboard = (function()
      * state: NEWGAME, NEWHAND, BIDDING, PLAYING ?
      */
     multicast: function( room, messageType, data ) {
-      this.switchboard.to( room ).emit( messageType, data );
+      this.socket.to( room ).emit( messageType, data );
     },
 
     /**
      *  associate user data with this socket to be passed to event handlers
      *  Check to see if this user exists and/or is already connected.
      */
-    associateUserData: function( socket, userdata ) {
-      console.log("User " + user.name + "(" + user.id+ ") -> " + socket.id );
+    associateUserData: function( socket, user ) {
+      console.log( user.name + " (" + user.id+ ") is on socket " + socket.id );
 
       // check all sockets for identical user data?  Handled outside switchboard?
 
-      this.users[socket.id] = userdata;
-      this.sockets[userdata.id] = socket;
+      this.users[socket.id] = user;
+      this.sockets[user.id] = socket;
     },
 
     /**
@@ -136,6 +140,7 @@ var Switchboard = (function()
      * @param name internal id of room
      */
     createRoom: function( name ) {
+      console.log("Creating chat room " + name);
       this.rooms[name] = {};
     },
     /**
@@ -143,6 +148,8 @@ var Switchboard = (function()
      */
     // joinRoom: function( socket, room ) {
     joinRoom: function( userId, room ) {
+      console.log( userId + " is joining room " + room );
+
       var socket = this.getSocketForUserId( userId );
       var oldRoom = this.getRoomForSocket( socket.id );
 
@@ -152,21 +159,27 @@ var Switchboard = (function()
       }
 
       socket.join( room );
+
       this.rooms[room][socket.id] = 1;
     },
 
     getSocketForUserId: function( userId ) {
-      return this.sockets[userId];
+      var socket = this.sockets[userId];
+      if (!socket) {
+        console.error("Asked for user's socket before they've associated with the switchboard");
+      }
+      return socket;
     },
 
     getRoomForSocket: function( socketId ) {
-      for (var name in this.rooms) {
-        if (this.rooms[name][socketId]) {
-          return name;
+      for (var room in this.rooms) {
+        if (this.rooms[room][socketId]) {
+          return room;
         }
       }
 
-      console.error("Could not find a room membership for socket " + socketId );
+      // not an error when first joining.
+      // console.error("Could not find a room membership for socket " + socketId );
       return undefined;  // oops!  This socket is not mapped to any room.
     },
 
@@ -219,6 +232,7 @@ var Switchboard = (function()
       // socket to be passed with any event handler
       var self = this;
       socket.on( Switchboard.onNewUserEvent, function( user ) {
+                   console.log("New client! woohoo! " + user.name);
                    self.associateUserData( socket, user );
                    self.callOnUserJoinCB( user );
                  });

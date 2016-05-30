@@ -1,25 +1,24 @@
-
-// var mockSocketIO = require('socket-io-mock');
+var Game = require("game");
 
 var Switchboard = require("switchboard");
-
-// FIXME - mock socket.io
-var operator = new Switchboard();  // manages communications to/from players
+Switchboard.prototype.connectSocket = function() {
+  var SocketMock = require('socket-io-mock');
+  return new SocketMock();
+};
 
 describe(
   "Switchboard",
   function() {
 
-    var switchboard;
-
     beforeEach(
       function() {
-        switchboard = new switchboard();
+        var operator = new Switchboard();  // manages communications to/from players
+        Game.setSwitchboard( operator );
       });
 
     it("should foo",
        function() {
-         //var game = Game.newGame("Game One");
+         // var game = Game.newGame("Game One");
 
 //         expect( game.id ).toBe( 1 );
        });

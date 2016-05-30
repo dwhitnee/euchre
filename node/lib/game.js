@@ -1,5 +1,8 @@
 //----------------------------------------------------------------------
 // One game, complete with players and a way to update everyone involved when state changes.
+//
+// This should be refactored out, but it is here for now:
+// Global network manager for all game updates and chat messages.
 //----------------------------------------------------------------------
 
 const WAITING_TO_START = "WAITING";
@@ -11,8 +14,12 @@ const PLAY = "PLAY";
 const gameStateUpdateEvent = "gameStateUpdate";
 const chatMessageEvent     = "chatMessage";
 
+var _games = {};
+var _gameNames = {}; // hash of game names so client can display and check for uniqueness
+var _switchboard;   // network (socket) communications manager
 
 
+//----------------------------------------
 var Game = (function()
 {
   var nextId = 1000;
@@ -58,8 +65,8 @@ var Game = (function()
       }
 
       this.players[player.id] = player;
-      _switchboard.joinRoom( player.id, game.getChatRoomName() );
-      player.setGameId( game.id );
+      _switchboard.joinRoom( player.id, this.getChatRoomName() );
+      player.setGameId( this.id );
     },
 
     /**
@@ -72,7 +79,7 @@ var Game = (function()
       this.players[player.id] = undefined;
 
       for (var i=0; i < 4; i++) {
-        if (this.seats[i].id === player.id) {
+        if (this.seats[i] && (this.seats[i].id === player.id)) {
           this.seats[i] = undefined;
           this.setAction( WAITING_TO_START );
           // FIXME - if game started, need to abandon/pause?
@@ -164,9 +171,6 @@ var Game = (function()
 //----------------------------------------------------------------------
 // Game Factory
 //----------------------------------------------------------------------
-var _games = {};
-var _gameNames = {}; // hash of game names so client can display and check for uniqueness
-var _switchboard;
 
 /**
  * Special "game" that holds all players not in a game.
@@ -221,7 +225,7 @@ Game.newGame = function( options ) {
     _games[game.id] = game;
     _gameNames[game.name] = game.id;  // reverse lookup for uniqueness constraint
 
-    switchboard.createRoom( game.id );
+    _switchboard.createRoom( game.getChatRoomName() );
   }
 
   return game;

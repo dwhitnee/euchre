@@ -5,7 +5,7 @@
  */
 
 var express = require('express');
-var gameRouter = express.Router();
+var router = express.Router();
 
 
 var Filters = {
@@ -183,8 +183,8 @@ var Handlers = {
 };
 
 // Run on all requests to this path
-gameRouter.use( Filters.timeLog );
-gameRouter.use( Filters.auth );
+// router.use( Filters.timeLog );
+router.use( Filters.auth );
 
 // routes
 router.post('/chat',   Handlers.chat );
@@ -197,10 +197,9 @@ router.post('/bid',    Handler.bid );
 router.post('/playcard', Handlers.playCard );
 
 
-
 // define the home page route?
-gameRouter.get('/', function(req, res) {
-  res.send('Birds home page');
+router.get('/', function(req, res) {
+  res.send('uh, the home page');
 });
 
-module.exports = gameRouter;
+module.exports = router;

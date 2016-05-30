@@ -1,13 +1,22 @@
 var Game = require("game");
 var Player = require("player");
+var SocketMock = require('socket-io-mock');
+
+var Switchboard = require("switchboard");
+var mockSocketIO = new SocketMock();
+Switchboard.prototype.connectSocket = function() {
+  return mockSocketIO;
+};
 
 describe(
   "Euchre Game",
   function() {
+    var operator;
 
     beforeEach(
       function() {
-        // player = new Player();
+        operator = new Switchboard();  // manages communications to/from players
+        Game.setSwitchboard( operator );
       });
 
     it("should create a game",
@@ -27,11 +36,21 @@ describe(
 
     it("should add players",
        function() {
-         var game = Game.newGame("Game One");
+         var game = Game.newGame({ name: "Game On"});
+
          var player, i, ids = [];
 
          for (i=0; i < 7; i++) {
            player = Player.newPlayer("Player " + (i+1));
+
+           // fake client connecting to us
+           // how do we fake incoming messages from a client?
+
+           // mockSocketIO.emit("connection");
+           // mockSocketIO.emit( Switchboard.onNewUserEvent, player );
+           mockSocketIO.id = 9000 +i;
+           operator.associateUserData( mockSocketIO, player );
+
            game.addPlayer( player );
            ids.push( player.id );
          }
