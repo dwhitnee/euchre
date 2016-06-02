@@ -1,3 +1,6 @@
+/* global describe it beforeEach expect */
+
+
 var Game = require("game");
 var Player = require("player");
 var SocketMock = require('socket-io-mock');

@@ -7,6 +7,8 @@
 var express = require('express');
 var router = express.Router();
 
+var Game = require('game');
+
 
 var Filters = {
   timeLogFilter: function(request, response, next) {
@@ -164,8 +166,12 @@ var Handlers = {
    * @param  TBD
    */
   bid: function(request, response) {
+    var data = request.body;
 
     response.end();
+
+    var game = Game.getById( data.gameId );
+
     game.sendState();
   },
 
@@ -175,8 +181,11 @@ var Handlers = {
    * @param  TBD
    */
   playCard: function(request, response) {
+    var data = request.body;
 
     response.end();
+
+    var game = Game.getById( data.gameId );
     game.sendState();
   }
 
@@ -193,7 +202,7 @@ router.post('/delete', Handlers.delete );
 router.post('/join',   Handlers.join );
 router.post('/leave',   Handlers.leave );
 router.post('/pickSeat', Handlers.pickSeat );
-router.post('/bid',    Handler.bid );
+router.post('/bid',      Handlers.bid );
 router.post('/playcard', Handlers.playCard );
 
 

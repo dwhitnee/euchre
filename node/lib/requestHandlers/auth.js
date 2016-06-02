@@ -24,11 +24,14 @@ var AuthRequestHandler = {
 
     if (name) {
       // Create new, or re-attach to existing player
-      var player = Player.getPlayerByName( name ) || Player.newPlayer( name );
+      var player = Player.getByName( name ) || Player.newPlayer( name );
 
-      players[player.id] = player;
+      // TF? Who's calling write() before here? "Error: Can't set headers after they are sent."
+      // response.writeHead(200, {"Content-Type": "application/json"});
 
-      response.writeHead(200, {"Content-Type": "application/json"});
+      response.setHeader("Content-Type", "application/json");
+      response.status( 200 );
+
       response.json({ player: player });
 
       // tell the world about new player
