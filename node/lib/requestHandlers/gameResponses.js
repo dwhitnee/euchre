@@ -7,7 +7,8 @@
 var express = require('express');
 var router = express.Router();
 
-var Game = require('game');
+var Game = require('game'),
+    Player = require('player');
 
 
 var Filters = {
@@ -19,7 +20,7 @@ var Filters = {
   // pull user info out of Header
   auth: function(request, response, next) {
     var playerId =  request.headers['x-userid'];     // this should be more auth-y FIXME
-    request.player = Players.getPlayerById( playerId );
+    request.player = Player.getById( playerId );
 
     next();
   }
@@ -36,9 +37,11 @@ var Handlers = {
 
     response.end();  // acknowledge request
 
-    console.log('message from ' + player.getName() +  ': ' + msg);
+    console.log( JSON.stringify( player ));
 
-    var game = Game.getByPlayerId( player.id );
+    console.log('message from ' + player.getName() +  ': ' + JSON.stringify( msg ));
+
+    var game = Game.getById( player.getGameId() );
 
     if (game) {
       game.sendChat( msg, player );

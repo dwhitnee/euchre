@@ -75,10 +75,11 @@ var Switchboard = (function()
         self.enableMessageHandlers( socket );
 
         socket.on('disconnect', function() {
-                    var user = self.getUserData( socket );
-                    self.onUserLeave( user );
-                    self.removeUser( socket );
-                  });
+          var user = self.getUserData( socket );
+          console.log("Socket disconnect for " + JSON.stringify( user ));
+          self.onUserLeave( user );
+          self.removeUser( socket );
+        });
 
       });
 
@@ -160,6 +161,8 @@ var Switchboard = (function()
 
       socket.join( room );
 
+      console.log( JSON.stringify( this.rooms ));
+
       this.rooms[room][socket.id] = 1;
     },
 
@@ -232,10 +235,10 @@ var Switchboard = (function()
       // socket to be passed with any event handler
       var self = this;
       socket.on( Switchboard.onNewUserEvent, function( user ) {
-                   console.log("New client! woohoo! " + user.name);
-                   self.associateUserData( socket, user );
-                   self.callOnUserJoinCB( user );
-                 });
+        console.log("New client! woohoo! " + JSON.stringify( user ));
+        self.associateUserData( socket, user );
+        self.callOnUserJoinCB( user );
+      });
 
       var eventNames = Object.keys( this.eventHandlers );
 
@@ -310,10 +313,12 @@ var Switchboard = (function()
       if (this.userLeaveCB instanceof Function) {
         this.userLeaveCB( this.getUserData( socket ));
       } else {
-        console.log( scocket.id + " does not have a userLeave handler");
+        console.log( socket.id + " does not have a userLeave handler");
       }
-
-      this.sockets[this.getUserData(socket).id] = undefined;
+      var user = this.getUserData(socket);
+      if (user) {
+        this.sockets[user.id] = undefined;
+      }
       this.users[socket.id] = undefined;
     }
   };

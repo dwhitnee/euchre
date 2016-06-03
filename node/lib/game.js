@@ -18,6 +18,7 @@ var _games = {};
 var _gameNames = {}; // hash of game names so client can display and check for uniqueness
 var _switchboard;   // network (socket) communications manager
 
+var _lobby;    // special room everyone joins first
 
 //----------------------------------------
 var Game = (function()
@@ -179,8 +180,11 @@ Game.getLobby = function() {
   return _lobby;
 };
 
+// really should instantiate GameFactory with switcboard  FIXME?
 Game.setSwitchboard = function( switchboard ) {
   _switchboard = switchboard;
+
+  _lobby = _lobby || Game.newGame({ name: "Lobby" });
 };
 
 /**
@@ -204,9 +208,19 @@ Game.getByName = function( name ) {
 };
 
 
+/*
 Game.getByPlayerId = function( playerId ) {
-  return _games[id];
+  // for (var id in _games) {    // $.each also works, but no good analog yet
+  //   var game = _games[id];
+  //   if (game.id === gameId) {
+  //     return game;
+  //   }
+  // }
+  return undefined;
+
+//  return _games[id];
 };
+ */
 
 /**
  * Create a new game and add to the pool. Also create websocket multicast room
@@ -231,7 +245,5 @@ Game.newGame = function( options ) {
   return game;
 };
 
-
-var _lobby = new Game("Lobby");
 
 module.exports = Game;

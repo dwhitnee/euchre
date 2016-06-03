@@ -1,3 +1,5 @@
+/*global $ */
+
 // Handles sending and receiving messages to remote
 // Open a websocket and send and receive data over it synchronously
 
@@ -37,7 +39,14 @@ var Client = (function()
      * Talkers
      */
     sendIM: function( msg ) {
-      this.socket.emit( chatMessageEvent, msg );  // server can figure out who sent this
+      // this.socket.emit( chatMessageEvent, msg );  // server can figure out who sent this
+
+      $.ajax("/game/chat", {
+        data : msg,
+        contentType : 'text/plain',
+        type : 'POST'
+      });
+
     },
 
 
@@ -47,19 +56,20 @@ var Client = (function()
      */
     login: function( name ) {
       // this.username = name;
+      var self = this;
 
       return new Promise(
         function(resolve, reject) {
           $.ajax("/login", {
-                   data : JSON.stringify({ name: name}),
-                   contentType : 'application/json',
-                   type : 'POST'
-                 })
+            data : JSON.stringify({ name: name}),
+            contentType : 'application/json',
+            type : 'POST'
+          })
             .done( function( data ) {
-                     this.user = data;      // the id/name of this player
-                     this.setAuthInfo( user.id );
-                     resolve( user );
-                   })
+              self.user = data;      // the id/name of this player
+              self.setAuthInfo( self.user.id );
+              resolve( self.user );
+            })
             .fail( reject );
         });
     },

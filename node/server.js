@@ -1,6 +1,6 @@
 // Create the app and web socket manager and hook them up to the http server
 
-var app = require("app");
+var app = require("app")( __dirname );
 var httpServer = require('http').Server( app );
 
 var socketMgr = require("socketMgr");

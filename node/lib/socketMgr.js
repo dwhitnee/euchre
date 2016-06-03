@@ -23,19 +23,30 @@ var socketInit = {
                             );
 
     // player lost connection, remove from game and update state
-    socketManager.onUserLeave( function( user ) {
-                                 var player = Player.getById( user.id );
-                                 var game = Game.getById( player.getGameId() );
-                                 if (game) {
-                                   game.sendChat("[Lost connection]", player );
-                                   game.removePlayer( player );
-                                   game.sendState();
-                                 } else {
-                                   Game.getLobby().sendChat("[Lost connection]", player );
-                                   Game.getLobby().sendLobbyState();
-                                 }
-                               }
-                             );
+    socketManager.onUserLeave(
+      function( user ) {
+
+        if (!user || !user.id) {
+          console.log("socket disconnect from unknown user");
+          return;
+        }
+
+        var player = Player.getById( user.id );
+        if (!player) {
+          console.log("socket disconnect from user " + user.id + " but not in Player DB");
+        }
+
+        var game = Game.getById( player.getGameId() );
+        if (!game) {
+          Game.getLobby().sendChat("[Lost connection]", player );
+          Game.getLobby().sendLobbyState();
+        } else {
+          game.sendChat("[Lost connection]", player );
+          game.removePlayer( player );
+          game.sendState();
+        }
+      }
+    );
   }
 };
 

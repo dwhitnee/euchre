@@ -32,11 +32,11 @@ var AuthRequestHandler = {
       response.setHeader("Content-Type", "application/json");
       response.status( 200 );
 
-      response.json({ player: player });
+      response.json( player );
 
-      // tell the world about new player
-      Game.getLobby().addPlayer( player );
-      Game.getLobby().sendState();
+      // tell the world about new player - NO, do this onUserJoin in socketMgr
+      // Game.getLobby().addPlayer( player );
+      // Game.getLobby().sendState();
 
     } else {
       response.writeHead( 400, {"Content-Type": "application/json"});
