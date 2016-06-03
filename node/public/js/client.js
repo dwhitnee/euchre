@@ -1,13 +1,10 @@
-/*global $ */
+/*global $, io */
 
 // Handles sending and receiving messages to remote
 // Open a websocket and send and receive data over it synchronously
 
 // import these? browserify?
 const chatMessageEvent = "chatMessage";
-const newGameNameEvent = "newGameName";
-const joinGameEvent    = "joinGame";
-
 const lobbyStateUpdateEvent = "lobbyStateUpdate";
 const gameStateUpdateEvent  = "gameStateUpdate";
 
@@ -86,11 +83,19 @@ var Client = (function()
     },
 
     createGame: function( name ) {
-      this.socket.emit( newGameNameEvent, name );
+      $.ajax("/game/create", {
+        data : name,
+        contentType : 'text/plain',
+        type : 'POST'
+      });
     },
 
-    joinGame: function( name ) {
-      this.socket.emit( joinGameEvent, name );
+    joinGame: function( gameId ) {
+      $.ajax("/game/join", {
+        data : gameId,
+        contentType : 'text/plain',
+        type : 'POST'
+      });
     },
 
     /**

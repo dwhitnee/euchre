@@ -112,6 +112,7 @@ var Switchboard = (function()
      * state: NEWGAME, NEWHAND, BIDDING, PLAYING ?
      */
     multicast: function( room, messageType, data ) {
+      console.log("Sending " + messageType + " to " + room);
       this.socket.to( room ).emit( messageType, data );
     },
 

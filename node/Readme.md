@@ -14,3 +14,8 @@ Debugging node:
 
     npm install -g devtool
     npm install -g node-inspector
+
+
+
+TBD: persistent back up of players and game state.  Right now if
+server dies, all state dies with it.

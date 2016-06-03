@@ -11,8 +11,10 @@ const DISCARD = "DISCARD";
 const PLAY = "PLAY";
 
 // WebSocket events for updates to clients.  This really doesn't belong here.
-const gameStateUpdateEvent = "gameStateUpdate";
-const chatMessageEvent     = "chatMessage";
+const chatMessageEvent = "chatMessage";
+const lobbyStateUpdateEvent = "lobbyStateUpdate";
+const gameStateUpdateEvent  = "gameStateUpdate";
+
 
 var _games = {};
 var _gameNames = {}; // hash of game names so client can display and check for uniqueness
@@ -162,7 +164,7 @@ var Game = (function()
         games: _games,
         gameNames: _gameNames
       };
-      _switchboard.multicast( this.name, gameStateUpdateEvent, data );
+      _switchboard.multicast( this.getChatRoomName(), lobbyStateUpdateEvent, data );
     }
   };
 

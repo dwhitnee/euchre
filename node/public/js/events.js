@@ -10,7 +10,7 @@
 var client = new Client();
 
 var Lobby = {};   // global state as defined by the server
-var Game =  {};   // State of our one game
+var game =  {};   // State of our one game
 var joinedGame;
 var joinedGameId;  // the game we plan to join
 var player;  // us
@@ -31,7 +31,12 @@ var EventHandler = {
    * One game action occured, not sent to the Lobby or other games
    */
   onGameStateChange: function updateGame( state ) {
-    Game.state = state;
+    game = state;
+    $("#playerList").empty();
+    $(".gameName").text( game.name );
+    for (var playerId in game.players) {
+      $(".gameName").append( $("<div/>").text( game.players[playerId].name ));
+    }
   },
 
   /**
@@ -156,4 +161,3 @@ $('form[name="newGameName"]').submit(
   });
 
 //----------------------------------------------------------------------
-
