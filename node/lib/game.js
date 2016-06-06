@@ -7,6 +7,7 @@
 
 const WAITING_TO_START = "WAITING";
 const BID = "BID";
+const OPEN_BID = "OPEN_BID";
 const DISCARD = "DISCARD";
 const PLAY = "PLAY";
 
@@ -107,12 +108,19 @@ var Game = (function()
     },
 
     /**
-     * @param player
+     * @param player obj
      * @param seat id from 0 to 3
      */
     pickSeat: function( player, seat ) {
+      // leave any other seat
+      for (var i=0; i < 4; i++) {
+        if (this.seats[i] === player) {
+          this.seats[i] = undefined;
+        }
+      }
       this.seats[seat] = player;
     },
+
     /**
      * @param seat is seat 0,1,2,or 3
      */
@@ -156,6 +164,7 @@ var Game = (function()
 
     // Tell all members of game our current state
     sendState: function() {
+      console.log( JSON.stringify( this ));
       _switchboard.multicast( this.getChatRoomName(), gameStateUpdateEvent, this );
     },
     sendLobbyState: function() {

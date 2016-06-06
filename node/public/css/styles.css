@@ -1,9 +1,21 @@
 /* assume bootstrap.css included */
 
+body {
+  height: 100%;
+/*  display: flex; */
+}
+
+.page {
+  margin-top: 1em;
+  height: 100%;
+}
 .page1 {
-  margin: 1em;
+  margin-left: 1em;
 }
 .page2 {
+  display: none;
+}
+.page3 {
   display: none;
 }
 
@@ -15,8 +27,30 @@
 }
 #gameBoard .gameName {
   padding-left: 10em;
+  text-weight: bold;
 }
 
+.seat {
+  width: 10em;
+  height: 2.5em;
+  margin: 2em;
+  border: 2px solid black;
+  padding: .33em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.seatrow {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.seat.unchosen {
+  background-color: teal;
+  color: gray;
+  font-style: italic;
+}
 
 #name {
   font-weight: bold;
@@ -38,7 +72,13 @@
 }
 
 .tallColumn {
-  height:100%;
+  /*  flex: 1;  /* fill vertical space */
+  height: 100%;
+}
+
+.row {
+  height: 100%;
+  position: relative;
 }
 
 .row input {
@@ -64,12 +104,8 @@ form[name="newMessage"] {
   border-radius: .6em;
 }
 
-.bottomScrollArea {
-  height: 30%;
-/*
-  position: fixed;
-  bottom: 2.5em;
-*/
+.scrollable {
+  height: 100%;
   overflow: scroll;
 }
 
@@ -102,23 +138,27 @@ form[name="newMessage"] {
 }
 
 .top {
-  height:20em;
+  height:15em;
+  overflow: auto;
+  margin-bottom:1em;
+
 }
 .bottom {
-  height:20em;
+  height:15em;
+  overflow: auto;
 }
 .messageArea {
-  height: 50em;
+  height: 100%;
 }
-#messages {
+.messages {
   list-style-type: none;
   padding: 0;
   padding-right: 1em;
   border: 1px solid #ccc;
 }
-#messages li {
+.messages li {
   padding: .3em .6em;
 }
-#messages li:nth-child(odd) {
+.messages li:nth-child(odd) {
   background: #eee;
 }

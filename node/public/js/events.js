@@ -10,10 +10,11 @@
 var client = new Client();
 
 var Lobby = {};   // global state as defined by the server
-var game =  {};   // State of our one game
-var joinedGame;
-var joinedGameId;  // the game we plan to join
-var player;  // us
+
+// var game =  {};   // State of our one game
+// var joinedGame;
+// var joinedGameId;  // the game we plan to join
+// var player;  // us
 
 /**
  * What to do when the server sends a update
@@ -23,70 +24,91 @@ var EventHandler = {
    * New Chat message received
    */
   onNewChatMessage: function chat( data ) {
-    $('#messages').prepend( $('<li/>').text( data.user + ": " +  data.msg ));
-    $("#messages").animate({ scrollTop: 0 }, 100);
+    $('.messages').prepend( $('<li/>').text( data.user + ": " +  data.msg ));
+    $(".messages").animate({ scrollTop: 0 }, 100);
   },
 
   /**
    * One game action occured, not sent to the Lobby or other games
    */
   onGameStateChange: function updateGame( state ) {
-    game = state;
-    $("#playerList").empty();
+    var game = state;
+    $(".playerList").empty();
     $(".gameName").text( game.name );
     for (var playerId in game.players) {
-      $(".gameName").append( $("<div/>").text( game.players[playerId].name ));
+      $(".playerList").append( $("<div/>").text( game.players[playerId].name ));
     }
+
+    // when does state engine know that last seat was taken?  FIXME
+    $(".seat").each( function( i, seat ) {
+      var seatId = $(seat).data("id");
+      var player = game.seats[seatId];
+      if (player) {
+        $(seat).text( player.name );
+        $(seat).removeClass("unchosen");
+      } else {
+        $(seat).text("Empty");
+        $(seat).addClass("unchosen");
+      }
+    });
   },
 
   /**
    * Global metadata update (other players, other game metadata)
    */
-  onLobbyStateChange: function updateLobby( state ) {
-    Lobby = state || Lobby.state;
+  onLobbyStateChange: function updateLobby( lobbyState ) {
+    Lobby = lobbyState || Lobby;
 
-    // player = players[name]
-
-    if (joinedGameId) {
-      $("#gameBoard").show();
-      joinedGame = Lobby.games[joinedGameId];
-      $(".gameName").empty();
-      $(".gameName").text( joinedGame.name );
-
-      for (var playerId in joinedGame.players) {
-        $(".gameName").append( $("<div/>").text( Lobby.players[playerId].name ));
-      }
-    }
-
-    $('#state').text( JSON.stringify( state ));
-    console.log( JSON.stringify( state ));
-
+    // update player list
     $('#playerList').empty();
-    $.each( state.players, function( i, player ) {
+    $.each( Lobby.players, function( i, player ) {
               $('#playerList').append(
                 $('<tr/>').append( $('<td/>').text( player.name ))
               );
             });
 
+    // update game list
     $('#gameList').empty();
     $("#gameList > tr").off("click");
     // clear events
-    $.each( state.games, function( i, game ) {
-              $('#gameList').append(
-                $('<tr/>').append( $('<td/>').text( game.name ).attr("game-id", game.id )
-                                 ));
-            });
+    $.each( Lobby.games, function( i, game ) {
+      if (game.name !== "Lobby") {
+        $('#gameList').append(
+          $('<tr/>').append( $('<td/>').text( game.name ).attr("game-id", game.id )));
+      }
+    });
 
-    $("#gameList > tr > td").on("click", function( event ) {
-                                  var gameId = $(event.target).attr("game-id");
-                                  var gameName = $(event.target).text();
-                                  if (window.confirm("Join " + gameName + "?")) {
-                                    client.joinGame( gameId );
-                                    console.log("You've joined " + gameName +"("+ gameId +")");
-                                    joinedGameId = gameId;
-                                  }
-                                });
+    $("#gameList > tr > td").on("click", EventHandler.onJoinGame );
+  },
+
+  /**
+   * Game clicked on, let's join
+   */
+  onJoinGame: function( event ) {
+    var gameId = $(event.target).attr("game-id");
+    var gameName = $(event.target).text();
+    if (window.confirm("Join " + gameName + "?")) {
+      $(".messages").empty();  // clear chat
+
+      $('.page2').hide();   // lame
+      $('.page3').show();
+
+      $("#gameBoard >> .seat").on("click", EventHandler.onChooseSeat );
+
+      client.joinGame( gameId );
+      console.log("You've joined " + gameName +"("+ gameId +")");
+      // joinedGameId = gameId;
+    }
+  },
+
+  /**
+   * Seat clicked on, take or leave seat depending
+   */
+  onChooseSeat: function( event ) {
+    var seatId = $(event.target).data('id');
+    client.pickSeat( seatId );
   }
+
 };
 
 /**
@@ -107,13 +129,10 @@ function initServerEvents() {
 
 // Send new chat message to server for rebroadcast
 $('form[name="newMessage"]').submit(
-  function(){
-    var msg = $('#msg').val();
+  function( event ) {
+    var msg = event.target.msg.value;
     client.sendIM( msg );
-    // $("#messages").append( $("<li/>").text( msg ));
-    // keep scrolled to the bottom
-    // $("#messages").animate({ scrollTop: 0}, 200);
-    $('#msg').val('');
+    event.target.msg.value = "";
     return false;
   });
 
@@ -127,7 +146,7 @@ $('form[name="login"]').submit(
     client.login( name )
       .then(
         function( data ) {
-          player = data;
+          var player = data;  // store this where?  FIXME  GameEngine?
 
           client.connectToServer( player );
           initServerEvents();

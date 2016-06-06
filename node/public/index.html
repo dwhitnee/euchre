@@ -3,91 +3,124 @@
 <head>
   <title>Welcome</title>
   <link rel="stylesheet" type="text/css" href="css/styles.css">
-    <link rel="stylesheet"
+  <link rel="stylesheet" type="text/css"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
           crossorigin="anonymous">
   </head>
 
-<body>
+  <body>
 
-  <div class="page1 form-inline">
-    <form name="login" action="">
-      <div class="form-group">
-        <label for="newUsername">What do you want to be called?</label>
-        <input type="text" class="form-control" id="newUsername" />
-      </div>
-      <button class="btn btn-primary btn-sm">Enter name</button>
-    </form>
-  </div>
-
-
-  <!-- two column with top and bottom parts in each -->
-  <div class="page2 container-fluid">
-
-    <div class="tallColumn col-xs-12 col-sm-6 col-lg-8">
-
-      <div id="gameBoard" class="">
-        <div class="gameName">
+    <div class="page page1 form-inline">
+      <form name="login" action="">
+        <div class="form-group">
+          <label for="newUsername">What do you want to be called?</label>
+          <input type="text" class="form-control" id="newUsername" />
         </div>
-      </div>
+        <button class="btn btn-primary btn-sm">Enter name</button>
+      </form>
+    </div>
 
 
-      <div class="messageArea">
-        <form name="newMessage" class="textInputBox"  action="">
-          <div class="flex-2-col">
-            <input class="left-flex" id="msg" autocomplete="off" />
-            <button class="right-fixed  btn btn-secondary">Send</button>
+    <div class="page page3 container-fluid">
+      <div class="row">
+
+        <div class="col-xs-12 col-sm-12 col-lg-9">
+          <h4 class="gameName"> </h4>
+          <div id="gameBoard" class="">
+            <div class="seatrow">
+              <div class="seat north unchosen" data-id="0">North</div>
+            </div>
+            <div class="seatrow">
+              <div class="seat west unchosen" data-id="3">West</div>
+              <div class="">Click on a seat</div>
+              <div class="seat east unchosen" data-id="1">East</div>
+            </div>
+            <div class="seatrow">
+              <div class="seat south unchosen" data-id="2">South</div>
+            </div>
           </div>
-        </form>
+          <div class="playerList"> </div>
+        </div>
 
-        <ul id="messages" class="bottomScrollArea"></ul>
-      </div>
-    </div>
-
-
-    <div class="tallColumn lobby col-xs-5 col-sm-5 col-lg-3">
-      <h3></h3>
-
-      <div class="top">
-      <table class="table-striped wide">
-        <thead>
-          <tr><th>Players in <span class="gameName"/>Lobby</th></tr>
-        </thead>
-        <tbody id="playerList">
-        </tbody>
-      </table>
-      </div>
-
-      <div class="bottom">
-        <table class="table-hover wide">
-          <thead>
-            <tr><th>Join a game</th></tr>
-          </thead>
-          <tbody id="gameList">
-          </tbody>
-          <tbody>
-            <tr><td>
-              <form name="newGameName" autocomplete="off">
+        <div class="col-xs-12 col-sm-12 col-lg-3">
+          <h4>Chat</h4>
+          <div class="messageArea">
+            <form name="newMessage" class="textInputBox"  action="">
               <div class="flex-2-col">
-                <input type="text" class="form-control left-flex" id="gameName"></input>
-                <button class="btn btn-primary btn-sm right-button
-                               right-fixed">Set up a New Game</button>
+                <input class="left-flex" name="msg" autocomplete="off" />
+                <button class="right-fixed  btn btn-secondary">Send</button>
               </div>
-              </form>
-            </td></tr>
-          </tbody>
-        </table>
+            </form>
+
+            <ul class="messages" class="scrollable"></ul>
+          </div>
+       </div>
       </div>
     </div>
-  </div>
+
+    <!-- two column with top and bottom parts in each -->
+    <div class="page page2 container-fluid">
+      <div class="row">
+
+        <div class="tallColumn lobby col-xs-12 col-sm-5 col-lg-3">
+
+          <div class="top">
+            <h4>Join a game</h4>
+            <table class="table-hover wide">
+              <tbody id="gameList">
+              </tbody>
+              <tbody>
+                <tr><td>
+                  <form name="newGameName" autocomplete="off">
+                    <div class="flex-2-col">
+                      <input type="text" class="form-control left-flex" id="gameName"></input>
+                      <button class="btn btn-primary btn-sm right-button
+                                     right-fixed">Create a New Game</button>
+                    </div>
+                  </form>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bottom">
+            <table class="table-striped wide">
+              <thead>
+                <tr><th>Players in Lobby</th></tr>
+              </thead>
+              <tbody id="playerList">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tallColumn col-xs-12 col-sm-7 col-lg-9">
+          <h4>Chat</h4>
+          <div class="messageArea">
+            <form name="newMessage" class="textInputBox"  action="">
+              <div class="flex-2-col">
+                <input class="left-flex" name="msg" autocomplete="off" />
+                <button class="right-fixed  btn btn-secondary">Send</button>
+              </div>
+            </form>
+
+            <ul class="messages" class="scrollable"></ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
 
-  <!-- ========================= -->
-  <script src="https://code.jquery.com/jquery-2.2.3.min.js" crossorigin></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="js/client.js"></script>
-  <script src="js/events.js"></script>
+    <!-- ========================= -->
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js" crossorigin></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+            crossorigin></script>
 
-</body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/client.js"></script>
+    <script src="js/events.js"></script>
+
+  </body>
 </html>

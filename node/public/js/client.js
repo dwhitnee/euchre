@@ -3,6 +3,8 @@
 // Handles sending and receiving messages to remote
 // Open a websocket and send and receive data over it synchronously
 
+// FIXME - who handles game state?  GameEngine?
+
 // import these? browserify?
 const chatMessageEvent = "chatMessage";
 const lobbyStateUpdateEvent = "lobbyStateUpdate";
@@ -16,6 +18,9 @@ var Client = (function()
   function Client() {
     // how do we re-eastablish a previous session with the server if
     // this was just a page reload?
+
+    this.gameId = undefined;
+    this.player = undefined;
   };
 
   Client.prototype = {
@@ -33,19 +38,15 @@ var Client = (function()
     },
 
     /**
-     * Talkers
+     * Chatty kathy
      */
     sendIM: function( msg ) {
-      // this.socket.emit( chatMessageEvent, msg );  // server can figure out who sent this
-
       $.ajax("/game/chat", {
         data : msg,
         contentType : 'text/plain',
         type : 'POST'
       });
-
     },
-
 
     /**
      * Connect with server, get player id and open socket
@@ -94,6 +95,20 @@ var Client = (function()
       $.ajax("/game/join", {
         data : gameId,
         contentType : 'text/plain',
+        type : 'POST'
+      });
+      this.gameId = gameId;  // FIXME, could also get this from updateState
+    },
+
+    pickSeat: function( seatId ) {
+      var data = {
+        gameId: this.gameId,
+        seatId: seatId
+      };
+      $.ajax("/game/pickSeat", {
+        data : JSON.stringify( data ),
+        processData: false,
+        contentType : 'application/json',
         type : 'POST'
       });
     },
