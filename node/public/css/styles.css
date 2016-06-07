@@ -30,6 +30,10 @@ body {
   text-weight: bold;
 }
 
+.startButton {
+  display: none;
+}
+
 .seat {
   width: 10em;
   height: 2.5em;

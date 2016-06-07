@@ -113,6 +113,15 @@ var Client = (function()
       });
     },
 
+    startGame: function() {
+      $.ajax("/game/start", {
+        data : "",
+        contentType : 'text/plain',
+        type : 'POST'
+      });
+    },
+
+
     /**
      * Listeners
      */

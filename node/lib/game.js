@@ -5,7 +5,8 @@
 // Global network manager for all game updates and chat messages.
 //----------------------------------------------------------------------
 
-const WAITING_TO_START = "WAITING";
+const WAITING_TO_START = "WAITING_FOR_PLAYERS";
+const READY_TO_START = "READY_TO_START";
 const BID = "BID";
 const OPEN_BID = "OPEN_BID";
 const DISCARD = "DISCARD";
@@ -97,6 +98,14 @@ var Game = (function()
       this.deal();
       this.setAction( BID, this.getPlayerToLeftOfDealer() );
     },
+
+    shuffle: function() {
+
+    },
+    deal: function() {
+
+    },
+
     pass: function() {
       this.rotatePlayer();
       if (this.activePlayerSeat === this.dealerSeat) {
@@ -119,6 +128,16 @@ var Game = (function()
         }
       }
       this.seats[seat] = player;
+
+      var readyToStart = true;
+      for (i=0; i < 4; i++) {
+        if (this.seats[i] === undefined) {
+          readyToStart = false;
+        }
+      }
+      if (readyToStart) {
+        this.setAction( READY_TO_START );
+      }
     },
 
     /**

@@ -51,6 +51,13 @@ var EventHandler = {
         $(seat).addClass("unchosen");
       }
     });
+    if (game.action === "READY_TO_START") {
+      console.log("Lets crank this sucker up!");
+      $(".action").empty().append(
+        $('<button class="btn btn-primary"/>').text("Deal the Cards!"));
+
+      $(".action > button").on("click", EventHandler.onStartGame );
+    }
   },
 
   /**
@@ -107,6 +114,9 @@ var EventHandler = {
   onChooseSeat: function( event ) {
     var seatId = $(event.target).data('id');
     client.pickSeat( seatId );
+  },
+  onStartGame: function( event ) {
+    client.startGame();
   }
 
 };

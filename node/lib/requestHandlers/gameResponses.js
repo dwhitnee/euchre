@@ -21,6 +21,7 @@ var Filters = {
   auth: function(request, response, next) {
     var playerId =  request.headers['x-userid'];     // this should be more auth-y FIXME
     request.player = Player.getById( playerId );
+    request.game = Game.getById( request.player.getGameId() );
 
     next();
   }
@@ -28,26 +29,33 @@ var Filters = {
 
 var Handlers = {
   /**
-   * Receive message to broadcast to Player's room
-   * Null response
+   * Create a new game, tell Lobby about it
+   * @param  post body is game name
    */
-  chat: function(request, response) {
-    var msg = request.body;
+  create: function(request, response) {
+    var name = request.body;
     var player = request.player;
 
-    response.end();  // acknowledge request
+    var game = Game.newGame({ name: name, createdBy: player.id });
+    response.json( game );
+    response.end();
 
-    console.log( JSON.stringify( player ));
+    Game.getLobby().sendLobbyState();
+    Game.getLobby().sendChat("Created new game: " + name, player );
+  },
 
-    console.log('message from ' + player.getName() +  ': ' + JSON.stringify( msg ));
+  /**
+   * Delete a game, tell Lobby about it
+   * @param  post body is game id
+   */
+  delete: function(request, response) {
+    var gameId = request.body;
+    var game = Game.getById( gameId );
+    game.delete();
+    response.end();
 
-    var game = Game.getById( player.getGameId() );
-
-    if (game) {
-      game.sendChat( msg, player );
-    } else {
-      Game.getLobby().sendChat( msg, player );
-    }
+    Game.getLobby().sendLobbyState();
+    Game.getLobby().sendChat("Deleted game: " + game.name, request.player );
   },
 
   /**
@@ -104,6 +112,26 @@ var Handlers = {
 
 
   /**
+   * Receive message to broadcast to Player's room
+   * Null response
+   */
+  chat: function(request, response) {
+    var msg = request.body;
+    var player = request.player;
+
+    response.end();  // acknowledge request
+
+    console.log( JSON.stringify( player ));
+    console.log('message from ' + player.getName() +  ': ' + JSON.stringify( msg ));
+
+    if (request.game) {
+      request.game.sendChat( msg, player );
+    } else {
+      Game.getLobby().sendChat( msg, player );
+    }
+  },
+
+  /**
    * Have a player sit down, tell players about it
    * seatId is 0-3 (NESW)
    * body: { gameId: 103, seatId: 2 }
@@ -112,43 +140,10 @@ var Handlers = {
     var player = request.player;
     var data = request.body;
 
-    var game = Game.getById( data.gameId );
-
-    game.pickSeat( player, data.seatId );
+    request.game.pickSeat( player, data.seatId );
 
     response.end();
-    game.sendState();
-  },
-
-  /**
-   * Create a new game, tell Lobby about it
-   * @param  post body is game name
-   */
-  create: function(request, response) {
-    var name = request.body;
-    var player = request.player;
-
-    var game = Game.newGame({ name: name, createdBy: player.id });
-    response.json( game );
-    response.end();
-
-    Game.getLobby().sendLobbyState();
-    Game.getLobby().sendChat("Created new game: " + name, player );
-  },
-
-  /**
-   * Delete a game, tell Lobby about it
-   * @param  post body is game id
-   */
-  delete: function(request, response) {
-    var gameId = request.body;
-    var player = request.player;
-    var game = Game.getById( gameId );
-    game.delete();
-    response.end();
-
-    Game.getLobby().sendLobbyState();
-    Game.getLobby().sendChat("Deleted game: " + game.name, player );
+    request.game.sendState();
   },
 
   /**
@@ -156,12 +151,10 @@ var Handlers = {
    * @param  post body is game id
    */
   start: function(request, response) {
-    var gameId = request.body;
-    var game = Game.findById( gameId );
-    game.start();
+    request.game.start();
 
     response.end();
-    game.sendState();
+    request.game.sendState();
   },
 
   /**
@@ -172,10 +165,7 @@ var Handlers = {
     var data = request.body;
 
     response.end();
-
-    var game = Game.getById( data.gameId );
-
-    game.sendState();
+    request.game.sendState();
   },
 
 
@@ -187,9 +177,7 @@ var Handlers = {
     var data = request.body;
 
     response.end();
-
-    var game = Game.getById( data.gameId );
-    game.sendState();
+    request.game.sendState();
   }
 
 };
@@ -205,6 +193,7 @@ router.post('/delete', Handlers.delete );
 router.post('/join',   Handlers.join );
 router.post('/leave',   Handlers.leave );
 router.post('/pickSeat', Handlers.pickSeat );
+router.post('/start',    Handlers.start );
 router.post('/bid',      Handlers.bid );
 router.post('/playcard', Handlers.playCard );
 
