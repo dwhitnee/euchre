@@ -53,8 +53,12 @@ var EventHandler = {
     });
     if (game.action === "READY_TO_START") {
       console.log("Lets crank this sucker up!");
-      $(".action").empty().append(
-        $('<button class="btn btn-primary"/>').text("Deal the Cards!"));
+
+      $(".action .message").hide();
+      $(".action button").show();
+
+      // $(".action").empty().append(
+      //   $('<button class="btn btn-primary"/>').text("Deal the Cards!"));
 
       $(".action > button").on("click", EventHandler.onStartGame );
     }

@@ -30,7 +30,7 @@ body {
   text-weight: bold;
 }
 
-.startButton {
+.action .btn {
   display: none;
 }
 
