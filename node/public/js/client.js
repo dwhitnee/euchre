@@ -114,11 +114,14 @@ var Client = (function()
     },
 
     startGame: function() {
-      $.ajax("/game/start", {
-        data : "",
-        contentType : 'text/plain',
-        type : 'POST'
-      });
+      $.ajax("/game/start");
+    },
+
+    /**
+     *  Does this return a card or does game state?
+     */
+    pickACard: function() {
+      $.post("/game/pickCard");
     },
 
 

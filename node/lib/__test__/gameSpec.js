@@ -73,7 +73,8 @@ describe(
          }
 
          game.setDealer( 2 );
-         player = game.getPlayerToLeftOfDealer();
+         game.setActivePlayerToLeftOfDealer();
+         player = game.getActivePlayer();
          expect( player.name ).toBe("Player 1");
 
          // game.rotatePlayer();

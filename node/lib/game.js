@@ -5,10 +5,12 @@
 // Global network manager for all game updates and chat messages.
 //----------------------------------------------------------------------
 
-const WAITING_TO_START = "WAITING_FOR_PLAYERS";
+const WAITING_FOR_PLAYERS = "WAITING_FOR_PLAYERS";
 const READY_TO_START = "READY_TO_START";
-const BID = "BID";
-const OPEN_BID = "OPEN_BID";
+
+const PICK_UP_TRUMP = "PICK_UP_TRUMP";  // first round of bidding
+const DECLARE_TRUMP = "DECLARE_TRUMP";  // second round of bidding
+
 const DISCARD = "DISCARD";
 const PLAY = "PLAY";
 
@@ -17,6 +19,7 @@ const chatMessageEvent = "chatMessage";
 const lobbyStateUpdateEvent = "lobbyStateUpdate";
 const gameStateUpdateEvent  = "gameStateUpdate";
 
+var Deck = require("euchre/deck");
 
 var _games = {};
 var _gameNames = {}; // hash of game names so client can display and check for uniqueness
@@ -36,7 +39,8 @@ var Game = (function()
     this.createdBy = options.createdBy || "Unknown";  // what is this used for? deletion? FIXME
     this.players = {};
     this.seats = [];  // 0,1,2,3 NESW
-    this.reset();
+    this.deck = new Deck();
+    this.init();
   };
 
   Game.prototype = {
@@ -46,9 +50,9 @@ var Game = (function()
       _switchboard.deleteRoom( this.getChatRoomName() );
     },
 
-    reset: function() {
+    init: function() {
       this.scores = [0,0];
-      this.action = WAITING_TO_START;
+      this.action = WAITING_FOR_PLAYERS;  // FIXME?
     },
 
     getName: function() {
@@ -86,7 +90,7 @@ var Game = (function()
       for (var i=0; i < 4; i++) {
         if (this.seats[i] && (this.seats[i].id === player.id)) {
           this.seats[i] = undefined;
-          this.setAction( WAITING_TO_START );
+          this.setAction( WAITING_FOR_PLAYERS );
           // FIXME - if game started, need to abandon/pause?
         }
       }
@@ -94,23 +98,32 @@ var Game = (function()
     },
 
     start: function() {
-      this.shuffle();
-      this.deal();
-      this.setAction( BID, this.getPlayerToLeftOfDealer() );
+      this.deck.shuffle();
+      this.setActivePlayerToLeftOfDealer();
+      this.setAction( PICK_UP_TRUMP );
     },
 
-    shuffle: function() {
-
-    },
+    /**
+     * deal 5 cards to each seated player
+     */
     deal: function() {
+      var numCardsToDeal = 5;
+      var cards;
 
+      this.setActivePlayerToLeftOfDealer();
+
+      for (var i = 0; i < this.seats.length; i++) {
+        cards = this.deck.deal( numCardsToDeal );
+        this.getActivePlayer().addCards( cards );
+        this.rotatePlayer();
+      }
     },
 
     pass: function() {
       this.rotatePlayer();
       if (this.activePlayerSeat === this.dealerSeat) {
         // either open bidding or end game
-        if (this.action === OPEN_BID) {
+        if (this.action === DECLARE_TRUMP) {
           this.endGame();
         }
       }
@@ -127,7 +140,7 @@ var Game = (function()
           this.seats[i] = undefined;
         }
       }
-      this.seats[seat] = player;
+      this.seats[seat] = player;  // steal seat if we must
 
       var readyToStart = true;
       for (i=0; i < 4; i++) {
@@ -137,15 +150,23 @@ var Game = (function()
       }
       if (readyToStart) {
         this.setAction( READY_TO_START );
+      } else {
+        this.setAction( WAITING_FOR_PLAYERS );
       }
     },
 
     /**
-     * @param seat is seat 0,1,2,or 3
+     * @param seat is seat 0,1,2,or 3  (N, E, S, W)
      */
     setDealer: function( seat ) {
       this.dealerSeat = seat;
     },
+    setActivePlayerToLeftOfDealer: function() {
+      this.activePlayerSeat = (this.dealerSeat + 1) % 4;
+    },
+    /**
+     * Rotate functions move around the table clockwise.
+     */
     rotateDealer: function() {
       this.dealerSeat += 1;
       this.dealerSeat %= 4;
@@ -154,13 +175,15 @@ var Game = (function()
       this.activePlayerSeat += 1;
       this.activePlayerSeat %= 4;
     },
-    getPlayerToLeftOfDealer: function() {
-      return this.seats[(this.dealerSeat + 1) % 4];
+    getActivePlayer: function() {
+      return this.seats[ this.activePlayerSeat ];
     },
 
-    setAction: function( action, seat ) {
+    /**
+     * game state - what is expected of the client
+     */
+    setAction: function( action ) {
       this.action = action;
-      this.activePlayerSeat = seat;
     },
 
 

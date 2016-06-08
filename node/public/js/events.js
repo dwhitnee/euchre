@@ -33,35 +33,48 @@ var EventHandler = {
    */
   onGameStateChange: function updateGame( state ) {
     var game = state;
+
     $(".playerList").empty();
     $(".gameName").text( game.name );
     for (var playerId in game.players) {
       $(".playerList").append( $("<div/>").text( game.players[playerId].name ));
     }
 
-    // when does state engine know that last seat was taken?  FIXME
-    $(".seat").each( function( i, seat ) {
-      var seatId = $(seat).data("id");
-      var player = game.seats[seatId];
-      if (player) {
-        $(seat).text( player.name );
-        $(seat).removeClass("unchosen");
-      } else {
-        $(seat).text("Empty");
-        $(seat).addClass("unchosen");
-      }
-    });
-    if (game.action === "READY_TO_START") {
-      console.log("Lets crank this sucker up!");
+    //----------------------------------------
+    // GAME STATE ENGINE
+    //----------------------------------------
 
+    // everyone must pick a seat
+    if (game.action === "WAITING_FOR_PLAYERS") {
+      $(".seat").each( function( i, seat ) {
+        var seatId = $(seat).data("id");
+        var player = game.seats[seatId];
+        if (player) {
+          $(seat).text( player.name );
+          $(seat).removeClass("unchosen");
+        } else {
+          $(seat).text("Empty");
+          $(seat).addClass("unchosen");
+        }
+      });
+    }
+
+    // Wait for anyone to click Go
+    if (game.action === "READY_TO_START") {
       $(".action .message").hide();
       $(".action button").show();
-
-      // $(".action").empty().append(
-      //   $('<button class="btn btn-primary"/>').text("Deal the Cards!"));
-
-      $(".action > button").on("click", EventHandler.onStartGame );
+      $(".action > button").on("click", EventHandler.startGame );
     }
+
+    // everyone must pick a card
+    if (game.action === "CHOOSE_DEALER") {
+      // Draw Game board with us at the bottom
+      // $(deck).on("click", EventHandler.pickACard)
+      // $(callToAction).text("Pick a card");
+
+    }
+
+
   },
 
   /**
@@ -119,9 +132,13 @@ var EventHandler = {
     var seatId = $(event.target).data('id');
     client.pickSeat( seatId );
   },
-  onStartGame: function( event ) {
+  startGame: function( event ) {
     client.startGame();
+  },
+  pickACard: function( event ) {
+    client.pickACard();
   }
+
 
 };
 
