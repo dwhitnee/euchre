@@ -19,5 +19,6 @@ TBD
 All code written and directed by David Whitney.
 
 * Images stolen liberally from the web.
+** Playing cards: https://sourceforge.net/projects/svg-cards/files/
 * jQuery is used for DOM manipulation and event handling.
 * Google Closure Compiler for compilation and compression.

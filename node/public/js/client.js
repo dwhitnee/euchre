@@ -113,8 +113,12 @@ var Client = (function()
       });
     },
 
+    pickDealer: function() {
+      $.post("/game/pickDealer");
+    },
+
     startGame: function() {
-      $.ajax("/game/start");
+      $.post("/game/start");
     },
 
     /**

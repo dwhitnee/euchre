@@ -7,6 +7,7 @@
 
 const WAITING_FOR_PLAYERS = "WAITING_FOR_PLAYERS";
 const READY_TO_START = "READY_TO_START";
+const CHOOSE_DEALER = "CHOOSE_DEALER";
 
 const PICK_UP_TRUMP = "PICK_UP_TRUMP";  // first round of bidding
 const DECLARE_TRUMP = "DECLARE_TRUMP";  // second round of bidding
@@ -97,10 +98,18 @@ var Game = (function()
 
     },
 
+    pickDealer: function() {
+      this.deck.shuffle();
+      this.setAction( CHOOSE_DEALER );
+      // this.setActivePlayerToLeftOfDealer();
+      // this.setAction( PICK_UP_TRUMP );
+    },
+
     start: function() {
       this.deck.shuffle();
-      this.setActivePlayerToLeftOfDealer();
       this.setAction( PICK_UP_TRUMP );
+      // this.setActivePlayerToLeftOfDealer();
+      // this.setAction( PICK_UP_TRUMP );
     },
 
     /**

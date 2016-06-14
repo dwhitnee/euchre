@@ -148,11 +148,18 @@ var Handlers = {
 
   /**
    * Start a game, ask first player to bid and tell Players about it
-   * @param  post body is game id
    */
   start: function(request, response) {
     request.game.start();
+    response.end();
+    request.game.sendState();
+  },
 
+  /**
+   * Tell the players to pick a card
+   */
+  pickDealer: function(request, response) {
+    request.game.pickDealer();
     response.end();
     request.game.sendState();
   },
@@ -193,9 +200,10 @@ router.post('/delete', Handlers.delete );
 router.post('/join',   Handlers.join );
 router.post('/leave',   Handlers.leave );
 router.post('/pickSeat', Handlers.pickSeat );
+router.post('/pickDealer', Handlers.pickDealer );
 router.post('/start',    Handlers.start );
 router.post('/bid',      Handlers.bid );
-router.post('/playcard', Handlers.playCard );
+router.post('/playCard', Handlers.playCard );
 
 
 // define the home page route?

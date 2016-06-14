@@ -1,16 +1,20 @@
 <!doctype html>
-<html>
+<html
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
 <head>
   <title>Welcome</title>
   <link rel="stylesheet" type="text/css" href="css/styles.css">
   <link rel="stylesheet" type="text/css"
           href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
           crossorigin="anonymous">
-  </head>
+</head>
 
-  <body>
-
+<body>
     <div class="page page1 form-inline">
+
       <form name="login" action="">
         <div class="form-group">
           <label for="newUsername">What do you want to be called?</label>
@@ -18,6 +22,10 @@
         </div>
         <button class="btn btn-primary btn-sm">Enter name</button>
       </form>
+
+      <div id="test">   </div>
+
+      </div>
     </div>
 
 
@@ -34,7 +42,8 @@
               <div class="seat west unchosen" data-id="3">West</div>
               <div class="action">
                 <div class="message">Click on a seat</div>
-                <button class="btn btn-primary">Start the Game</button>
+                <button class="btn btn-primary">Choose the Dealer</button>
+                <div class="deck">Deck</div>
               </div>
               <div class="seat east unchosen" data-id="1">East</div>
             </div>
@@ -116,14 +125,17 @@
 
 
     <!-- ========================= -->
-    <script src="https://code.jquery.com/jquery-2.2.3.min.js" crossorigin></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
-            crossorigin></script>
+    <script src="//code.jquery.com/jquery-2.2.3.min.js"     crossorigin></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js" crossorigin></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin></script>
 
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/client.js"></script>
-    <script src="js/events.js"></script>
 
+    <script src="js/card.js"></script>
+    <script src="js/gameDisplay.js"></script>
+
+    <script src="js/events.js"></script>
   </body>
 </html>

@@ -30,7 +30,8 @@ body {
   text-weight: bold;
 }
 
-.action .btn {
+.action .btn,
+.action .deck {
   display: none;
 }
 
@@ -54,6 +55,16 @@ body {
   background-color: teal;
   color: gray;
   font-style: italic;
+}
+
+/* Dock-style bulge-on-hover */
+.bulge-on-hover:hover {
+  transform: scale(1.2);
+  transition: all 0.2s ease-in;
+}
+.bulge-on-hover:not(hover) {
+  transform: scale(1);
+  transition: all 0.1s ease-out;
 }
 
 #name {
@@ -165,4 +176,17 @@ form[name="newMessage"] {
 }
 .messages li:nth-child(odd) {
   background: #eee;
+}
+
+
+/* svgs expand to fill their containers */
+svg {
+    height: 100%;
+    width: 100%;
+}
+
+.card {
+  width: 7em;
+  height: 10em;
+  display: inline-block;
 }

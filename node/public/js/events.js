@@ -1,4 +1,4 @@
-/*global console, $, Client, window, document */
+/*global console, $, Client, window, document, GameDisplay */
 
 /**
  * Create a client to talk to the server, and hook up the forms to create server events
@@ -8,12 +8,11 @@
  */
 
 var client = new Client();
+var gameDisplay = new GameDisplay( client );
 
 var Lobby = {};   // global state as defined by the server
 
 // var game =  {};   // State of our one game
-// var joinedGame;
-// var joinedGameId;  // the game we plan to join
 // var player;  // us
 
 /**
@@ -33,48 +32,14 @@ var EventHandler = {
    */
   onGameStateChange: function updateGame( state ) {
     var game = state;
+    gameDisplay.updateState( game );
+
 
     $(".playerList").empty();
     $(".gameName").text( game.name );
     for (var playerId in game.players) {
       $(".playerList").append( $("<div/>").text( game.players[playerId].name ));
     }
-
-    //----------------------------------------
-    // GAME STATE ENGINE
-    //----------------------------------------
-
-    // everyone must pick a seat
-    if (game.action === "WAITING_FOR_PLAYERS") {
-      $(".seat").each( function( i, seat ) {
-        var seatId = $(seat).data("id");
-        var player = game.seats[seatId];
-        if (player) {
-          $(seat).text( player.name );
-          $(seat).removeClass("unchosen");
-        } else {
-          $(seat).text("Empty");
-          $(seat).addClass("unchosen");
-        }
-      });
-    }
-
-    // Wait for anyone to click Go
-    if (game.action === "READY_TO_START") {
-      $(".action .message").hide();
-      $(".action button").show();
-      $(".action > button").on("click", EventHandler.startGame );
-    }
-
-    // everyone must pick a card
-    if (game.action === "CHOOSE_DEALER") {
-      // Draw Game board with us at the bottom
-      // $(deck).on("click", EventHandler.pickACard)
-      // $(callToAction).text("Pick a card");
-
-    }
-
-
   },
 
   /**
@@ -114,31 +79,12 @@ var EventHandler = {
     if (window.confirm("Join " + gameName + "?")) {
       $(".messages").empty();  // clear chat
 
-      $('.page2').hide();   // lame
-      $('.page3').show();
-
-      $("#gameBoard >> .seat").on("click", EventHandler.onChooseSeat );
+      gameDisplay.showNewGame();
 
       client.joinGame( gameId );
       console.log("You've joined " + gameName +"("+ gameId +")");
-      // joinedGameId = gameId;
     }
-  },
-
-  /**
-   * Seat clicked on, take or leave seat depending
-   */
-  onChooseSeat: function( event ) {
-    var seatId = $(event.target).data('id');
-    client.pickSeat( seatId );
-  },
-  startGame: function( event ) {
-    client.startGame();
-  },
-  pickACard: function( event ) {
-    client.pickACard();
   }
-
 
 };
 
