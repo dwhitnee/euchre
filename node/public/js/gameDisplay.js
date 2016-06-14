@@ -48,11 +48,12 @@ var GameDisplay = (function()
         console.log("Deck displayed, everyone pick a card");
 
         $(".action button").hide();
-        $(".action deck").show();
+        var deck = new Card(0,0);
+        $(".action .deck").empty().append( deck.el ).show();
 
         // Draw Game board with us at the bottom
-        // $(deck).on("click", EventHandler.pickACard)
-        // $(callToAction).text("Pick a card");
+        $( deck.el ).on("click", function(e) { self.pickACard(e); });
+        $(".callToAction").text("Pick a card");
       }
     },
 

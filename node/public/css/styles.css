@@ -22,7 +22,7 @@ body {
 #gameBoard {
   margin: 1em 0;
   border: .4em solid #B8860B;
-  height: 20em;
+  height: 25em;
   background: #66aa66;
 }
 #gameBoard .gameName {
@@ -176,6 +176,11 @@ form[name="newMessage"] {
 }
 .messages li:nth-child(odd) {
   background: #eee;
+}
+
+.callToAction {
+  font-weight: bold;
+  font-size: larger;
 }
 
 

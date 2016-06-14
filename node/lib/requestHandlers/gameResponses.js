@@ -165,6 +165,15 @@ var Handlers = {
   },
 
   /**
+   * Pick a card for one player
+   */
+  pickACard: function(request, response) {
+    request.game.pickACard( request.player );
+    response.end();
+    request.game.sendState();
+  },
+
+  /**
    * pass or choose a trump suit, move to next action and tell players about it.
    * @param  TBD
    */
@@ -201,6 +210,7 @@ router.post('/join',   Handlers.join );
 router.post('/leave',   Handlers.leave );
 router.post('/pickSeat', Handlers.pickSeat );
 router.post('/pickDealer', Handlers.pickDealer );
+router.post('/pickACard', Handlers.pickACard );
 router.post('/start',    Handlers.start );
 router.post('/bid',      Handlers.bid );
 router.post('/playCard', Handlers.playCard );

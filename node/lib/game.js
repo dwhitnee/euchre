@@ -112,6 +112,11 @@ var Game = (function()
       // this.setAction( PICK_UP_TRUMP );
     },
 
+    pickACard: function( player, numCards ) {
+      var cards = this.deck.deal( numCards );
+      player.addCards( cards );
+    },
+
     /**
      * deal 5 cards to each seated player
      */
