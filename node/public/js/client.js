@@ -125,7 +125,7 @@ var Client = (function()
      *  Does this return a card or does game state?
      */
     pickACard: function() {
-      $.post("/game/pickCard");
+      $.post("/game/pickACard");
     },
 
 

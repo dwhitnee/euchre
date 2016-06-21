@@ -25,6 +25,7 @@ var GameDisplay = (function()
     //----------------------------------------
     updateState: function( newState ) {
       this.game = newState;
+      var self = this;
 
       // everyone must pick a seat
       if (this.game.action === WAITING_FOR_PLAYERS) {
@@ -38,7 +39,6 @@ var GameDisplay = (function()
         $(".action .message").hide();
         $(".action button").show();
 
-        var self = this;
         $(".action > button").on("click", function(e) { self.pickDealer(e); });
       }
 
