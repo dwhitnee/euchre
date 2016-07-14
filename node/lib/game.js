@@ -112,8 +112,8 @@ var Game = (function()
       // this.setAction( PICK_UP_TRUMP );
     },
 
-    pickACard: function( player, numCards ) {
-      var cards = this.deck.deal( numCards );
+    pickACard: function( player ) {
+      var cards = this.deck.deal( 1 );
       player.addCards( cards );
     },
 

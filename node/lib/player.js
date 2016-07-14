@@ -9,6 +9,7 @@ var Player = (function()
   function Player( name ) {
     this.id = nextId++;
     this.name = name || "n/a";
+    this.cards = [];
   };
 
   Player.prototype = {
@@ -24,6 +25,11 @@ var Player = (function()
     },
     setGameId: function( gameId ) {
       this.gameId = gameId;
+    },
+
+    addCards: function( cards ) {
+      this.cards = this.cards.concat( cards );
+      console.log("Cards for " + this.name + ": " + this.cards );
     },
 
     quit: function quit() {

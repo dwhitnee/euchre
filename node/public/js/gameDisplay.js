@@ -24,6 +24,8 @@ var GameDisplay = (function()
     // GAME STATE ENGINE
     //----------------------------------------
     updateState: function( newState ) {
+      var self = this;
+
       this.game = newState;
       var self = this;
 
@@ -54,6 +56,9 @@ var GameDisplay = (function()
         // Draw Game board with us at the bottom
         $( deck.el ).on("click", function(e) { self.pickACard(e); });
         $(".callToAction").text("Pick a card");
+
+        // show card each player picked
+
       }
     },
 
@@ -85,6 +90,14 @@ var GameDisplay = (function()
         if (player) {
           $(seat).text( player.name );
           $(seat).removeClass("unchosen");
+
+          if (player.cards.length) {
+            // FIXME: unmarshal cards before here
+            var dealt = player.cards[0];
+            var card = new Card( dealt._rank, dealt._suit );
+            $(seat).empty().append( card.el );
+          }
+
         } else {
           $(seat).text("Empty");
           $(seat).addClass("unchosen");
