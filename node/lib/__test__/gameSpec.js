@@ -24,7 +24,7 @@ describe(
 
     it("should create a game",
        function() {
-         var game = Game.newGame({ name: "Game One", createdBy: 1002 });
+         var game  = Game.newGame({ name: "Game One", createdBy: 1002 });
          var game2 = Game.newGame({ name: "Game Two", createdBy: 1003 });
 
          expect( game.id ).toBe( 1001 );
@@ -72,7 +72,7 @@ describe(
            game.pickSeat( Player.getById( ids[i] ), 3-i);
          }
 
-         game.setDealer( 2 );
+         game.dealerSeat = 2;
          game.setActivePlayerToLeftOfDealer();
          player = game.getActivePlayer();
          expect( player.name ).toBe("Player 1");
@@ -80,7 +80,7 @@ describe(
          // game.rotatePlayer();
          // expect( player.name ).toBe("Player 1");
 
-         console.log( JSON.stringify( game ));
+         console.log( JSON.stringify( game, null, 2 ));
        });
 
 });

@@ -1,0 +1,4 @@
+# startup script for Euchre server
+
+export NODE_PATH=lib
+node --use_strict server.js

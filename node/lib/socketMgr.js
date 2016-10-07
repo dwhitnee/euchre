@@ -36,7 +36,7 @@ var socketInit = {
           console.log("socket disconnect from user " + user.id + " but not in Player DB");
         }
 
-        var game = Game.getById( player.getGameId() );
+        var game = Game.getById( player.gameId );
         if (!game) {
           Game.getLobby().sendChat("[Lost connection]", player );
           Game.getLobby().sendLobbyState();

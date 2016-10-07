@@ -21,7 +21,7 @@ var Filters = {
   auth: function(request, response, next) {
     var playerId =  request.headers['x-userid'];     // this should be more auth-y FIXME
     request.player = Player.getById( playerId );
-    request.game = Game.getById( request.player.getGameId() );
+    request.game = Game.getById( request.player.gameId );
 
     next();
   }
@@ -92,8 +92,8 @@ var Handlers = {
     var player = request.player;
     var oldGame;
 
-    if (player.getGameId()) {
-      oldGame = Game.getById( player.getGameId() );
+    if (player.gameId) {
+      oldGame = Game.getById( player.gameId );
     }
 
     Game.getLobby().addPlayer( player );

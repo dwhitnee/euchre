@@ -122,7 +122,7 @@ var Client = (function()
     },
 
     /**
-     *  Does this return a card or does game state?
+     *  Does this return a card or does game state?  FIXME
      */
     pickACard: function() {
       $.post("/game/pickACard");

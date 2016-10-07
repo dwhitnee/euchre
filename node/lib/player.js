@@ -2,37 +2,42 @@
 // One guy, and the Factory that makes them.
 //----------------------------------------------------------------------
 
-var Player = (function()
-{
-  var nextId = 100;
-
-  function Player( name ) {
-    this.id = nextId++;
+class Player {
+  constructor( name ) {
+    this.id = Player.nextId++;
     this.name = name || "n/a";
+    this.cards = [];
   };
 
-  Player.prototype = {
-    getName: function getName() {
-      return this.name;
-    },
-    setName: function setName( name ) {
-      this.name = name;
-      console.log('New player! ' + this.name );
-    },
-    getGameId: function() {
-      return this.gameId;
-    },
-    setGameId: function( gameId ) {
-      this.gameId = gameId;
-    },
+  get name() {
+    return this._name;
+  }
+  set name( name ) {
+    this._name = name;
+    console.log(`New player! ${this.name}`);
+  }
 
-    quit: function quit() {
-      console.log( this.name  + " left.  Awww");
-      // disconnected, save state?  FIXME
-    }
-  };
-  return Player;
-})();
+  addCards( cards ) {
+    this.cards = this.cards.concat( cards );
+    console.log("cards: " + this.cards );
+  }
+
+  quit() {
+    console.log(`${this.name} left.  Awww`);
+    // disconnected, save state?  FIXME
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      cards: this.cards
+    };
+  }
+};
+
+// static class variables
+Player.nextId = 100;
 
 
 //----------------------------------------------------------------------

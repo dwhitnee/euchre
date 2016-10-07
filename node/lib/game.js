@@ -29,212 +29,231 @@ var _switchboard;   // network (socket) communications manager
 var _lobby;    // special room everyone joins first
 
 //----------------------------------------
-var Game = (function()
-{
-  var nextId = 1000;
-
-  function Game( options ) {
-
-    this.id = nextId++;
+class Game {
+  constructor( options ) {
+    this.id = Game.nextId++;
     this.name = options.name || "Unknown";
     this.createdBy = options.createdBy || "Unknown";  // what is this used for? deletion? FIXME
     this.players = {};
-    this.seats = [];  // 0,1,2,3 NESW
+    this.seats = [];  // 0,1,2,3 -- NESW
     this.deck = new Deck();
     this.init();
   };
 
-  Game.prototype = {
-    delete: function() {
-      _games[this.id] = undefined;
-      _gameNames[this.name] = undefined;
-      _switchboard.deleteRoom( this.getChatRoomName() );
-    },
+  delete() {
+    _games[this.id] = undefined;
+    _gameNames[this.name] = undefined;
+    _switchboard.deleteRoom( this.getChatRoomName() );
+  }
 
-    init: function() {
-      this.scores = [0,0];
-      this.action = WAITING_FOR_PLAYERS;  // FIXME?
-    },
+  init() {
+    this.scores = [0,0];
+    this.action = WAITING_FOR_PLAYERS;  // FIXME?
+  }
 
-    getName: function() {
-      return this.name;
-    },
-    setName: function( name ) {
-      this.name = name;
-      console.log('New game name: ' + this.name );
-    },
+  get name() {
+    return this._name;
+  }
+  set name( name ) {
+    this._name = name;
+    console.log(`New game name: ${this.name}`);
+  }
 
-    /**
-     * Add player to room, but don't take a seat at the table yet.
-     */
-    addPlayer: function( player ) {
-      // remove player from previous game
-      if (player.getGameId()) {
-        var oldGame = Game.getById( player.getGameId() );
-        oldGame.removePlayer( player );
-      }
-
-      this.players[player.id] = player;
-      _switchboard.joinRoom( player.id, this.getChatRoomName() );
-      player.setGameId( this.id );
-    },
-
-    /**
-     * Not necessary to call externally, addPlayer handles cleanup.
-     * Remove player from game room and chair (if occupied)
-     * switchboard handles its own cleanup, too
-     */
-    removePlayer: function( player ) {
-      // delete this.players[player.id];    // bad performance?
-      this.players[player.id] = undefined;
-
-      for (var i=0; i < 4; i++) {
-        if (this.seats[i] && (this.seats[i].id === player.id)) {
-          this.seats[i] = undefined;
-          this.setAction( WAITING_FOR_PLAYERS );
-          // FIXME - if game started, need to abandon/pause?
-        }
-      }
-
-    },
-
-    pickDealer: function() {
-      this.deck.shuffle();
-      this.setAction( CHOOSE_DEALER );
-      // this.setActivePlayerToLeftOfDealer();
-      // this.setAction( PICK_UP_TRUMP );
-    },
-
-    start: function() {
-      this.deck.shuffle();
-      this.setAction( PICK_UP_TRUMP );
-      // this.setActivePlayerToLeftOfDealer();
-      // this.setAction( PICK_UP_TRUMP );
-    },
-
-    pickACard: function( player, numCards ) {
-      var cards = this.deck.deal( numCards );
-      player.addCards( cards );
-    },
-
-    /**
-     * deal 5 cards to each seated player
-     */
-    deal: function() {
-      var numCardsToDeal = 5;
-      var cards;
-
-      this.setActivePlayerToLeftOfDealer();
-
-      for (var i = 0; i < this.seats.length; i++) {
-        cards = this.deck.deal( numCardsToDeal );
-        this.getActivePlayer().addCards( cards );
-        this.rotatePlayer();
-      }
-    },
-
-    pass: function() {
-      this.rotatePlayer();
-      if (this.activePlayerSeat === this.dealerSeat) {
-        // either open bidding or end game
-        if (this.action === DECLARE_TRUMP) {
-          this.endGame();
-        }
-      }
-    },
-
-    /**
-     * @param player obj
-     * @param seat id from 0 to 3
-     */
-    pickSeat: function( player, seat ) {
-      // leave any other seat
-      for (var i=0; i < 4; i++) {
-        if (this.seats[i] === player) {
-          this.seats[i] = undefined;
-        }
-      }
-      this.seats[seat] = player;  // steal seat if we must
-
-      var readyToStart = true;
-      for (i=0; i < 4; i++) {
-        if (this.seats[i] === undefined) {
-          readyToStart = false;
-        }
-      }
-      if (readyToStart) {
-        this.setAction( READY_TO_START );
-      } else {
-        this.setAction( WAITING_FOR_PLAYERS );
-      }
-    },
-
-    /**
-     * @param seat is seat 0,1,2,or 3  (N, E, S, W)
-     */
-    setDealer: function( seat ) {
-      this.dealerSeat = seat;
-    },
-    setActivePlayerToLeftOfDealer: function() {
-      this.activePlayerSeat = (this.dealerSeat + 1) % 4;
-    },
-    /**
-     * Rotate functions move around the table clockwise.
-     */
-    rotateDealer: function() {
-      this.dealerSeat += 1;
-      this.dealerSeat %= 4;
-    },
-    rotatePlayer: function() {
-      this.activePlayerSeat += 1;
-      this.activePlayerSeat %= 4;
-    },
-    getActivePlayer: function() {
-      return this.seats[ this.activePlayerSeat ];
-    },
-
-    /**
-     * game state - what is expected of the client
-     */
-    setAction: function( action ) {
-      this.action = action;
-    },
-
-
-    // name for webSocket multicast room
-    getChatRoomName: function() {
-      return this.id;
-    },
-
-    /**
-     * Tell all memebers of group this message (and who from)
-     */
-    sendChat: function( msg, from ) {
-      var data = {
-        user: from.name,
-        msg: msg
-      };
-      _switchboard.multicast( this.getChatRoomName(), chatMessageEvent, data );
-      console.log( from.name + ": " + msg);
-    },
-
-    // Tell all members of game our current state
-    sendState: function() {
-      console.log( JSON.stringify( this ));
-      _switchboard.multicast( this.getChatRoomName(), gameStateUpdateEvent, this );
-    },
-    sendLobbyState: function() {
-      var data = {
-        players: this.players,
-        games: _games,
-        gameNames: _gameNames
-      };
-      _switchboard.multicast( this.getChatRoomName(), lobbyStateUpdateEvent, data );
+  /**
+   * Add player to room, but don't take a seat at the table yet.
+   */
+  addPlayer( player ) {
+    // remove player from previous game
+    if (player.gameId) {
+      var oldGame = Game.getById( player.gameId );
+      oldGame.removePlayer( player );
     }
-  };
 
-  return Game;
-})();
+    this.players[player.id] = player;
+    _switchboard.joinRoom( player.id, this.getChatRoomName() );
+    player.gameId = this.id;
+  }
+
+  /**
+   * Not necessary to call externally, addPlayer handles cleanup.
+   * Remove player from game room and chair (if occupied)
+   * switchboard handles its own cleanup, too
+   */
+  removePlayer( player ) {
+    // delete this.players[player.id];    // bad performance?
+    this.players[player.id] = undefined;
+
+    for (var i=0; i < 4; i++) {
+      if (this.seats[i] && (this.seats[i].id === player.id)) {
+        this.seats[i] = undefined;
+        this.action = WAITING_FOR_PLAYERS;
+        // FIXME - if game started, need to abandon/pause?
+      }
+    }
+
+  }
+
+  pickDealer() {
+    this.deck.shuffle();
+    this.action = CHOOSE_DEALER;
+    // this.setActivePlayerToLeftOfDealer();
+    // this.action = PICK_UP_TRUMP;
+  }
+
+  start() {
+    this.deck.shuffle();
+    this.action = PICK_UP_TRUMP;
+    // this.setActivePlayerToLeftOfDealer();
+    // this.action = PICK_UP_TRUMP;
+  }
+
+  pickACard( player ) {
+    var cards = this.deck.deal( 1 );
+    console.log("Dealt cards: " + cards );
+    player.addCards( cards );
+  }
+
+  /**
+   * deal 5 cards to each seated player
+   */
+  deal() {
+    var numCardsToDeal = 5;
+    var cards;
+
+    this.setActivePlayerToLeftOfDealer();
+
+    for (var i = 0; i < this.seats.length; i++) {
+      cards = this.deck.deal( numCardsToDeal );
+      this.getActivePlayer().addCards( cards );
+      this.rotatePlayer();
+    }
+  }
+
+  pass() {
+    this.rotatePlayer();
+    if (this.activePlayerSeat === this.dealerSeat) {
+      // either open bidding or end game
+      if (this.action === DECLARE_TRUMP) {
+        this.endGame();
+      }
+    }
+  }
+
+  /**
+   * @param player obj
+   * @param seat id from 0 to 3
+   */
+  pickSeat( player, seat ) {
+    // leave any other seat
+    for (var i=0; i < 4; i++) {
+      if (this.seats[i] === player) {
+        this.seats[i] = undefined;
+      }
+    }
+    this.seats[seat] = player;  // steal seat if we must
+
+    var readyToStart = true;
+    for (i=0; i < 4; i++) {
+      if (this.seats[i] === undefined) {
+        readyToStart = false;
+      }
+    }
+    if (readyToStart) {
+      this.action = READY_TO_START;
+    } else {
+      this.action = WAITING_FOR_PLAYERS;
+    }
+  }
+
+  get action() {
+    return this._action;
+  }
+  set action( action ) {
+    this._action = action;
+    console.log(`Game action is now ${this.action}`);
+  }
+
+  get dealerSeat() {
+    return this._dealerSeat;
+  }
+  /**
+   * @param seat is seat 0,1,2,or 3  (N, E, S, W)
+   */
+  set dealerSeat( seatId ) {
+    this._dealerSeat = seatId;
+    console.log(`Dealer is #${this.dealerSeat} (${this.seats[this.dealerSeat].name})`);
+  }
+  setActivePlayerToLeftOfDealer() {
+    this.activePlayerSeat = (this.dealerSeat + 1) % 4;
+  }
+  /**
+   * Rotat functions move around the table clockwise.
+   */
+  rotateDealer() {
+    this.dealerSeat += 1;
+    this.dealerSeat %= 4;
+  }
+  rotatePlayer() {
+    this.activePlayerSeat += 1;
+    this.activePlayerSeat %= 4;
+  }
+  getActivePlayer() {
+    return this.seats[ this.activePlayerSeat ];
+  }
+
+  // name for webSocket multicast room
+  getChatRoomName() {
+    return this.id;
+  }
+
+  /**
+   * Tell all memebers of group this message (and who from)
+   */
+  sendChat( msg, from ) {
+    var data = {
+      user: from.name,
+      msg: msg
+    };
+    _switchboard.multicast( this.getChatRoomName(), chatMessageEvent, data );
+    console.log( from.name + ": " + msg);
+  }
+
+  // Tell all members of game our current state
+  sendState() {
+    console.log( JSON.stringify( this, null, 2 ));
+    _switchboard.multicast( this.getChatRoomName(), gameStateUpdateEvent, this );
+  }
+  sendLobbyState() {
+    var data = {
+      players: this.players,
+      games: _games,
+      gameNames: _gameNames
+    };
+    _switchboard.multicast( this.getChatRoomName(), lobbyStateUpdateEvent, data );
+  }
+
+  /**
+   * THis is needed so underscore properties are not serialized
+   */
+  toJSON() {
+    return {
+      // deck: this.deck,
+      id: this.id,
+      name: this.name,
+      createdBy: this.createdBy,
+      players: this.players,
+      seats: this.seats,
+      scores: this.scores,
+      action: this.action,
+      dealerSeat: this.dealerSeat,
+      activePlayerSeat: this.activePlayerSeat
+    };
+  }
+}
+
+// static class variables
+Game.nextId = 1000;
+
 
 //----------------------------------------------------------------------
 // Game Factory
