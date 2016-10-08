@@ -27,6 +27,8 @@ var GameDisplay = (function()
     // GAME STATE ENGINE
     //----------------------------------------
     updateState: function( newState ) {
+      var self = this;
+
       this.game = newState;
       var self = this;
       var ourTurn = false;
@@ -98,7 +100,6 @@ var GameDisplay = (function()
           // $( pass.el ).one("click", function(e) { self.pass(e); });
           $(".callToAction").text("Choose a trump suit or pass");
         }
-
       }
 
     },
@@ -171,6 +172,14 @@ var GameDisplay = (function()
         if (player) {
           $(seat).find(".name").text( player.name );
           $(seat).removeClass("unchosen");
+
+          if (player.cards.length) {
+            // FIXME: unmarshal cards before here
+            var dealt = player.cards[0];
+            var card = new Card( dealt._rank, dealt._suit );
+            $(seat).empty().append( card.el );
+          }
+
         } else {
           $(seat).find(".name").text("Empty Seat");
           $(seat).addClass("unchosen");

@@ -127,6 +127,9 @@ class Game {
     }
   }
 
+  /**
+   * Pick player with best card to deal
+   */
   chooseDealer() {
     var bestSeat;
     var bestCard;
@@ -135,7 +138,6 @@ class Game {
       var seat = this.seats[i];
       var card = seat.cards[0];
 
-      console.log( card.toString() );
       if (!bestCard || card.isHigherThan( bestCard )) {
         bestCard = card;
         bestSeat = i;
@@ -146,7 +148,9 @@ class Game {
     this.activePlayerSeat = this.dealerSeat;
   }
 
-
+  /**
+   * throw in cards, shuffle, deal, and start a new hand
+   */
   start() {
     this.dumpPlayerCards();
     this.deck.shuffle();

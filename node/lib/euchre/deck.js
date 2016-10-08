@@ -57,6 +57,7 @@ class Deck {
     for (var i=0; i < num; i++) {
       cards.push( this.cards[this.topCard--] );
     }
+    console.log("Dealing " + cards );
     return cards;
   }
 

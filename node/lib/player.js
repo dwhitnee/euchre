@@ -19,7 +19,6 @@ class Player {
 
   addCards( cards ) {
     this.cards = this.cards.concat( cards );
-    console.log("cards: " + this.cards );
   }
 
   quit() {
