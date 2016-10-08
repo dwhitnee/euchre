@@ -1,8 +1,11 @@
-/*global $ */
+/*global $ Card */
+
+// import Card
 
 const WAITING_FOR_PLAYERS = "WAITING_FOR_PLAYERS";
 const READY_TO_START = "READY_TO_START";
 const CHOOSE_DEALER = "CHOOSE_DEALER";
+const NEW_DEALER = "NEW_DEALER";
 
 const PICK_UP_TRUMP = "PICK_UP_TRUMP";  // first round of bidding
 const DECLARE_TRUMP = "DECLARE_TRUMP";  // second round of bidding
@@ -26,50 +29,78 @@ var GameDisplay = (function()
     updateState: function( newState ) {
       this.game = newState;
       var self = this;
+      var ourTurn = false;
 
-      // everyone must pick a seat
+      this.updateSeatDisplay();   // Update player context decorations
+      this.showCards();
+
+      // everyone pick a seat
       if (this.game.action === WAITING_FOR_PLAYERS) {
-        this.updateSeatDisplay();
+        // NOP, does this need a setup after game over?
       }
 
-      // Wait for anyone to click Start, disable seat changing
+      // Wait for anyone to click Start once all seated, disable seat changing
       if (this.game.action === READY_TO_START) {
-        this.updateSeatDisplay();
-
-        $(".action .message").hide();
+        $(".action button").text("Choose  the  Dealer").show();
         $(".action button").show();
-
         $(".action > button").on("click", function(e) { self.pickDealer(e); });
       }
 
-      if (this.game.activePlayerSeat) {
-        var ourTurn = (this.client.user.id === this.game.seats[this.game.activePlayerSeat].id);
-        var activePlayerId = this.game.seats[this.game.activePlayerSeat].id;
+      // Indicate who's turn it is
+      if (this.game.activePlayerSeat !== undefined) {
+        ourTurn = (this.client.user.id === this.game.seats[this.game.activePlayerSeat].id);
 
+        var activePlayerId = this.game.seats[this.game.activePlayerSeat].id;
         if (!ourTurn) {
-          $(".callToAction").text( this.players[activePlayerId].name + "'s turn");
+          $(".callToAction").text( this.game.players[activePlayerId].name + "'s turn");
         }
       }
 
-
-      // everyone must pick a card
+      // everyone pick a card
       if (this.game.action === CHOOSE_DEALER) {
         this.disableSeatPicking();
         // TODO: re-orient display so we're at the bottom.  HOW?
-
-        this.updateSeatDisplay(); // show who's turn it is
-
-        console.log("Deck displayed, everyone pick a card");
 
         $(".action button").hide();
         var deck = new Card(0,0);
         $(".action .deck").empty().append( deck.el ).show();
 
-        if (this.client.user.id === this.game.seats[this.game.activePlayerSeat].id) {
+        if (ourTurn) {
           $( deck.el ).one("click", function(e) { self.pickACard(e); });
-          $(".callToAction").text("Pick a card");
+          $(".callToAction").text("Pick for dealer (click the deck to draw a card)");
         }
       }
+
+      // Display the state change and wait for anyone to click "Deal!" button
+      if (this.game.action === NEW_DEALER) {
+
+        $(".callToAction").text("The new dealer is " +
+                                this.game.seats[this.game.dealerSeat].name );
+
+        $(".action .deck").empty();
+
+        $(".action button").text("OK, Deal!").show();
+        $(".action > button").on("click", function(e) { self.startGame(e); });
+
+      }
+
+      if (this.game.action === PICK_UP_TRUMP) {
+        if (ourTurn) {
+          // $( pickItUp.el ).one("click", function(e) { self.pickItUp(e); });
+          // $( pass.el ).one("click", function(e) { self.pass(e); });
+          $(".callToAction").text("Pick it up?");
+        }
+      }
+
+      if (this.game.action === DECLARE_TRUMP) {
+        if (ourTurn) {
+          // $( pickASuit.el ).one("click", function(e) { self.pickItUp(e); });
+          // $( pass.el ).one("click", function(e) { self.pass(e); });
+          $(".callToAction").text("Choose a trump suit or pass");
+        }
+
+      }
+
     },
 
     startGame: function() {
@@ -95,6 +126,28 @@ var GameDisplay = (function()
       // this.client.user.id;
     },
 
+    showCards: function() {
+      if (!this.game.seats) return;
+
+      var self = this;
+      $(".seat").each( function( index, seat ) {
+        var seatId = $(seat).data("id");
+        var player = self.game.seats[seatId];
+        var c, card;
+
+        var $cards = $(seat).find(".cards");
+        $cards.empty();
+
+        for (var i=0; i < player.cards.length; i++) {
+          c = player.cards[i];
+          card = new Card( c.rank, c.suit );
+          $cards.append( card.el );
+        }
+      });
+
+    },
+
+    /* display player names with context decorations */
     updateSeatDisplay: function() {
       if (!this.game.seats) return;
 
@@ -109,11 +162,17 @@ var GameDisplay = (function()
           $(seat).removeClass("myTurn");
         }
 
+        if (seatId === self.game.dealerSeat) {
+          $(seat).addClass("dealer");
+        } else {
+          $(seat).removeClass("dealer");
+        }
+
         if (player) {
-          $(seat).text( player.name );
+          $(seat).find(".name").text( player.name );
           $(seat).removeClass("unchosen");
         } else {
-          $(seat).text("Empty");
+          $(seat).find(".name").text("Empty Seat");
           $(seat).addClass("unchosen");
         }
       });
@@ -123,7 +182,7 @@ var GameDisplay = (function()
      * Seat clicked on, take or leave seat depending
      */
     onChooseSeat: function( event ) {
-      var seatId = $(event.target).data('id');
+      var seatId = $(event.currentTarget).data('id');
       this.client.pickSeat( seatId );
     },
 

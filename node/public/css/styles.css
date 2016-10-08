@@ -22,7 +22,7 @@ body {
 #gameBoard {
   margin: 1em 0;
   border: .4em solid #B8860B;
-  height: 25em;
+  height: 27em;
   background: #66aa66;
 }
 #gameBoard .gameName {
@@ -39,10 +39,24 @@ body {
   width: 10em;
   height: 2.5em;
   margin: 2em;
+  /*
   border: 2px solid black;
   padding: .33em;
   text-align: center;
   white-space: nowrap;
+*/
+}
+
+.seat .name {
+/*  width: 10em;
+  height: 2.5em; */
+  border: 2px solid black;
+  padding: .33em;
+  text-align: center;
+  white-space: nowrap;
+  z-index: 1;
+  position: relative;
+  background-color: #ccc;
 }
 
 .seatrow {
@@ -51,14 +65,18 @@ body {
   display: flex;
 }
 
-.seat.unchosen {
+.seat.unchosen .name {
   background-color: teal;
   color: gray;
   font-style: italic;
 }
 
-.seat.myTurn {
+.seat.myTurn .name {
   background-color: pink;
+}
+
+.seat.dealer .name {
+  border: ridge 4px blue;
 }
 
 /* Dock-style bulge-on-hover */
@@ -198,4 +216,17 @@ svg {
   width: 7em;
   height: 10em;
   display: inline-block;
+}
+
+.seat .cards {
+  width: 40em;
+  transform: scale( 0.5 );
+  transform-origin: -7em -8em;
+}
+
+.west .cards {
+  transform-origin: -12em -8em;
+}
+.east .cards {
+  transform-origin: -2em -8em;
 }

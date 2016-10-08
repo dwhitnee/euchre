@@ -20,7 +20,7 @@ var Client = (function()
     // this was just a page reload?
 
     this.gameId = undefined;
-    this.player = undefined;
+    this.user = undefined;
   };
 
   Client.prototype = {

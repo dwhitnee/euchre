@@ -8,6 +8,7 @@
 const WAITING_FOR_PLAYERS = "WAITING_FOR_PLAYERS";
 const READY_TO_START = "READY_TO_START";
 const CHOOSE_DEALER = "CHOOSE_DEALER";
+const NEW_DEALER = "NEW_DEALER";
 
 const PICK_UP_TRUMP = "PICK_UP_TRUMP";  // first round of bidding
 const DECLARE_TRUMP = "DECLARE_TRUMP";  // second round of bidding
@@ -96,10 +97,17 @@ class Game {
   // move to dealer-picking state, ask first player to pick a card
   enterPickDealerState() {
     this.deck.shuffle();
+    this.dumpPlayerCards();
     this.action = CHOOSE_DEALER;
     this.activePlayerSeat = 0;
 
     // once all players have picked a card a dealer will be chosen
+  }
+
+  // waiting for someone to click to start the game
+  enterNewDealerState() {
+    this.action = NEW_DEALER;
+
   }
 
   // have each player pick a card to see who is dealer, move to next seat, or start the deal.
@@ -111,7 +119,8 @@ class Game {
     // everyone's picked a card now
     if (this.activePlayerSeat === 3) {
       this.chooseDealer();
-      this.start();      // deal cards, start game
+      this.enterNewDealerState();
+      // this.start();      // deal cards, start game
 
     } else {
       this.activePlayerSeat++;
@@ -134,6 +143,7 @@ class Game {
     }
     console.log("High card is " + bestCard.toString());
     this.dealerSeat = bestSeat;
+    this.activePlayerSeat = this.dealerSeat;
   }
 
 
