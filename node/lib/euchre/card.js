@@ -57,6 +57,7 @@ class Card {
   /**
    * How well does this card help my case? A seven point hand is worth bidding.
    * bower: 3, high trump: 2, off-suit ace/low trump: 1
+
    */
   strategicValue( trump ) {
     if (this.isRightBower( trump ) || this.isLeftBower( trump )) {
@@ -71,6 +72,7 @@ class Card {
   }
 
   /**
+   * Which card will win a Euchre TRICK.  Not necessarily which card is higher in general
    * precondition: the other card is not the highest card, the right bower
    * Otherwise, a card is better than another if it is...
    * 1. The right or left bower
@@ -78,7 +80,7 @@ class Card {
    * 3. any trump card
    * Off suits are garbage.
    */
-  isBetterThan( card, trump ) {
+  winsTrickOver( card, trump ) {
     if (!card) {
       return true;  // any card is better than nothing
     }
@@ -97,6 +99,21 @@ class Card {
 
     } else {
       return this.suit === trump;           // trump always beats non trump
+    }
+  }
+
+  /**
+   * Compare two cards when trump is not a consideration (ex: choosing dealer)
+   */
+  isHigherThan( card ) {
+    if (!card) {
+      return true;  // any card is better than nothing
+    }
+
+    if (this.value !== card.value) {
+      return this.value > card.value;
+    } else {
+      return this.suit > card.suit;
     }
   }
 }

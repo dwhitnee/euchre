@@ -159,7 +159,7 @@ var Handlers = {
    * Tell the players to pick a card
    */
   pickDealer: function(request, response) {
-    request.game.pickDealer();
+    request.game.enterPickDealerState();
     response.end();
     request.game.sendState();
   },

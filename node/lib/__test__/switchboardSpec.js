@@ -1,3 +1,5 @@
+/*global describe beforeEach it expect */
+
 var Game = require("game");
 
 var Switchboard = require("switchboard");

@@ -38,7 +38,11 @@ describe(
          // expect( deck.deal( 1 )).toThrowError(/out of cards/);   // why no work?
 
          try { deck.deal( 1 ); }
-         catch( e ) { done(); }  // toThrow the hard way
+         catch( e ) {
+           // toThrow the hard way
+           expect( e ).toMatch(/out of cards/);
+           done();
+         }
        });
 
   }

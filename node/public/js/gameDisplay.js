@@ -42,18 +42,33 @@ var GameDisplay = (function()
         $(".action > button").on("click", function(e) { self.pickDealer(e); });
       }
 
+      if (this.game.activePlayerSeat) {
+        var ourTurn = (this.client.user.id === this.game.seats[this.game.activePlayerSeat].id);
+        var activePlayerId = this.game.seats[this.game.activePlayerSeat].id;
+
+        if (!ourTurn) {
+          $(".callToAction").text( this.players[activePlayerId].name + "'s turn");
+        }
+      }
+
+
       // everyone must pick a card
       if (this.game.action === CHOOSE_DEALER) {
         this.disableSeatPicking();
+        // TODO: re-orient display so we're at the bottom.  HOW?
+
+        this.updateSeatDisplay(); // show who's turn it is
+
         console.log("Deck displayed, everyone pick a card");
 
         $(".action button").hide();
         var deck = new Card(0,0);
         $(".action .deck").empty().append( deck.el ).show();
 
-        // Draw Game board with us at the bottom
-        $( deck.el ).on("click", function(e) { self.pickACard(e); });
-        $(".callToAction").text("Pick a card");
+        if (this.client.user.id === this.game.seats[this.game.activePlayerSeat].id) {
+          $( deck.el ).one("click", function(e) { self.pickACard(e); });
+          $(".callToAction").text("Pick a card");
+        }
       }
     },
 
@@ -75,6 +90,11 @@ var GameDisplay = (function()
       this.enableSeatChoosing();
     },
 
+    rotateSeatDisplay: function() {
+      // this.game.seats;
+      // this.client.user.id;
+    },
+
     updateSeatDisplay: function() {
       if (!this.game.seats) return;
 
@@ -82,6 +102,13 @@ var GameDisplay = (function()
       $(".seat").each( function( i, seat ) {
         var seatId = $(seat).data("id");
         var player = self.game.seats[seatId];
+
+        if (seatId === self.game.activePlayerSeat) {
+          $(seat).addClass("myTurn");
+        } else {
+          $(seat).removeClass("myTurn");
+        }
+
         if (player) {
           $(seat).text( player.name );
           $(seat).removeClass("unchosen");

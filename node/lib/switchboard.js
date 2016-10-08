@@ -46,12 +46,12 @@ var socket = new Server();
 // thinks it should receive.  Lobby messages at login, and game messages when playing.
 
 
-var Switchboard = (function()
-{
+class Switchboard {
+
   /**
    * Open a multicast connection on this http port
    */
-  function Switchboard( httpServer ) {
+  constructor( httpServer ) {
 
     // listen on http port for WebSocket connections
     this.socket = this.connectSocket( httpServer );
@@ -95,103 +95,99 @@ var Switchboard = (function()
   };
 
 
-  Switchboard.onNewUserEvent = "newUser";
+  connectSocket( httpServer ) {
+    return socket.attach( httpServer );
+  }
 
-  Switchboard.prototype = {
+  /**
+   * Tell a group of clients what's going on
+   * @param room multicast group of clients to send to
+   * @param messageType
+   * @param data to send
+   *
+   * state: NEWGAME, NEWHAND, BIDDING, PLAYING ?
+   */
+  multicast( room, messageType, data ) {
+    console.log("Sending " + messageType + " to room " + room);
+    this.socket.to( room ).emit( messageType, data );
+  }
 
-    connectSocket: function( httpServer ) {
-      return socket.attach( httpServer );
-    },
+  /**
+   *  associate user data with this socket to be passed to event handlers
+   *  Check to see if this user exists and/or is already connected.
+   */
+  associateUserData( socket, user ) {
+    console.log( user.name + " (" + user.id+ ") is on socket " + socket.id );
 
-    /**
-     * Tell a group of clients what's going on
-     * @param room multicast group of clients to send to
-     * @param messageType
-     * @param data to send
-     *
-     * state: NEWGAME, NEWHAND, BIDDING, PLAYING ?
-     */
-    multicast: function( room, messageType, data ) {
-      console.log("Sending " + messageType + " to " + room);
-      this.socket.to( room ).emit( messageType, data );
-    },
+    // check all sockets for identical user data?  Handled outside switchboard?
 
-    /**
-     *  associate user data with this socket to be passed to event handlers
-     *  Check to see if this user exists and/or is already connected.
-     */
-    associateUserData: function( socket, user ) {
-      console.log( user.name + " (" + user.id+ ") is on socket " + socket.id );
+    this.users[socket.id] = user;
+    this.sockets[user.id] = socket;
+  }
 
-      // check all sockets for identical user data?  Handled outside switchboard?
+  /**
+   * Get the object (userid) associated with this socket (who we think we're talking to)
+   * Authenticated?
+   */
+  getUserData( socket ) {
+    return this.users[socket.id];
+  }
 
-      this.users[socket.id] = user;
-      this.sockets[user.id] = socket;
-    },
+  /**
+   * Create multicast group, id is name since we own it and wont change it
+   * @param name internal id of room
+   */
+  createRoom( name ) {
+    console.log("Creating chat room " + name);
+    this.rooms[name] = {};
+  }
+  /**
+   * Join a new multicast group (and leave old one if any)
+   */
+  // joinRoom: function( socket, room ) {
+  joinRoom( userId, room ) {
+    console.log( userId + " is joining room " + room );
 
-    /**
-     * Get the object (userid) associated with this socket (who we think we're talking to)
-     * Authenticated?
-     */
-    getUserData: function( socket ) {
-      return this.users[socket.id];
-    },
+    var socket = this.getSocketForUserId( userId );
+    var oldRoom = this.getRoomForSocket( socket.id );
 
-    /**
-     * Create multicast group, id is name since we own it and wont change it
-     * @param name internal id of room
-     */
-    createRoom: function( name ) {
-      console.log("Creating chat room " + name);
-      this.rooms[name] = {};
-    },
-    /**
-     * Join a new multicast group (and leave old one if any)
-     */
-    // joinRoom: function( socket, room ) {
-    joinRoom: function( userId, room ) {
-      console.log( userId + " is joining room " + room );
+    if (oldRoom) {
+      socket.leave( oldRoom );
+      this.rooms[oldRoom][socket.id] = undefined;
+    }
 
-      var socket = this.getSocketForUserId( userId );
-      var oldRoom = this.getRoomForSocket( socket.id );
+    socket.join( room );
 
-      if (oldRoom) {
-        socket.leave( oldRoom );
-        this.rooms[oldRoom][socket.id] = undefined;
+    console.log( JSON.stringify( this.rooms ));
+
+    this.rooms[room][socket.id] = 1;
+  }
+
+  getSocketForUserId( userId ) {
+    var socket = this.sockets[userId];
+    if (!socket) {
+      console.error("Asked for user's socket before they've associated with the switchboard");
+    }
+    return socket;
+  }
+
+  getRoomForSocket( socketId ) {
+    for (var room in this.rooms) {
+      if (this.rooms[room][socketId]) {
+        return room;
       }
+    }
 
-      socket.join( room );
-
-      console.log( JSON.stringify( this.rooms ));
-
-      this.rooms[room][socket.id] = 1;
-    },
-
-    getSocketForUserId: function( userId ) {
-      var socket = this.sockets[userId];
-      if (!socket) {
-        console.error("Asked for user's socket before they've associated with the switchboard");
-      }
-      return socket;
-    },
-
-    getRoomForSocket: function( socketId ) {
-      for (var room in this.rooms) {
-        if (this.rooms[room][socketId]) {
-          return room;
-        }
-      }
-
-      // not an error when first joining.
-      // console.error("Could not find a room membership for socket " + socketId );
-      return undefined;  // oops!  This socket is not mapped to any room.
-    },
+    // not an error when first joining.
+    // console.error("Could not find a room membership for socket " + socketId );
+    return undefined;  // oops!  This socket is not mapped to any room.
+  }
 
 
-    /**
-     * Something about this socket changed, tell others in the same channel
-     */
-    // broadcastUpdateToRoom: function( socket ) {
+  /**
+   * Something about this socket changed, tell others in the same channel
+   */
+  // broadcastUpdateToRoom: function( socket ) {
     //   var room = this.getRoomNameFromSocket( socket.id );
 
     //   var updateCallback = this.getUpdateFnForRoom( room );
@@ -211,120 +207,120 @@ var Switchboard = (function()
     //   return this.updateFns[room];
     // },
 
-    /**
-     * call this function(data, user) when this event (message) occurs
-     * passes the data from the event payload, and the User who sent the message.
-     */
-    addMessageHandler: function( eventName, callback, config ) {
-      if (callback instanceof Function) {
-        this.eventHandlers[eventName] = {
-          callback: callback,
-          config: config || {}
-        };
-      } else {
-        console.error( eventName + " callback is not a function");
-      }
-    },
-
-    /**
-     * listen for these events on this socket
-     * callbacks take the message data as only param  (user?)
-     */
-    enableMessageHandlers: function( socket ) {
-
-      // special handler to associate a userData object with this
-      // socket to be passed with any event handler
-      var self = this;
-      socket.on( Switchboard.onNewUserEvent, function( user ) {
-        console.log("New client! woohoo! " + JSON.stringify( user ));
-        self.associateUserData( socket, user );
-        self.callOnUserJoinCB( user );
-      });
-
-      var eventNames = Object.keys( this.eventHandlers );
-
-      // closure for eventHandler
-      function createEventHandler( self, eventHandler, socket ) {
-        return function( data ) {
-          if (eventHandler.config.useUserContext) {     // method on User
-            eventHandler.callback.call( self.getUserData( socket ), data );
-          } else {                                      // static call
-            eventHandler.callback( self.getUserData( socket ), data );
-          }
-
-          // update the user's world every time an event happens
-          // if (eventHandler.config.broadcastOnUpdate !== false) {
-          //   self.broadcastUpdateToRoom( socket );
-          // }
-        };
+  /**
+   * call this function(data, user) when this event (message) occurs
+   * passes the data from the event payload, and the User who sent the message.
+   */
+  addMessageHandler( eventName, callback, config ) {
+    if (callback instanceof Function) {
+      this.eventHandlers[eventName] = {
+        callback: callback,
+        config: config || {}
       };
-
-      for (var i=0; i < eventNames.length; i++) {
-        var eventName = eventNames[i];
-        var eventHandler = this.eventHandlers[eventName];
-
-        // should this call a method on User?  FIXME  nah
-        socket.on( eventName, createEventHandler( this, eventHandler, socket ));
-     }
-    },
-
-
-
-
-    /**
-     * callback( socket ) when we get a new connection.
-     * We don't know anything about the user at this point, just a socket.
-     * FIXME (can we reconnect an old session?)
-     */
-    onUserJoin: function( callback ) {
-      if (callback instanceof Function) {
-        this.userJoinCB = callback;
-      } else {
-        console.error("onUserJoin callback is not a function");
-      }
-    },
-
-    /**
-     * callback( user ) to call when we lose a connection,
-     */
-    onUserLeave: function( callback ) {
-      if (callback instanceof Function) {
-        this.userLeaveCB = callback;
-      } else {
-        console.error("onUserLeave callback is not a function");
-      }
-    },
-
-    /**
-     * things that should happen when a new user connects
-     */
-    callOnUserJoinCB: function( user ) {
-      if (this.userJoinCB instanceof Function) {
-        this.userJoinCB( user );
-      } else {
-        console.error( socket.id + " does not have a valid userJoin handler");
-      }
-    },
-
-    /**
-     * we lost the connection with this user, what do we need to do to allow a reconnect
-     * on a new socket?
-     */
-    removeUser: function( socket )  {
-      if (this.userLeaveCB instanceof Function) {
-        this.userLeaveCB( this.getUserData( socket ));
-      } else {
-        console.log( socket.id + " does not have a userLeave handler");
-      }
-      var user = this.getUserData(socket);
-      if (user) {
-        this.sockets[user.id] = undefined;
-      }
-      this.users[socket.id] = undefined;
+    } else {
+      console.error( eventName + " callback is not a function");
     }
-  };
-  return Switchboard;
-})();
+  }
+
+  /**
+   * listen for these events on this socket
+   * callbacks take the message data as only param  (user?)
+   */
+  enableMessageHandlers( socket ) {
+
+    // special handler to associate a userData object with this
+    // socket to be passed with any event handler
+    var self = this;
+    socket.on( Switchboard.onNewUserEvent, function( user ) {
+      console.log("New client! woohoo! " + JSON.stringify( user ));
+      self.associateUserData( socket, user );
+      self.callOnUserJoinCB( user );
+    });
+
+    var eventNames = Object.keys( this.eventHandlers );
+
+    // closure for eventHandler
+    function createEventHandler( self, eventHandler, socket ) {
+      return function( data ) {
+        if (eventHandler.config.useUserContext) {     // method on User
+          eventHandler.callback.call( self.getUserData( socket ), data );
+        } else {                                      // static call
+          eventHandler.callback( self.getUserData( socket ), data );
+        }
+
+        // update the user's world every time an event happens
+        // if (eventHandler.config.broadcastOnUpdate !== false) {
+        //   self.broadcastUpdateToRoom( socket );
+        // }
+      };
+    };
+
+    for (var i=0; i < eventNames.length; i++) {
+      var eventName = eventNames[i];
+      var eventHandler = this.eventHandlers[eventName];
+
+      // should this call a method on User?  FIXME  nah
+      socket.on( eventName, createEventHandler( this, eventHandler, socket ));
+    }
+  }
+
+
+
+
+  /**
+   * callback( socket ) when we get a new connection.
+   * We don't know anything about the user at this point, just a socket.
+   * FIXME (can we reconnect an old session?)
+   */
+  onUserJoin( callback ) {
+    if (callback instanceof Function) {
+      this.userJoinCB = callback;
+    } else {
+      console.error("onUserJoin callback is not a function");
+    }
+  }
+
+  /**
+   * callback( user ) to call when we lose a connection,
+   */
+  onUserLeave( callback ) {
+    if (callback instanceof Function) {
+      this.userLeaveCB = callback;
+    } else {
+      console.error("onUserLeave callback is not a function");
+    }
+  }
+
+  /**
+   * things that should happen when a new user connects
+   */
+  callOnUserJoinCB( user ) {
+    if (this.userJoinCB instanceof Function) {
+      this.userJoinCB( user );
+    } else {
+      console.error( socket.id + " does not have a valid userJoin handler");
+    }
+  }
+
+  /**
+   * we lost the connection with this user, what do we need to do to allow a reconnect
+   * on a new socket?
+   */
+  removeUser( socket )  {
+    if (this.userLeaveCB instanceof Function) {
+      this.userLeaveCB( this.getUserData( socket ));
+    } else {
+      console.log( socket.id + " does not have a userLeave handler");
+    }
+    var user = this.getUserData(socket);
+    if (user) {
+      this.sockets[user.id] = undefined;
+    }
+    this.users[socket.id] = undefined;
+  }
+}
+
+Switchboard.onNewUserEvent = "newUser";
 
 
 module.exports = Switchboard;

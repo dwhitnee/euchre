@@ -9,7 +9,8 @@
   },
   "scripts": {
       "test2": "export JASMINE_CONFIG_PATH=jasmine.json; export NODE_PATH=lib; jasmine",
-      "test": "babel-node specrun.js"
+      "test": "babel-node specrun.js",
+      "test-debug": "bode-debug specrun.js"
   },
   "devDependencies": {
     "jasmine": "^2.5.2",

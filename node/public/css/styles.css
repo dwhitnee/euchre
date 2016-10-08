@@ -57,6 +57,10 @@ body {
   font-style: italic;
 }
 
+.seat.myTurn {
+  background-color: pink;
+}
+
 /* Dock-style bulge-on-hover */
 .bulge-on-hover:hover {
   transform: scale(1.2);

@@ -93,24 +93,62 @@ class Game {
 
   }
 
-  pickDealer() {
+  // move to dealer-picking state, ask first player to pick a card
+  enterPickDealerState() {
     this.deck.shuffle();
     this.action = CHOOSE_DEALER;
-    // this.setActivePlayerToLeftOfDealer();
-    // this.action = PICK_UP_TRUMP;
+    this.activePlayerSeat = 0;
+
+    // once all players have picked a card a dealer will be chosen
   }
 
-  start() {
-    this.deck.shuffle();
-    this.action = PICK_UP_TRUMP;
-    // this.setActivePlayerToLeftOfDealer();
-    // this.action = PICK_UP_TRUMP;
-  }
-
+  // have each player pick a card to see who is dealer, move to next seat, or start the deal.
   pickACard( player ) {
     var cards = this.deck.deal( 1 );
     console.log("Dealt cards: " + cards );
     player.addCards( cards );
+
+    // everyone's picked a card now
+    if (this.activePlayerSeat === 3) {
+      this.chooseDealer();
+      this.start();      // deal cards, start game
+
+    } else {
+      this.activePlayerSeat++;
+    }
+  }
+
+  chooseDealer() {
+    var bestSeat;
+    var bestCard;
+
+    for (var i=0; i < this.seats.length; i++) {
+      var seat = this.seats[i];
+      var card = seat.cards[0];
+
+      console.log( card.toString() );
+      if (!bestCard || card.isHigherThan( bestCard )) {
+        bestCard = card;
+        bestSeat = i;
+      }
+    }
+    console.log("High card is " + bestCard.toString());
+    this.dealerSeat = bestSeat;
+  }
+
+
+  start() {
+    this.dumpPlayerCards();
+    this.deck.shuffle();
+    this.setActivePlayerToLeftOfDealer();
+    this.deal();
+    this.action = PICK_UP_TRUMP; // ?
+  }
+
+  dumpPlayerCards() {
+    for (var id in this.players) {
+      this.players[id].cards = [];
+    }
   }
 
   /**
@@ -122,7 +160,12 @@ class Game {
 
     this.setActivePlayerToLeftOfDealer();
 
-    for (var i = 0; i < this.seats.length; i++) {
+    console.log( JSON.stringify( this, null, 2 ));
+
+    for (var i = 0; i < Object.keys( this.seats ).length; i++) {
+      console.log("Active player: " + this.activePlayerSeat );
+      console.log("Dealing to " + this.getActivePlayer().name );
+
       cards = this.deck.deal( numCardsToDeal );
       this.getActivePlayer().addCards( cards );
       this.rotatePlayer();
@@ -184,6 +227,9 @@ class Game {
     console.log(`Dealer is #${this.dealerSeat} (${this.seats[this.dealerSeat].name})`);
   }
   setActivePlayerToLeftOfDealer() {
+    if (this.dealerSeat === undefined) {
+      console.err("Dealer not picked yet");
+    }
     this.activePlayerSeat = (this.dealerSeat + 1) % 4;
   }
   /**
