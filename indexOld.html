@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <title>Euchre</title>
+  <link rel="stylesheet" type="text/css" href="styles/euchre.css"/>
+  <link rel="icon" type="image/ico" href="images/favicon.ico"/>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- these don't seem to do much.     supposedly sets window.navigator.standalone  -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+</head>
+
+<body>
+
+  <img src="images/loading.gif"
+       style="visibility: hidden; width: 1px; height: 1px;"/>
+
+  <h1>Euchre Time</h1>
+
+  <h2 class="rotateMe">
+    Please rotate me sideways!
+  </h2>
+
+  <div class="cardTable">
+
+    <div id="playField" class="droppable ui-widget-header">
+        <p>Play a card</p>
+      </div>
+
+    <div class="actions unselectable">
+
+      <a class="button hidden" data-name="abort">Abort!</a>
+      <a class="button" data-name="lastStand">(L)ast Stand</a>
+      <a class="button" data-name="sonicScrewDriver">(S)onic Screwdriver</a>
+      <a class="button" data-name="teleport">(T)eleport</a>
+    </div>
+  </div>
+
+  <div style="clear: both;"></div>
+
+  <div class="gameData">
+    <div class="score">
+      Score: <span id="score"></span>
+    </div>
+    <div class="level">
+      Round: <span id="level"></span>
+    </div>
+    <div id="highScores">
+      High Score: <span id="highScore"></span>
+    </div>
+    <div class="about">
+      <a href="about.html">About&hellip;</a>
+    </div>
+  </div>
+
+  <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+<!--  <script src="build/jquery-1.8.0.min.js"></script> -->
+<!--  <script src="build/jgestures.min.js"></script> -->
+<!--  <script src="build/scripts.min.js"></script> -->
+
+  <script src="js/euchre.js"></script>
+  <script src="js/card.js"></script>
+  <script src="js/deck.js"></script>
+  <script src="js/game.js"></script>
+
+  <script>
+    $(document).ready( function() {
+      $('body').scrollTop(0);  // hide location bar on mobile
+    });
+  </script>
+
+</body>
+</html>
