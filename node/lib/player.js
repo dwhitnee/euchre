@@ -5,8 +5,10 @@
 class Player {
   constructor( name ) {
     this.id = Player.nextId++;
-    this.name = name || "n/a";
+    this.name = name || this.generateName();
     this.cards = [];
+    this.active = true;  // for going "alone"
+    this.tricks = [];
   };
 
   get name() {
@@ -15,6 +17,10 @@ class Player {
   set name( name ) {
     this._name = name;
     console.log(`New player! ${this.name}`);
+  }
+
+  generateName() {
+    this._name = "Player " + this.id;
   }
 
   addCards( cards ) {
@@ -38,9 +44,6 @@ class Player {
 // static class variables
 Player.nextId = 100;
 
-
-//----------------------------------------------------------------------
-//    PlayerFactory
 //----------------------------------------------------------------------
 var _players = {};
 

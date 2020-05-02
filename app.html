@@ -1,0 +1,77 @@
+<head>
+  <title>Euchre</title>
+  <link rel="stylesheet" type="text/css" href="styles/euchre.css"/>
+
+<style>
+  [v-cloak] > * {
+    display:none;
+  }
+  [v-cloak]::before {
+    content: "loading...";
+  }
+</style>
+</head>
+
+<div id="euchreApp" v-cloak>
+
+  <div class="playGrid withBorder">
+
+    <div>Euchre</div>
+    <div class="playerName">{{ names[2] }}</div>
+    <div></div>
+
+    <div class="playerName">{{ names[1] }}</div>
+    <drop class="drop" @drop="playCard">
+     <div class="cardTable drop">
+
+      <div class="buttons">
+        <button v-if="canDeal"     v-on:click="dealCards">Deal</button>
+        <button v-if="canPickUp"   v-on:click="pickUpCard">Pick Up Card</button>
+        <button v-if="canTurnDown" v-on:click="turnDownCard">Turn Down Card</button>
+      </div>
+     </div>
+    </drop>
+    <div class="playerName">{{ names[3] }}</div>
+
+    <div></div>
+    <div>
+      <drag class="card" :transfer-data="{ name }">Card Goes Here</drag>
+
+      <div class="playerName">{{ names[0] }}</div>
+      <div>
+        <li v-for="card in cards">{{ card }}</li>
+      </div>
+    </div>
+    <div>
+     <input v-model.trim="name"
+            v-on:keyup.enter="saveName"
+            placeholder="pick a name" size="10"></input>
+     <button v-on:click="saveName">Submit</button>
+   </div>
+
+ </div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js"
+ integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+ crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"
+ integrity="sha256-KM512VNnjElC30ehFwehXjx1YCHPiQkOPmqnrWtpccM="
+ crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
+ integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="
+ crossorigin="anonymous"></script>
+
+ <script src="//unpkg.com/vue-drag-drop"></script
+
+ <!--
+ <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/15.0.0/vuedraggable.min.js"
+ integrity="sha256-kZmY4LUwE53ceTqZXPto8gMELhExZWBrmzOCZgzyY0Y="
+ crossorigin="anonymous"></script>
+-->
+
+<script src="js/card.js"></script>
+<script src="js/app.js"></script>
+
+</script>

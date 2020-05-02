@@ -1,41 +1,158 @@
-/*global Euchre */
-
-// require("euchre.js");
+/*global $ */
 
 /**
  * A Euchre Card from a standard deck.
  * Aces are high.
  * We know the suit of the left bower given the trump suit
  *
- * we've overloaded this to include card graphics as well.  So be it.
- *
  * sprite: http://www.milefoot.com/math/discrete/counting/images/cards.png
+
+ * Card.allCards contains the canonical instance of every card.
+ * Decks will contain ids (pointers) into allCards
  */
 
-Euchre.Card = (function()
-{
-  // sprite dimensions
-  var height = 98, width = 73;
-
-  var suits = { Clubs: 0, Spades: 1, Hearts: 2, Diamonds: 3 };
-
-  // the suit of the left bower
-  var leftSuits = {};
-  leftSuits[suits.Clubs]  = suits.Spades;
-  leftSuits[suits.Spades] = suits.Clubs;
-  leftSuits[suits.Hearts]   = suits.Diamonds;
-  leftSuits[suits.Diamonds] = suits.Hearts;
-
-  var rankNames = ["zero",
-    "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight",
-    "Nine", "Ten", "Jack", "Queen", "King"];
-
-  // aces are high
-  var rankValues = [0,14,2,3,4,5,6,7,8,9,10,11,12,13];
-
-  function Card( rank, suit ) {
+class Card {
+  constructor( rank, suit ) {
     this._rank = rank;
     this._suit = suit;
+  }
+
+  toString() {
+    return this.rankName + " of " + this.suitName;
+  }
+  get suit () {
+    return this._suit;
+  }
+  get rank () {
+    return this._rank;
+  }
+  get value () {
+    return Card.rankValues[this.rank];
+  }
+  get suitName () {
+    return Card.suitNames[this.suit];
+  }
+  get rankName () {
+    return Card.rankNames[this.rank];
+  }
+
+  get id() {
+    return Card.generateId( this._rank,this._suit);
+  }
+
+  isRightBower( trumpSuit ) {
+    return (this.suit === trumpSuit) && (this.rankName === "Jack");
+  }
+
+  isLeftBower( trumpSuit ) {
+    return (this.suit === Card.leftSuits[trumpSuit]) &&
+      (this.rankName === "Jack");
+  }
+
+  /**
+   * precondition: the other card is not the highest card, the right bower
+   * Otherwise, a card is better than another if it is...
+   * 1. The right or left bower
+   * 2. the same suit and greater value
+   * 3. any trump card
+   * Off suits are garbage.
+   */
+  isBetterThan( card, trumpSuit ) {
+    if (!card) {
+      return true;  // any card is better than nothing
+    }
+
+    if (card.isRightBower( trumpSuit )) {       // can't beat the highest card
+      return false;
+
+    } else if (this.isRightBower( trumpSuit ) || this.isLeftBower( trumpSuit )){
+      return true;                          // either of the highest two cards
+
+    } else if (card.isLeftBower( trumpSuit )) {
+      return false;          // can't beat the second highest card if we're not a bower
+
+    } else if (this.suit === card.suit) {   // straight comparison
+      return this.value > card.value;
+
+    } else {
+      return this.suit === trumpSuit;  // trumpsuit always beats other suits
+    }
+  }
+}
+
+//----------------------------------------------------------------------
+// Card Factory functions
+//----------------------------------------------------------------------
+Card.generateId = function( rank, suit ) {
+  return rank+":"+suit;
+};
+
+// factory
+Card.fromId = function( id ) {
+  return Card.allCards[id];
+};
+
+Card.getByRankAndSuit = function( rank, suit ) {
+  return Card.allCards[ Card.generateId(rank,suit) ];
+};
+
+//----------------------------------------
+// Card constants
+//----------------------------------------
+Card.suits = { Clubs: 0, Diamonds: 1, Hearts: 2, Spades: 3 };
+Card.suitNames = ["Clubs", "Diamonds", "Spades", "Hearts" ];
+Card.rankNames = ["zero",
+  "Ace", "Two", "Three", "Four", "Five", "Six", "Seven",
+  "Eight", "Nine", "Ten", "Jack", "Queen", "King"];
+Card.rankValues = [0,14,2,3,4,5,6,7,8,9,10,11,12,13]; // aces are high
+
+// the suit of the left bower
+Card.leftSuits = {};
+Card.leftSuits[Card.suits.Clubs]  = Card.suits.Spades;
+Card.leftSuits[Card.suits.Spades] = Card.suits.Clubs;
+Card.leftSuits[Card.suits.Hearts]   = Card.suits.Diamonds;
+Card.leftSuits[Card.suits.Diamonds] = Card.suits.Hearts;
+
+
+//----------------------------------------------------------------------
+// Factory.  52 card static deck, keyed by id. Ex: deck["9:2"]
+//----------------------------------------------------------------------
+Card.allCards = (function() {
+  let deck = [];
+
+  for (let suit = Card.suits.Clubs; suit <= Card.suits.Spades; suit++ ) {
+    for (let rank = 1; rank <= 13; rank++ ) {
+      let card =  new Card( rank, suit );
+      deck[card.id] = card;
+    }
+  }
+  return deck;
+})();
+
+//----------------------------------------------------------------------
+// Euchre deck as array of Cards
+//----------------------------------------------------------------------
+Card.getEuchreDeck = function() {
+  let deck = [];
+  let ranks = [9,10,11,12,13,1];  // 9, 10, J, Q, K ,A
+
+  for (let suit = Card.suits.Clubs; suit <= Card.suits.Spades; suit++ ) {
+    ranks.forEach( function( rank ) {
+      deck.push( Card.getByRankSuit( rank, suit ) );
+    });
+  }
+
+  return deck;
+};
+
+
+//----------------------------------------------------------------------
+class CardElement {
+
+  constructor( card ) {
+    this.card = card;
+    this.height = 98;
+    this.width = 73;
 
     this.$el = $('<div class="card draggable ui-widget-content"/>');
 
@@ -46,68 +163,27 @@ Euchre.Card = (function()
         revert: "invalid"
       });
 
+    // sprite has suits out of order
+    let suitRows = [Card.suits.Clubs, Card.suits.Spades,
+                    Card.suits.Hearts,Card.suits.Diamonds];
+
     this.$el.css("background-position",
-                 -(width  * (rank-1)) + "px " +
-                 -(height * suits[suit]) + "px ");
+                 -(this.width  * (this.rank-1)) + "px " +
+                 -(this.height * suitRows[this.card.suit]) + "px ");
   }
 
-  Card.Suits = suits;
+  // slideToATilt() {
+  //   // some easing thing that adds a slight rotation to the css.
+  // }
 
-  Card.prototype = {
-    get suit () {
-      return this._suit;
-    },
-    get value () {
-      return rankValues[this._rank];
-    },
-    get rankName () {
-      return rankNames[this._rank];
-    },
+//  animate() { }  // ???
 
-    isRightBower: function( trump ) {
-      return (this.suit === trump) && (this.rankName === "Jack");
-    },
+}
 
-    isLeftBower: function( trump ) {
-      return (this.suit === leftSuits[trump]) && (this.rankName === "Jack");
-    },
+CardElement.allCards = (function() {
+  let deck = [];
+  Object.values( Card.allCards ).forEach(
+    card => deck[card.id] = new CardElement( card ));
 
-    /**
-     * precondition: the other card is not the highest card, the right bower
-     * Otherwise, a card is better than another if it is...
-     * 1. The right or left bower
-     * 2. the same suit and greater value
-     * 3. any trump card
-     * Off suits are garbage.
-     */
-    isBetterThan: function( card, trump ) {
-      if (!card) {
-        return true;  // any card is better than nothing
-      }
-
-      if (card.isRightBower( trump )) {       // can't beat the highest card
-        return false;
-
-      } else if (this.isRightBower( trump ) || this.isLeftBower( trump )) {
-        return true;                          // either of the highest two cards
-
-      } else if (card.isLeftBower( trump )) {
-        return false;          // can't beat the second highest card if we're not a bower
-
-      } else if (this.suit === card.suit) {   // straight comparison
-        return this.value > card.value;
-
-      } else {
-        return this.suit === trump;           // trump always beats non trump
-      }
-    },
-
-    slideToATilt: function() {
-      // some easing thing that adds a slight rotation to the css.
-    },
-
-    animate: function() { }  // ???
-  };
-
-  return Card;
+  return deck;
 })();
