@@ -142,6 +142,11 @@ a.button.disabled {
   width: 72px;
   display: inline-block;
   margin: 4px;
+  border: 1px dotted red;
+}
+
+.cards {
+  display: inline-flex;
 }
 
 #playField {
@@ -183,7 +188,7 @@ a.button.disabled {
 }
 
 
-.drag, .drop {
+.dragPOOP, .dropPOOP {
   font-family: sans-serif;
   display: inline-block;
   border-radius: 10px;
@@ -194,7 +199,7 @@ a.button.disabled {
   vertical-align: top;
 }
 
-.drag {
+.dragPOOP {
   color: #fff;
   cursor: move;
   background: #777;
@@ -202,7 +207,7 @@ a.button.disabled {
   border-bottom: 2px solid #555;
 }
 
-.drop {
+.dropPOOP {
   background: #eee;
   border-top: 2px solid #ccc;
   border-left: 2px solid #ccc;

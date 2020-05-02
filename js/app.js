@@ -11,7 +11,7 @@ let app = new Vue({
   data: {
     message: "Hello, it's " + (new Date()).toDateString(),
     playerId: 1,
-    draggable: "Eighteen of Cones",
+    poops: ["a", "b", "c", "d"],
     game: {
       players: [
         {
@@ -20,7 +20,7 @@ let app = new Vue({
         },
         {
           name: "Ernie",
-          cardIds: ["12:1","9:1","10:1","12:2", "9:2"]
+          cardIds: ["9:0","10:1","11:2","13:3", "1:3"]
         },
         {
           name: "Sam",
@@ -35,9 +35,24 @@ let app = new Vue({
     },
     canDeal: true,  // functions
     canPickUp: true,
-    canTurnDown: true
+    canTurnDown: true,
+    playedCard: "",
+    cardMoving: ""
   },
   computed: {
+
+    // cardStyle: function(card) {
+    //   let height = 98;
+    //   let width = 73;
+    //   let suitRows = [Card.suits.Clubs, Card.suits.Spades,
+    //                   Card.suits.Hearts,Card.suits.Diamonds];
+    //   return {
+    //     backgroundPosition:
+    //       -(width  * (0)) + "px " +
+    //       -(height * suitRows[Card.suits.Spades]) + "px "
+    //   };
+    // },
+
     cards: function() {  // just this player's cards
       let outCards =
           this.game.players[this.playerId].cardIds.map( id => Card.fromId( id ));
@@ -77,6 +92,16 @@ let app = new Vue({
 
     },
 
+    setCardStyle: function(card, event) {
+      let height = 98;
+      let width = 73;
+      let suitRows = [Card.suits.Clubs, Card.suits.Spades,
+                      Card.suits.Hearts,Card.suits.Diamonds];
+      event.target.style.backgroundPosition =
+        -(width  * (card.rank-1)) + "px " +
+        -(height * suitRows[card.suit]) + "px ";
+    },
+
     dealCards: function() {
       console.log("Dealing: asking server to issue new cards");
       // animate?
@@ -90,8 +115,26 @@ let app = new Vue({
         });
     },
 
+    // re-order cards w/drag and drop
+    dragStart: function( card, event ) {
+      this.cardMoving = card;
+      event.target.style.opacity = '0.2';
+    },
+    moveCard: function( card, event ) {
+      // console.log("You mmoved with data: " + JSON.stringify(data) );
+      // console.log("You mmoved with event: " + JSON.stringify(event) );
+      console.log("Moving " + this.cardMoving + " to the right of " + card );
+    },
+
+    // drop a card on table
     playCard: function( data, event ) {
       console.log("You dropped with data: " + JSON.stringify(data) );
+      console.log("You dropped with event: " + JSON.stringify(event) );
+      if (data && data.card) {
+        this.playedCard = data.card;
+        // remove card from had
+        // iterate over players cards and remove it
+      }
     },
 
     pickUpCard: function() {

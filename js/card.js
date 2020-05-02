@@ -100,7 +100,7 @@ Card.getByRankAndSuit = function( rank, suit ) {
 // Card constants
 //----------------------------------------
 Card.suits = { Clubs: 0, Diamonds: 1, Hearts: 2, Spades: 3 };
-Card.suitNames = ["Clubs", "Diamonds", "Spades", "Hearts" ];
+Card.suitNames = ["Clubs", "Diamonds", "Hearts", "Spades" ];
 Card.rankNames = ["zero",
   "Ace", "Two", "Three", "Four", "Five", "Six", "Seven",
   "Eight", "Nine", "Ten", "Jack", "Queen", "King"];
