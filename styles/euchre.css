@@ -30,16 +30,6 @@ h1 {
     height:200px;
     width:300px;
 }
-.small {
-    font-size: small;
-}
-
-
-.actions {
-    position: absolute;
-    left: 32em;
-    top: 8em;
-}
 
 a.button {
     display: block;
@@ -93,7 +83,7 @@ a.button.disabled {
 
 .cardTable {
   padding: 1em;
-  grid-gap: 1em;
+/*  grid-gap: 1em; */
 
   border-radius: 4em;
 /*  height: 24em;
@@ -114,12 +104,13 @@ a.button.disabled {
 .cards {
   display: inline-flex;
 }
-.playerName {
-  padding: 1em;
+
+.cards:hover {
+  cursor: grab;
 }
 
-button {
-  margin: 1em;
+.playerName {
+  padding: 1em;
 }
 
 .playGrid {
@@ -155,4 +146,24 @@ button {
   justify-content: center;
   align-items: center;
   padding: 1em;
+}
+
+/* fake a few cards underneath */
+.pile {
+  color: #55d15d;
+  font-weight: bold;
+  padding: .3em;
+  0 0.1em 0.2em 0 rgba(0, 0, 0, 0.5),
+  0 0.5em 0 -0.25em #d12d36,
+  0 0.5em 0.2em -0.25em rgba(0, 0, 0, 0.5),
+  0 1em 0 -0.5em #d12d36,
+  0 1em 0.2em -0.5em rgba(0, 0, 0, 0.5);
+}
+
+.notEditable {
+  border-style: outset;
+  padding: .25em;
+  max-width: 8em;
+  overflow-wrap: break-word;
+  hyphen: auto;
 }

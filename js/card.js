@@ -1,12 +1,10 @@
-/*global $ */
+/*global */
 
 /**
  * A Euchre Card from a standard deck.
  * Aces are high.
  * We know the suit of the left bower given the trump suit
  *
- * sprite: http://www.milefoot.com/math/discrete/counting/images/cards.png
-
  * Card.allCards contains the canonical instance of every card.
  * Decks will contain ids (pointers) into allCards
  */
@@ -144,46 +142,3 @@ Card.getEuchreDeck = function() {
 
   return deck;
 };
-
-
-//----------------------------------------------------------------------
-class CardElement {
-
-  constructor( card ) {
-    this.card = card;
-    this.height = 98;
-    this.width = 73;
-
-    this.$el = $('<div class="card draggable ui-widget-content"/>');
-
-    // jquery-ui
-    this.$el.draggable(
-      {
-        containment: "parent",
-        revert: "invalid"
-      });
-
-    // sprite has suits out of order
-    let suitRows = [Card.suits.Clubs, Card.suits.Spades,
-                    Card.suits.Hearts,Card.suits.Diamonds];
-
-    this.$el.css("background-position",
-                 -(this.width  * (this.rank-1)) + "px " +
-                 -(this.height * suitRows[this.card.suit]) + "px ");
-  }
-
-  // slideToATilt() {
-  //   // some easing thing that adds a slight rotation to the css.
-  // }
-
-//  animate() { }  // ???
-
-}
-
-CardElement.allCards = (function() {
-  let deck = [];
-  Object.values( Card.allCards ).forEach(
-    card => deck[card.id] = new CardElement( card ));
-
-  return deck;
-})();

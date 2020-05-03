@@ -13,6 +13,7 @@ let app = new Vue({
   data: {
     message: "Hello, it's " + (new Date()).toDateString(),
     playerId: 1,
+    playerName: "pick a name",
     poops: ["a", "b", "c", "d"],
     game: {
       players: [
@@ -40,7 +41,8 @@ let app = new Vue({
     canPickUp: false,
     canTurnDown: false,
     playedCard: undefined,
-    movingCard: undefined
+    movingCard: undefined,
+    nameEditable: false
   },
 
   //----------------------------------------
@@ -48,12 +50,16 @@ let app = new Vue({
   //----------------------------------------
   computed: {
     //----------------------------------------
-    // just this player's cards
+    // just this player's cards, create Card objects from the list of
+    // game state list of ids.
+    // Can't cahce otherwise Vue doesn't notice the update after drag and drop
     //----------------------------------------
-    cards: function() {
-      let outCards =
-          this.game.players[this.playerId].cardIds.map( id => Card.fromId( id ));
-      return outCards;
+    cards: {
+      cache: false,
+      get () {
+        return this.game.players[this.playerId].cardIds.map(
+          id => Card.fromId( id ));
+      }
     },
 
     //----------------------------------------
@@ -91,19 +97,36 @@ let app = new Vue({
       this.cards;//???
     },
 
-    getCardStyle: function( id ) {
-      let card = Card.fromId( id );
-      return "background-position: " + this.getCardFaceStyle( card );
+    // [0, n)
+    random: function( max ) {
+      return Math.floor( Math.random() * Math.floor(max) );
     },
 
+
+    getCardStyle: function( id ) {
+      let face = "";
+
+      if (id) {
+        let card = Card.fromId( id );
+        face = "background-position: " + this.getCardFaceStyle( card );
+      }
+
+      let entropy =  "transform: rotate(" + (this.random(10)-5) + "deg";
+      return entropy + ";" + face;
+    },
+
+    //----------------------------------------
+    // sprite: http://www.milefoot.com/math/discrete/counting/images/cards.png
+    //----------------------------------------
     getCardFaceStyle: function( card ) {
       let height = 98;
       let width = 73;
       let suitRows = [Card.suits.Clubs, Card.suits.Spades,
                       Card.suits.Hearts,Card.suits.Diamonds];
 
-      return -(width*(card.rank-1)+2) + "px " +
-             -(height*suitRows[card.suit]+2) + "px";
+      let border=2;  // css border 1px
+      return -(width*(card.rank-1) + border) + "px " +
+             -(height*suitRows[card.suit] + border) + "px";
     },
 
     dealCards: function() {
@@ -119,18 +142,34 @@ let app = new Vue({
         });
     },
 
-    // re-order cards w/drag and drop
-    dragStart: function( card, event ) {
+    //----------------------------------------
+    // attach card to drag event
+    //----------------------------------------
+    dragCardStart: function( card, event ) {
       this.movingCard = card;
-      event.dataTransfer.setData("card", JSON.stringify( card));
+      event.dataTransfer.setData("card", JSON.stringify( card ));
 
       // event.target.style.opacity = '0.2';
       console.log("Dragging the " + card);
     },
-    moveCard: function( card, event ) {
-      // console.log("You mmoved with data: " + JSON.stringify(data) );
-      // console.log("You mmoved with event: " + JSON.stringify(event) );
-      console.log("Moving " + this.cardMoving + " to the right of " + card );    },
+
+    //----------------------------------------
+    // remove card from old place, swpa with target card
+    //----------------------------------------
+    moveCard: function( overCard, event ) {
+      if (this.movingCard === overCard) {
+        return;   // draggin over ourselves
+      }
+      console.log("Swapping " + this.movingCard + " with " + overCard );
+
+      let cards = this.game.players[this.playerId].cardIds;
+      let a = cards.indexOf( this.movingCard.id );
+      let b = cards.indexOf( overCard.id );
+      // ES6 magic swapping
+      [cards[a], cards[b]] = [cards[b], cards[a]];
+
+      this.$forceUpdate();
+    },
 
     // drop a card on table
     playCard: function( event ) {
@@ -141,7 +180,6 @@ let app = new Vue({
       if (card) {
         this.playedCard = this.movingCard;
         this.movingCard = undefined;
-        // FIXME: delete movingCard from Hand
         let cards = this.game.players[this.playerId].cardIds;
         cards.splice( cards.indexOf(this.playedCard.id), 1);
       }
@@ -154,8 +192,8 @@ let app = new Vue({
     takeTrick: function() {
     },
     saveName: function() {
-      this.game.players[this.playerId].name = this.name;
-
+      this.game.players[this.playerId].name = this.playerName;
+      this.nameEditable = false;
     }
   }
 });

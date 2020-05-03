@@ -20,10 +20,14 @@
   <div class="playGrid withBorder">
 
     <div class="title">Euchre</div>
-    <div class="playerName">{{ names[2] }}</div>
+    <div class="playerName">
+      <div class="card pile" v-bind:style="getCardStyle()">{{ names[2] }}</div>
+    </div>
     <div></div>
 
-    <div class="playerName">{{ names[1] }}</div>
+    <div class="playerName">
+      <div class="card pile" v-bind:style="getCardStyle()">{{ names[1] }}</div>
+    </div>
     <div id="cardTable" class="cardTable" @dragover.prevent @drop="playCard">
       <div></div>
       <div class="card"></div>
@@ -37,37 +41,44 @@
       <div v-else class="card"></div>
       <div></div>
     </div>
-    <div class="playerName">{{ names[3] }}</div>
+    <div class="playerName">
+      <div class="card pile" v-bind:style="getCardStyle()">{{ names[3] }}</div>
+    </div>
 
     <div>
-      <div class="buttons">
-        <button class="btn btn-primary btn-lg" v-if="canDeal" v-on:click="dealCards">Deal</button>
-        <button class="btn btn-primary btn-lg" v-if="canPickUp"   v-on:click="pickUpCard">Pick Up Card</button>
-        <button class="btn btn-primary btn-lg" v-if="canTurnDown" v-on:click="turnDownCard">Turn Down Card</button>
+      <div v-if="nameEditable">
+        <input v-model.trim="playerName"
+               @keyup.enter="saveName"
+               @mouseover="$event.target.focus()"
+               @focus="$event.target.select()"
+               placeholder="pick a name" size="10"></input>
+        <button class="" @click="saveName">submit</button>
       </div>
+      <div v-else class="notEditable" @click="nameEditable=true">{{ name }}</div>
     </div>
+
     <div>
       <div class="cards">
-        {{ names[0] }}
-      <div v-for="(card,i) in cards">
-        <!-- set style dynamically based on card here -->
-        <div class="card"
-          v-bind:style="getCardStyle( card.id )"
-          draggable="true"
-          @dragover.prevent
-          @dragstart="dragStart(card, $event)"
-          @drop="moveCard(card, $event)">
+        <div v-for="(card,i) in cards">
+          <div class="card"
+            v-bind:style="getCardStyle( card.id )"
+            v-bind:data-card="card.id"
+            draggable="true"
+            @dragenter.prevent
+            @dragover.prevent
+            @dragstart="dragCardStart(card, $event)"
+            @dragenter="moveCard( card, $event )">
+          </div>
         </div>
       </div>
-
-      </div>
-    </div>
     <div>
-     <input v-model.trim="name"
-            v-on:keyup.enter="saveName"
-            placeholder="pick a name" size="10"></input>
-     <button v-on:click="saveName">Submit</button>
-   </div>
+
+    <div class="buttons">
+      <button class="btn btn-primary btn-lg" v-if="canDeal" @click="dealCards">Deal</button>
+      <button class="btn btn-primary btn-lg" v-if="canPickUp"   @click="pickUpCard">Pick Up Card</button>
+      <button class="btn btn-primary btn-lg" v-if="canTurnDown" @click="turnDownCard">Turn Down Card</button>
+    </div>
+  </div>
 
  </div>
 
