@@ -9,8 +9,13 @@
 
   <h2>Welcome to quarantine Euchre!</h2>
 
-  <div v-if="playerName">
-    {{ playerName }}, you can create a new game, or join an existing one.
+  <div>
+    <div contenteditable="true "class="editable" title="click to edit name"
+      @keypress.enter="saveName"
+      @blur.enter="saveName"
+      @keypress.enter.prevent>{{ playerName }}</div>,
+
+      you can create a new game, or join an existing one.
 
     <h3>Current Games</h3>
     <div v-if="games.length">
@@ -20,11 +25,6 @@
     </div>
     <button class="btn btn-primary" @click="newGame">Start a New Game</button>
 
-  </div>
-  <div v-else>
-    What's your name?
-    <input v-model.trim="newName" @keyup.enter="saveName"></input>
-    <button class="button" @click="saveName">OK</button>
   </div>
 
 

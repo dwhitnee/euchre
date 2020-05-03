@@ -4,6 +4,11 @@
 //  Logic for creating or joining a game
 //----------------------------------------------------------------------
 
+function getCookie( key ) {
+  return ('; '+document.cookie).split('; ' + key + '=').pop().split(';').shift();
+
+}
+
 let app = new Vue({
   el: '#lobbyApp',
 
@@ -11,8 +16,7 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    newName: "Alphonso Beetlegeuse",
-    playerName: "",
+    playerName: "Alphonso Beetlegeuse",
     games: []
   },
 
@@ -23,8 +27,7 @@ let app = new Vue({
   },
 
   mounted() {
-    // console.log( this.$route.hash );
-    // grab gameId from #
+    this.playerName = getCookie("name") || this.playerName;
   },
 
   // synchronous app setup before event handling starts
@@ -43,9 +46,11 @@ let app = new Vue({
 
     },
 
-    // NOP?
-    saveName: function() {
-      this.playerName = this.newName;
+    // Put name in cookie
+    saveName: function( e ) {
+      this.playerName = e.target.innerHTML.trim();
+      document.cookie = "name=" + this.playerName;
+      console.log( this.playerName + " to cookie" );
     }
   }
 });
