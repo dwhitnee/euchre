@@ -7,7 +7,9 @@ Array.prototype.rotate = function(n) {
 let app = new Vue({
   el: '#euchreApp',
 
-  // update these values, rather than update the DOM directly
+  //----------------------------------------
+  // Game Model (drives the View, update these values only
+  //----------------------------------------
   data: {
     message: "Hello, it's " + (new Date()).toDateString(),
     playerId: 1,
@@ -40,37 +42,29 @@ let app = new Vue({
     playedCard: undefined,
     movingCard: undefined
   },
+
+  //----------------------------------------
+  // derived attributes
+  //----------------------------------------
   computed: {
-
-    // cardStyle: function(card) {
-    //   let height = 98;
-    //   let width = 73;
-    //   let suitRows = [Card.suits.Clubs, Card.suits.Spades,
-    //                   Card.suits.Hearts,Card.suits.Diamonds];
-    //   return {
-    //     backgroundPosition:
-    //       -(width  * (0)) + "px " +
-    //       -(height * suitRows[Card.suits.Spades]) + "px "
-    //   };
-    // },
-
-    cards: function() {  // just this player's cards
+    //----------------------------------------
+    // just this player's cards
+    //----------------------------------------
+    cards: function() {
       let outCards =
           this.game.players[this.playerId].cardIds.map( id => Card.fromId( id ));
       return outCards;
     },
 
-    cardElements: function() {
-      let hand = [];
-      this.cards.forEach( card => hand.push( CardElement.allCards[card.id] ));
-      return hand;
-    },
-
+    //----------------------------------------
+    //----------------------------------------
     name: function() {
       return this.game.players[this.playerId].name;
     },
+    //----------------------------------------
+    // All players
+    //----------------------------------------
     names: function() {
-
       let names = [];
       this.game.players.forEach(
         function( player ) {
@@ -86,21 +80,30 @@ let app = new Vue({
   beforeCreate: function() {
   },
 
-    // event handlers accessible from the web page
+  watch: {
+    // playedCard: {
+    // },
+  },
+
+  // event handlers accessible from the web page
   methods: {
     showCards: function() {
       this.cards;//???
     },
 
-    setCardStyle: function(card, event) {
+    getCardStyle: function( id ) {
+      let card = Card.fromId( id );
+      return "background-position: " + this.getCardFaceStyle( card );
+    },
+
+    getCardFaceStyle: function( card ) {
       let height = 98;
       let width = 73;
       let suitRows = [Card.suits.Clubs, Card.suits.Spades,
                       Card.suits.Hearts,Card.suits.Diamonds];
 
-      event.target.style.backgroundPosition =
-        -(width*(card.rank-1)+2) + "px " +
-        -(height*suitRows[card.suit]+2) + "px ";
+      return -(width*(card.rank-1)+2) + "px " +
+             -(height*suitRows[card.suit]+2) + "px";
     },
 
     dealCards: function() {
@@ -127,7 +130,7 @@ let app = new Vue({
     moveCard: function( card, event ) {
       // console.log("You mmoved with data: " + JSON.stringify(data) );
       // console.log("You mmoved with event: " + JSON.stringify(event) );
-      console.log("Moving " + this.cardMoving + " to the right of " + card )    },
+      console.log("Moving " + this.cardMoving + " to the right of " + card );    },
 
     // drop a card on table
     playCard: function( event ) {

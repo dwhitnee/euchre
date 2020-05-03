@@ -32,7 +32,8 @@
       <div></div>
       <div class="card"></div>
       <div></div>
-      <div v-if="playedCard" class="card">{{ playedCard }}</div>
+      <div v-if="playedCard" class="card"
+        v-bind:style="getCardStyle( playedCard.id )"></div>
       <div v-else class="card"></div>
       <div></div>
     </div>
@@ -51,7 +52,7 @@
       <div v-for="(card,i) in cards">
         <!-- set style dynamically based on card here -->
         <div class="card"
-          @mouseover="setCardStyle(card,$event)"
+          v-bind:style="getCardStyle( card.id )"
           draggable="true"
           @dragover.prevent
           @dragstart="dragStart(card, $event)"
@@ -69,14 +70,6 @@
    </div>
 
  </div>
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js"
- integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
- crossorigin="anonymous"></script>
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"
- integrity="sha256-KM512VNnjElC30ehFwehXjx1YCHPiQkOPmqnrWtpccM="
- crossorigin="anonymous"></script>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
  integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="
