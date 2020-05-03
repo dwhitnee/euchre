@@ -1,0 +1,44 @@
+<head>
+  <title>Euchre</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="styles/euchre.css"/>
+</head>
+
+<div id="lobbyApp" class="lobby" v-cloak>
+
+  <h2>Welcome to quarantine Euchre!</h2>
+
+  <div v-if="playerName">
+    {{ playerName }}, you can create a new game, or join an existing one.
+
+    <h3>Current Games</h3>
+    <div v-if="games.length">
+    </div>
+    <div v-else>
+      No games in progress
+    </div>
+    <button class="btn btn-primary" @click="newGame">Start a New Game</button>
+
+  </div>
+  <div v-else>
+    What's your name?
+    <input v-model.trim="newName" @keyup.enter="saveName"></input>
+    <button class="button" @click="saveName">OK</button>
+  </div>
+
+
+</div>
+
+
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
+ integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="
+ crossorigin="anonymous"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/vue-router/3.1.3/vue-router.min.js"
+ integrity="sha256-r/vPIUvTobCpYZsMmvU7HM58cNd4D6/vdICqDFapV7Y="
+ crossorigin="anonymous"></script>
+
+<script src="js/lobby.js"></script>
