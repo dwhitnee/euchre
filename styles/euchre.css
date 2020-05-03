@@ -153,11 +153,12 @@ a.button.disabled {
   color: #55d15d;
   font-weight: bold;
   padding: .3em;
-  0 0.1em 0.2em 0 rgba(0, 0, 0, 0.5),
-  0 0.5em 0 -0.25em #d12d36,
-  0 0.5em 0.2em -0.25em rgba(0, 0, 0, 0.5),
-  0 1em 0 -0.5em #d12d36,
-  0 1em 0.2em -0.5em rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0.1em 0.2em 0 rgba(0, 0, 0, 0.5),
+    0 0.5em 0 -0.25em #d12d36,
+    0 0.5em 0.2em -0.25em rgba(0, 0, 0, 0.5),
+    0 1em 0 -0.5em #d12d36,
+    0 1em 0.2em -0.5em rgba(0, 0, 0, 0.5);
 }
 
 .notEditable {
