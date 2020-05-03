@@ -47,8 +47,7 @@ let app = new Vue({
     canPickUp: false,
     canTurnDown: false,
     playedCard: undefined,
-    movingCard: undefined,
-    nameEditable: false
+    movingCard: undefined
   },
 
   //----------------------------------------
@@ -217,9 +216,12 @@ let app = new Vue({
     },
     takeTrick: function() {
     },
-    saveName: function() {
+    saveName: function(event) {
+      this.playerName = event.target.innerHTML.trim();
+      document.cookie = "name=" + this.playerName;
+      console.log( this.playerName + " to cookie" );
+
       this.game.players[this.playerId].name = this.playerName;
-      this.nameEditable = false;
     }
   }
 });

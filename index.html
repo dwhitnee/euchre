@@ -37,15 +37,11 @@
 
 
     <div>
-      <div v-if="nameEditable">
-        <input v-model.trim="playerName"
-               @keyup.enter="saveName"
-               @mouseover="$event.target.focus()"
-               @focus="$event.target.select()"
-               placeholder="pick a name" size="10"></input>
-        <button class="" @click="saveName">submit</button>
-      </div>
-      <div v-else class="notEditable" @click="nameEditable=true">{{ name }}</div>
+      <div class="editable" contenteditable="true" spellcheck="false"
+        title="click to edit name"
+        @blur="saveName"
+        @keypress.enter="saveName"
+        @keypress.enter.prevent>{{ name }}</div>
     </div>
 
     <div>

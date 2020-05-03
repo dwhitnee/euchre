@@ -43,7 +43,7 @@ let app = new Vue({
   methods: {
     // ask server to create a new game and re-route us to the URL
     newGame: function() {
-
+      alert("wooo!");
     },
 
     // Put name in cookie
