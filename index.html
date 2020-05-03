@@ -1,5 +1,8 @@
 <head>
   <title>Euchre</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+
   <link rel="stylesheet" type="text/css" href="styles/euchre.css"/>
 
 <style>
@@ -16,64 +19,46 @@
 
   <div class="playGrid withBorder">
 
-    <div>Euchre</div>
+    <div class="title">Euchre</div>
     <div class="playerName">{{ names[2] }}</div>
     <div></div>
 
     <div class="playerName">{{ names[1] }}</div>
-    <drop class="drop" @drop="playCard">
-     <div class="cardTable">
-
-       <div v-if="playedCard" class="card">{{ playedCard }}</div>
-
-      <div class="buttons">
-        <button v-if="canDeal"     v-on:click="dealCards">Deal</button>
-        <button v-if="canPickUp"   v-on:click="pickUpCard">Pick Up Card</button>
-        <button v-if="canTurnDown" v-on:click="turnDownCard">Turn Down Card</button>
-      </div>
-     </div>
-    </drop>
+    <div id="cardTable" class="cardTable" @dragover.prevent @drop="playCard">
+      <div></div>
+      <div class="card"></div>
+      <div></div>
+      <div class="card"></div>
+      <div></div>
+      <div class="card"></div>
+      <div></div>
+      <div v-if="playedCard" class="card">{{ playedCard }}</div>
+      <div v-else class="card"></div>
+      <div></div>
+    </div>
     <div class="playerName">{{ names[3] }}</div>
 
-    <div class="playerName">{{ names[0] }}</div>
+    <div>
+      <div class="buttons">
+        <button class="btn btn-primary btn-lg" v-if="canDeal" v-on:click="dealCards">Deal</button>
+        <button class="btn btn-primary btn-lg" v-if="canPickUp"   v-on:click="pickUpCard">Pick Up Card</button>
+        <button class="btn btn-primary btn-lg" v-if="canTurnDown" v-on:click="turnDownCard">Turn Down Card</button>
+      </div>
+    </div>
     <div>
       <div class="cards">
-
+        {{ names[0] }}
       <div v-for="(card,i) in cards">
         <!-- set style dynamically based on card here -->
         <div class="card"
           @mouseover="setCardStyle(card,$event)"
-          @focus="setCardStyle(card,$event)"
           draggable="true"
           @dragover.prevent
           @dragstart="dragStart(card, $event)"
           @drop="moveCard(card, $event)">
-          {{ card }}</div>
-      </div>
-
-<!--
-        <draggable v-for="(zone, index) in firstZones"
-                   v-model="firstZones[index]"
-                   :class="['dropzone', `zone-${index}`]"
-                   :options="firstOptions"
-                   @start="start" @end="end">
-      <div v-for="item in firstZones[index]" class="dropitem"
-        :key="`dropitem-${item.id}`">
-        {{ item.title }}
-      </div>
-    </draggable>
-
-
-        <draggable v-model="poops" group="hand"
-                   @start="drag=true" @end="drag=false">
-          <div class="card" v-for="card in cards" :key="card.id">{{ card }}</div>
-        </draggable>
--->
-<!--
-        <div v-for="card in cards">
-          <drag class="card" :transfer-data="{ card }">{{ card }}</drag>
         </div>
--->
+      </div>
+
       </div>
     </div>
     <div>
@@ -95,14 +80,6 @@
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
  integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="
- crossorigin="anonymous"></script>
-
-<!--
- <script src="//unpkg.com/vue-drag-drop"></script>
--->
-
- <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/15.0.0/vuedraggable.min.js"
- integrity="sha256-kZmY4LUwE53ceTqZXPto8gMELhExZWBrmzOCZgzyY0Y="
  crossorigin="anonymous"></script>
 
 <script src="js/card.js"></script>

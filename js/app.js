@@ -20,6 +20,7 @@ let app = new Vue({
         },
         {
           name: "Ernie",
+          // cardIds: ["9:0"]
           cardIds: ["9:0","10:1","11:2","13:3", "1:3"]
         },
         {
@@ -33,11 +34,11 @@ let app = new Vue({
         }
       ]
     },
-    canDeal: true,  // functions
-    canPickUp: true,
-    canTurnDown: true,
-    playedCard: "",
-    cardMoving: ""
+    canDeal: false,  // functions
+    canPickUp: false,
+    canTurnDown: false,
+    playedCard: undefined,
+    movingCard: undefined
   },
   computed: {
 
@@ -88,8 +89,7 @@ let app = new Vue({
     // event handlers accessible from the web page
   methods: {
     showCards: function() {
-      this.cards
-
+      this.cards;//???
     },
 
     setCardStyle: function(card, event) {
@@ -97,9 +97,10 @@ let app = new Vue({
       let width = 73;
       let suitRows = [Card.suits.Clubs, Card.suits.Spades,
                       Card.suits.Hearts,Card.suits.Diamonds];
+
       event.target.style.backgroundPosition =
-        -(width  * (card.rank-1)) + "px " +
-        -(height * suitRows[card.suit]) + "px ";
+        -(width*(card.rank-1)+2) + "px " +
+        -(height*suitRows[card.suit]+2) + "px ";
     },
 
     dealCards: function() {
@@ -117,23 +118,29 @@ let app = new Vue({
 
     // re-order cards w/drag and drop
     dragStart: function( card, event ) {
-      this.cardMoving = card;
-      event.target.style.opacity = '0.2';
+      this.movingCard = card;
+      event.dataTransfer.setData("card", JSON.stringify( card));
+
+      // event.target.style.opacity = '0.2';
+      console.log("Dragging the " + card);
     },
     moveCard: function( card, event ) {
       // console.log("You mmoved with data: " + JSON.stringify(data) );
       // console.log("You mmoved with event: " + JSON.stringify(event) );
-      console.log("Moving " + this.cardMoving + " to the right of " + card );
-    },
+      console.log("Moving " + this.cardMoving + " to the right of " + card )    },
 
     // drop a card on table
-    playCard: function( data, event ) {
-      console.log("You dropped with data: " + JSON.stringify(data) );
+    playCard: function( event ) {
       console.log("You dropped with event: " + JSON.stringify(event) );
-      if (data && data.card) {
-        this.playedCard = data.card;
-        // remove card from had
-        // iterate over players cards and remove it
+
+      let card = JSON.parse( event.dataTransfer.getData("card"));
+
+      if (card) {
+        this.playedCard = this.movingCard;
+        this.movingCard = undefined;
+        // FIXME: delete movingCard from Hand
+        let cards = this.game.players[this.playerId].cardIds;
+        cards.splice( cards.indexOf(this.playedCard.id), 1);
       }
     },
 

@@ -84,69 +84,42 @@ a.button.disabled {
   -ms-user-select:     none;
 }
 
-
-.gameover {
-    position: absolute;
-    z-index: 2;
-    margin: 4em;
-    padding: 2em;
-    height: 6em;
-    width: 15em;
-    border-radius: 1em;
-    line-height: 3em;
-    opacity: 0.75;
-    background: grey;
-    border: 5px solid;
-}
-
-.banner {
-    font-weight: bold;
-    opacity: 1.0;
-}
-.victory {
-    display: none;
-    border-color: green;
-    background: #ada;
-}
-.loser {
-    display: none;
-    border-color: red;
-    background: #daa;
+#cardTable {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
 }
 
 .cardTable {
-    border: 2px solid;
-    border-radius: 4em;
-    height: 20em;
-    width: 30em;
-    padding: 1em;
-}
+  padding: 1em;
+  grid-gap: 1em;
 
-.board {
-    position: relative;
-    width: 100%;
-    height: 100%;
+  border: 2px solid;
+  border-radius: 4em;
+/*  height: 24em;
+  width: 24em; */
+  padding: 1em;
 }
-
-.piece {
-    position: absolute;
-    background-size: 100%;  /* scale to h/w */
-    height: 16px;
-    width: 16px;
-}
-
 
 .card {
   background: url("../images/cards.png") 240px 120px no-repeat;
-  height: 98px;
-  width: 72px;
+  height: 95px;
+  width: 70px;
   display: inline-block;
   margin: 4px;
-  border: 1px dotted red;
+  background-color: #d12d36;
+  border: 1px solid white;
 }
 
 .cards {
   display: inline-flex;
+}
+.playerName {
+  padding: 1em;
+}
+
+button {
+  margin: 1em;
 }
 
 #playField {
@@ -157,21 +130,18 @@ a.button.disabled {
 
 .playGrid {
   display: grid;
-  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
   grid-template-rows: 2fr 8fr 3fr;
   padding: 1em;
   grid-gap: 1em;
 }
 
 .buttons {
+  grid-column: 1 / 3;
   grid-row: 4;
   display: flex;
   justify-content: bottom;
   align-items: bottom;
-}
-
-.playerName {
-  padding: 1em;
 }
 
 .withBorder {
@@ -185,30 +155,4 @@ a.button.disabled {
   justify-content: center;
   align-items: center;
   padding: 1em;
-}
-
-
-.dragPOOP, .dropPOOP {
-  font-family: sans-serif;
-  display: inline-block;
-  border-radius: 10px;
-  background: #ccc;
-  position: relative;
-  padding: 30px;
-  text-align: center;
-  vertical-align: top;
-}
-
-.dragPOOP {
-  color: #fff;
-  cursor: move;
-  background: #777;
-  border-right: 2px solid #555;
-  border-bottom: 2px solid #555;
-}
-
-.dropPOOP {
-  background: #eee;
-  border-top: 2px solid #ccc;
-  border-left: 2px solid #ccc;
 }
