@@ -65,7 +65,8 @@ let app = new Vue({
     //----------------------------------------
     //----------------------------------------
     name: function() {
-      return this.game.players[this.playerId].name;
+      this.playerName = this.game.players[this.playerId].name;
+      return this.playerName;
     },
     //----------------------------------------
     // All players
