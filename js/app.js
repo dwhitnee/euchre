@@ -1,10 +1,17 @@
-/*global fetch, Vue, Card, CardElement */
+/*global fetch, Vue, VueRouter, Card */
 
 Array.prototype.rotate = function(n) {
   return this.slice(n, this.length).concat(this.slice(0, n));
 };
 
+var router = new VueRouter({
+  mode: 'history',
+  routes: [ ]
+});
+
+
 let app = new Vue({
+  router,
   el: '#euchreApp',
 
   //----------------------------------------
@@ -12,9 +19,8 @@ let app = new Vue({
   //----------------------------------------
   data: {
     message: "Hello, it's " + (new Date()).toDateString(),
-    playerId: 1,
+    playerId: 1,   // FIXME - how to determine this? server?
     playerName: "pick a name",
-    poops: ["a", "b", "c", "d"],
     game: {
       players: [
         {
@@ -83,6 +89,12 @@ let app = new Vue({
 
   },
 
+  mounted() {
+    console.log( this.$route.query );
+    console.log( this.$route.hash );
+    // grab gameId from #
+  },
+
   // synchronous app setup before event handling starts
   beforeCreate: function() {
   },
@@ -128,6 +140,19 @@ let app = new Vue({
       let border=2;  // css border 1px
       return -(width*(card.rank-1) + border) + "px " +
              -(height*suitRows[card.suit] + border) + "px";
+    },
+
+
+    // ask server to generate game id, we are Player One
+    // If no gameId, come here?
+    startGame: function() {
+
+    },
+
+    // enter existing game, we are Player n+1
+    // get this from URL
+    joinGame: function( gameId ) {
+
     },
 
     dealCards: function() {
