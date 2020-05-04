@@ -1,8 +1,4 @@
-/*global fetch, Vue, VueRouter, Card */
-
-Array.prototype.rotate = function(n) {
-  return this.slice(n, this.length).concat(this.slice(0, n));
-};
+/*global fetch, Vue, VueRouter, Card, Util */
 
 var router = new VueRouter({
   mode: 'history',
@@ -18,10 +14,10 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    message: "Hello, it's " + (new Date()).toDateString(),
-    playerId: 1,   // FIXME - how to determine this? server?
-    playerName: "pick a name",
+    playerId: 3,   // FIXME - how to determine this? server?
+    playerName: "",
     game: {
+      playedCardIds: ["9:0","10:0","11:0","12:0",],  // NESW
       players: [
         {
           name: "Nancy",
@@ -29,7 +25,6 @@ let app = new Vue({
         },
         {
           name: "Ernie",
-          // cardIds: ["9:0"]
           cardIds: ["9:0","10:1","11:2","13:3", "1:3"]
         },
         {
@@ -66,6 +61,23 @@ let app = new Vue({
           id => Card.fromId( id ));
       }
     },
+    // cards as seen from the player's view
+    playedCards: {
+      cache: false,
+      get () {
+        let ids = this.game.playedCardIds;  // in NESW order
+        let cards = [];
+        for (var i=0; i < 4; i++) {
+          if (ids[i]) {
+            cards.push( Card.fromId( ids[i] ));
+          } else {
+            cards.push("");
+          }
+        }
+        return cards.rotate( this.playerId );
+      }
+    },
+
 
     //----------------------------------------
     //----------------------------------------
@@ -74,7 +86,7 @@ let app = new Vue({
       return this.playerName;
     },
     //----------------------------------------
-    // All players
+    // All players, as seen from player's view
     //----------------------------------------
     names: function() {
       let names = [];
@@ -193,20 +205,22 @@ let app = new Vue({
       // ES6 magic swapping
       [cards[a], cards[b]] = [cards[b], cards[a]];
 
-      this.$forceUpdate();
+      this.$forceUpdate();   // need this so computed values update
     },
 
+    //----------------------------------------
     // drop a card on table
+    // tell server
+    //----------------------------------------
     playCard: function( event ) {
-      console.log("You dropped with event: " + JSON.stringify(event) );
-
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
       if (card) {
-        this.playedCard = this.movingCard;
-        this.movingCard = undefined;
+        this.game.playedCardIds[this.playerId] = this.movingCard.id;
         let cards = this.game.players[this.playerId].cardIds;
-        cards.splice( cards.indexOf(this.playedCard.id), 1);
+        cards.splice( cards.indexOf(this.movingCard.id), 1);
+        this.movingCard = undefined;
+        this.$forceUpdate();   // need this so computed values update
       }
     },
 
@@ -218,7 +232,7 @@ let app = new Vue({
     },
     saveName: function(event) {
       this.playerName = event.target.innerHTML.trim();
-      document.cookie = "name=" + this.playerName;
+      Util.setCookie("name", this.playerName );
       console.log( this.playerName + " to cookie" );
 
       this.game.players[this.playerId].name = this.playerName;

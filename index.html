@@ -5,69 +5,36 @@
   <link rel="stylesheet" type="text/css" href="styles/euchre.css"/>
 </head>
 
+<div id="lobbyApp" class="lobby" v-cloak>
 
-<div id="euchreApp" v-cloak>
-  <div class="playGrid withBorder">
+  <h2>Welcome to quarantine Euchre!</h2>
 
-    <div class="title">Euchre</div>
-    <div class="playerName">
-      <div class="card pile" v-bind:style="getCardStyle()">{{ names[2] }}</div>
+<div>
+    {{ message }},
+    <div class="editable" contenteditable="true "spellcheck="false"
+      title="click to edit name"
+      @blur="saveName"
+      @keypress.enter="saveName"
+      @keypress.enter.prevent>{{ playerName }}</div>.
+
+      <br>
+      You can create a new game, or join an existing one (or change
+      your name).
+
+    <h3>Current Games</h3>
+    <div v-if="games.length">
     </div>
-    <div></div>
-
-    <div class="playerName">
-      <div class="card pile" v-bind:style="getCardStyle()">{{ names[1] }}</div>
+    <div v-else>
+      No games in progress
+      (<a href="game">demo game</a>)
     </div>
-    <div id="cardTable" class="cardTable" @dragover.prevent @drop="playCard">
-      <div></div>
-      <div class="card"></div>
-      <div></div>
-      <div class="card"></div>
-      <div></div>
-      <div class="card"></div>
-      <div></div>
-      <div v-if="playedCard" class="card"
-        v-bind:style="getCardStyle( playedCard.id )"></div>
-      <div v-else class="card"></div>
-      <div></div>
-    </div>
-    <div class="playerName">
-      <div class="card pile" v-bind:style="getCardStyle()">{{ names[3] }}</div>
-    </div>
-
-
-    <div>
-      <div class="editable" contenteditable="true" spellcheck="false"
-        title="click to edit name"
-        @blur="saveName"
-        @keypress.enter="saveName"
-        @keypress.enter.prevent>{{ name }}</div>
-    </div>
-
-    <div>
-      <div class="cards">
-        <div v-for="(card,i) in cards">
-          <div class="card"
-            v-bind:style="getCardStyle( card.id )"
-            v-bind:data-card="card.id"
-            draggable="true"
-            @dragenter.prevent
-            @dragover.prevent
-            @dragstart="dragCardStart(card, $event)"
-            @dragenter="moveCard( card, $event )">
-          </div>
-        </div>
-      </div>
-    <div>
-
-    <div class="buttons">
-      <button class="btn btn-primary btn-lg" v-if="canDeal" @click="dealCards">Deal</button>
-      <button class="btn btn-primary btn-lg" v-if="canPickUp"   @click="pickUpCard">Pick Up Card</button>
-      <button class="btn btn-primary btn-lg" v-if="canTurnDown" @click="turnDownCard">Turn Down Card</button>
-    </div>
+    <button class="btn btn-primary" @click="newGame">Start a New Game</button>
   </div>
 
- </div>
+
+</div>
+
+
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
  integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="
@@ -76,6 +43,5 @@
  integrity="sha256-r/vPIUvTobCpYZsMmvU7HM58cNd4D6/vdICqDFapV7Y="
  crossorigin="anonymous"></script>
 
-
-<script src="js/card.js"></script>
-<script src="js/app.js"></script>
+<script src="js/util.js"></script>
+<script src="js/lobby.js"></script>
