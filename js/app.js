@@ -14,39 +14,62 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
+    version: 1,
     playerId: 3,   // FIXME - how to determine this? server?
-    playerName: "",
+    canDeal: false,  // functions, computed?
+    canPickUp: false,
+    canTurnDown: false,
+    playedCard: undefined,
+    movingCard: undefined,
+
+    // game data from server, players are in NESW/0123 order
     game: {
-      playedCardIds: ["9:0","10:0","11:0","12:0",],  // NESW
+      id: 123,
+      dealerId: 0,
+      trumpCallerId: 1,
+      trumpSuit: 3,
+      goingAlone: false,
+      leadPlayerId: 1,   // left of dealer or taker of last trick
+
+      deck: [],
+      playedCardIds: ["9:0","10:0","11:0","12:0"],
       players: [
         {
           name: "Nancy",
+          score: 0,
+          tricks: 0,
+          pickItUp: false,
           cardIds: ["12:0","9:0","10:0","12:1", "9:1"]
         },
         {
           name: "Ernie",
+          score: 0,
+          tricks: 0,
+          pickItUp: false,
           cardIds: ["9:0","10:1","11:2","13:3", "1:3"]
         },
         {
           name: "Sam",
+          score: 0,
+          tricks: 0,
+          pickItUp: false,
           cardIds: ["12:2","9:2","10:2","12:3","9:3"]
-
         },
         {
           name: "Wendy",
+          score: 0,
+          tricks: 0,
+          pickItUp: false,
           cardIds: ["12:3","9:3","10:3","1:0", "1:1"]
         }
       ]
-    },
-    canDeal: false,  // functions
-    canPickUp: false,
-    canTurnDown: false,
-    playedCard: undefined,
-    movingCard: undefined
+    }
+
   },
 
   //----------------------------------------
-  // derived attributes
+  // derived attributes, mostly conveniences to pull out of server
+  // state for easier rendering
   //----------------------------------------
   computed: {
     //----------------------------------------
@@ -61,7 +84,10 @@ let app = new Vue({
           id => Card.fromId( id ));
       }
     },
-    // cards as seen from the player's view
+
+    //----------------------------------------
+    // cards on the table as seen from the player's view
+    //----------------------------------------
     playedCards: {
       cache: false,
       get () {
@@ -74,17 +100,17 @@ let app = new Vue({
             cards.push("");
           }
         }
-        return cards.rotate( this.playerId );
+        return cards.rotate( this.playerId );  // rotate from NESW
       }
     },
 
-
     //----------------------------------------
+    // player's name
     //----------------------------------------
     name: function() {
-      this.playerName = this.game.players[this.playerId].name;
-      return this.playerName;
+      return this.game.players[this.playerId].name;
     },
+
     //----------------------------------------
     // All players, as seen from player's view
     //----------------------------------------
@@ -95,7 +121,7 @@ let app = new Vue({
           names.push( player.name );
         });
 
-      return names.rotate( this.playerId );
+      return names.rotate( this.playerId );   // rotate from NESW
     }
 
   },
@@ -230,12 +256,12 @@ let app = new Vue({
     },
     takeTrick: function() {
     },
-    saveName: function(event) {
-      this.playerName = event.target.innerHTML.trim();
-      Util.setCookie("name", this.playerName );
-      console.log( this.playerName + " to cookie" );
+    setPlayerName: function(event) {
+      let playerName = event.target.innerHTML.trim();
+      Util.setCookie("name", playerName );
+      this.game.players[this.playerId].name = playerName;
 
-      this.game.players[this.playerId].name = this.playerName;
+      console.log( playerName + " saved to cookie" );
     }
   }
 });

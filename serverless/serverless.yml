@@ -1,0 +1,98 @@
+#----------------------------------------
+# configuration for uploading code to the AWS cloud
+# https://serverless.com/framework/docs/
+#----------------------------------------
+#
+# edit ~/.aws/credentials with [serverless-admin] private keys
+#    export AWS_PROFILE="serverless-admin"
+#    export AWS_REGION=us-west-2
+#    serverless deploy    # --aws-profile serverless-admin --region us-west-2
+#
+# or for updates of a single function:
+#    serverless deploy function -f getBusEvents
+#
+# The `service` block is the name of the service, as in
+# https://1zqvyi3gfk.execute-api.us-east-1.amazonaws.com/dev/euchre
+#
+# See also https://serverless.com/blog/quick-tips-for-faster-serverless-development/
+#----------------------------------------
+
+service: euchre
+
+# Where the service will be deployed and what it can access
+provider:
+  name: aws
+  region: us-west-2
+  runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:*
+      Resource: [
+        "arn:aws:dynamodb:us-west-2:*:table/Euchre*"
+      ]
+
+#----------------------------------------------------------------------
+# see db/serverless.yml to create the DB table. This will create the table:
+#  cd db; serverless deploy
+#
+# if we put this config here, then every deploy fails with "BusEvents already exists"
+#resources:
+#  Resources:
+#    EuchreGameTable:
+#      Type: AWS::DynamoDB::Table
+#   ...
+#----------------------------------------------------------------------
+
+
+#----------------------------------------
+# What code to deploy
+# The 'events' block defines how to trigger the handler code
+# 'handler' refers to <file name>.<function name>
+#----------------------------------------
+functions:
+
+getGames:
+    handler: euchre.getGames
+    events:
+      - http:
+          path: games
+          method: get
+          cors: true
+
+  getGameState:
+    handler: euchre.getGameState
+    events:
+      - http:
+          path: game
+          method: get
+          cors: true
+
+  storeGameData:
+    handler: euchre.storeGameData
+    events:
+      - http:
+          path: event
+          cors: true
+          method: post
+
+
+
+# createTable => gameId
+
+# addPlayer?name (until 4)
+
+# startGame?dealer (zero score, pick first dealer)
+
+# shuffleAndDeal (start a round)
+
+# pass?playerId
+
+# chooseTrumpSuit?suit/player  have dealer pick up, or lead playCard
+
+# pickUpCard?hand[] (change players cards, lead playCard)
+
+# playCard?cards[] (until 4 cards played, assert order?)
+
+# takeTrick (update trick count, assign lead to playCard
+#         unless 5 tricks then change delaer and shuffleAndDeal)
