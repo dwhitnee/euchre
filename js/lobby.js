@@ -14,7 +14,8 @@ let app = new Vue({
   data: {
     playerName: "Alphonso Beetlegeuse",
     message: "Happy " + (new Date()).toLocaleString("en-US", {weekday: 'long'}),
-    games: []
+    games: [],
+    createInProgress: false
   },
 
   //----------------------------------------
@@ -48,20 +49,35 @@ let app = new Vue({
   //----------------------------------------------------------------------
   methods: {
     //----------------------------------------
-    getGameList() {
-      let self = this;
-      fetch( serverURL + "games")
-        .then( function( resp ) { if (resp.ok) { return resp.json(); }})
-        .then( function( data ) {
-          self.games = data;
-        })
-        .catch( err => self.games = [{id:err}] );
+    // would be cool to async the fetches - FIXME
+    //----------------------------------------
+    async getGameList() {
+
+      // async/await way, is it better?
+      try {
+        let response = await fetch( serverURL + "games");
+        this.games = await response.json();  // response is a stream
+      }
+      catch( err ) {
+        this.games = [{id:err}];
+      };
+
+      // let self = this;
+      // fetch( serverURL + "games")
+      //   .then( function( resp ) { if (resp.ok) { return resp.json(); }})
+      //   .then( function( data ) {
+      //     self.games = data;
+      //   })
+      //   .catch( err => self.games = [{id:err}] );
+
     },
 
     //----------------------------------------
     // ask server to create a new game and re-route us to the URL
     //----------------------------------------
     newGame() {
+      this.createInProgress = true;   // go into spinny mode
+
       let postData = {
         playerName: this.playerName
       };
@@ -69,14 +85,16 @@ let app = new Vue({
       let self = this;
       fetch( serverURL + "newGame", Util.makeJsonPostParams( postData ))
         .then( function( resp ) { if (resp.ok) { return resp.json(); }})
-        .then( function( resp ) {
-          console.log( resp );
-          // FIXME, how to get gameId from POST?
-          // window.location.href = "game/?id=" + gameId;
+        .then( function( gameId ) {
+          // leave spinny mode
+          self.createInProgress = false;          // leave spinny mode
+          self.getGameList();
+          window.location.href = "game/?id=" + gameId;
         })
         .catch(function ( err ) {
           console.error( err );
-          alert("Create failed :^(");
+          alert("Create failed /sadface: " + err);
+          self.createInProgress = false;          // leave spinny mode
         });
     },
 

@@ -1,7 +1,7 @@
 <head>
   <title>Euchre</title>
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="styles/euchre.css"/>
 </head>
 
@@ -33,7 +33,11 @@
       </div>
       <li>(<a href="game">demo game</a>)</li>
 
-      <button class="btn btn-primary" @click="newGame">Start a New Game</button>
+      <button class="btn btn-primary" type="button" @click="newGame"
+          :disabled="createInProgress"> Start a New Game
+      <span v-if="createInProgress"
+            class="spinner-border spinner-border-sm"></span>
+      </button>
     </div>
 
 </div>
