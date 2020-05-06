@@ -56,6 +56,9 @@ provider:
 # Code to deploy
 # The 'events' block defines how to trigger the handler code
 # 'handler' refers to <file name>.<function name>
+# CORS doesn't seem to work right, I had to manually add
+# OPTIONS "Access-Control-Allow-Origin" to each API Gateway
+# https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/f7c3878i78/resources/q37u0j/methods/OPTIONS
 #----------------------------------------
 functions:
 

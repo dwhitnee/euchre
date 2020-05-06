@@ -31,9 +31,7 @@ module.exports = {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        let game = JSON.stringify( data.Items );
-        console.log( game );
-        callback( null, game );
+        callback( null, data.Items );
       }
     });
   },
@@ -80,9 +78,7 @@ module.exports = {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        let gameList = JSON.stringify( data.Items );
-        console.log( gameList );
-        callback( null, gameList );
+        callback( null, data.Items );
       }
     });
   },
@@ -116,8 +112,7 @@ module.exports = {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        console.log("Dynamo resp: " + JSON.stringify( data ));
-        callback( null );   // data is just AWS usage data
+        callback( null );  // success! Nothing to report
       }
     });
   }

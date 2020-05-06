@@ -56,8 +56,7 @@ function verifyQuery( request, callback, param ) {
 //----------------------------------------------------------------------
 function respondWithSuccess( data, callback ) {
   let response = successResponse;
-  // response.body = JSON.stringify( data );
-  response.body = data;
+  response.body = JSON.stringify( data );  // prettify for transit
 
   // This can be inspected in firebug, but we really don't need it otherwise
   // response.body = JSON.stringify({
@@ -193,7 +192,6 @@ module.exports = {
 
     // put the data, but respond to AWS call here.
     euchreDB.saveGameData( newGame, function( err, data ) {
-      // add anything to "data" here? Yes! GameId
       respond( err, newGameId, callback );
     });
   },
