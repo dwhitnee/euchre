@@ -12,21 +12,21 @@
     <div class="gridGameInfo title">Euchre</div>
 
     <div class="playerName gridPlayer1">
-      <div class="card pile" v-bind:style="getCardStyle()">{{ names[1] }}</div>
+      <div class="card pile" :style="getCardStyle()">{{ names[1] }}</div>
     </div>
     <div class="playerName gridPlayer2">
-      <div class="card pile" v-bind:style="getCardStyle()">{{ names[2] }}</div>
+      <div class="card pile" :style="getCardStyle()">{{ names[2] }}</div>
     </div>
     <div class="playerName gridPlayer3">
-      <div class="card pile" v-bind:style="getCardStyle()">{{ names[3] }}</div>
+      <div class="card pile" :style="getCardStyle()">{{ names[3] }}</div>
     </div>
 
     <div id="cardTable" class="cardTable gridCardTable"
       @dragover.prevent @drop="playCard">
-      <div v-for="(card, i) in playedCards" v-bind:class="'player'+i">
+      <div v-for="(card, i) in playedCards" :class="'player'+i">
 
         <div v-if="playedCards[i]" class="card"
-          v-bind:style="getCardStyle( playedCards[i].id )"></div>
+          :style="getCardStyle( playedCards[i].id )"></div>
         <div v-else class="card"></div>
       </div>
     </div>
@@ -43,8 +43,8 @@
       <div class="cards">
         <div v-for="(card,i) in cards">
           <div class="card"
-            v-bind:style="getCardStyle( card.id )"
-            v-bind:data-card="card.id"
+            :style="getCardStyle( card.id )"
+            :data-card="card.id"
             draggable="true"
             @dragenter.prevent
             @dragover.prevent

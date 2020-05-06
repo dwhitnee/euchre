@@ -21,18 +21,20 @@
       You can create a new game, or join an existing one (or change
       your name).
 
-    <h3>Current Games</h3>
-    <div v-if="games.length">
-      <li v-for="game in games">{{ game.id }}
-      </li>
-    </div>
-    <div v-else>
-      No games in progress
-      (<a href="game">demo game</a>)
-    </div>
-    <button class="btn btn-primary" @click="newGame">Start a New Game</button>
-  </div>
+      <h3>Current Games</h3>
 
+      <div v-if="games.length">
+        <li v-for="game in games">
+          <a :href="`game/?id=`+game.id">{{ game.id }}</a>
+        </li>
+      </div>
+      <div v-else>
+        No games in progress
+      </div>
+      <li>(<a href="game">demo game</a>)</li>
+
+      <button class="btn btn-primary" @click="newGame">Start a New Game</button>
+    </div>
 
 </div>
 

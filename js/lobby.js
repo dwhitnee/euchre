@@ -47,14 +47,12 @@ let app = new Vue({
   //----------------------------------------------------------------------
   //----------------------------------------------------------------------
   methods: {
-
     //----------------------------------------
     getGameList() {
       let self = this;
       fetch( serverURL + "games")
         .then( function( resp ) { if (resp.ok) { return resp.json(); }})
         .then( function( data ) {
-          console.log( data );
           self.games = data;
         })
         .catch( err => self.games = [{id:err}] );
@@ -78,7 +76,7 @@ let app = new Vue({
         })
         .catch(function ( err ) {
           console.error( err );
-          alert("something's broken :(");
+          alert("Create failed :^(");
         });
     },
 
