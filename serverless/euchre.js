@@ -13,8 +13,8 @@ let successResponse = {
   body: "RESPONSE GOES HERE - REPLACE ME",
   statusCode: 200,
   headers: {  // Allow any web page to call us (CORS support)
-    'Access-Control-Allow-Origin': 'localhost'
-    // Access-Control-Allow-Credentials': true // only for auth
+    "Access-Control-Allow-Origin": "*"
+    // Access-Control-Allow-Credentials': true // only for auth/cookies
   }
 };
 
@@ -56,7 +56,8 @@ function verifyQuery( request, callback, param ) {
 //----------------------------------------------------------------------
 function respondWithSuccess( data, callback ) {
   let response = successResponse;
-  response.body = JSON.stringify( data );
+  // response.body = JSON.stringify( data );
+  response.body = data;
 
   // This can be inspected in firebug, but we really don't need it otherwise
   // response.body = JSON.stringify({
@@ -171,7 +172,7 @@ module.exports = {
     let newGame = {
       id: newGameId,                            // PK
       createdDate: (new Date()).toISOString(),  // Range Key
-      gameOver: false,
+      gameOver: "false",   // this would be bool if gameOver weren't an index?
       dealerId: 0,
       trumpCallerId: undefined,
       trumpSuit: undefined,

@@ -4,6 +4,8 @@
 // and no HTTP response stuff.
 //----------------------------------------------------------------------
 
+let tableName = "EuchreGames";
+
 module.exports = {
 
   //----------------------------------------------------------------------
@@ -16,7 +18,7 @@ module.exports = {
     console.log("Getting game data for " + gameId );
 
     let dbRequest = {
-      TableName : "EuchreGames",
+      TableName : tableName,
       Key: {"id" : { S: gameId } } };
 
     console.log( dbRequest );
@@ -59,7 +61,7 @@ module.exports = {
     // :values represent variables, without colon is key name (unless reserved)
 
     let dbRequest = {
-      TableName : "EuchreGames",
+      TableName : tableName,
       IndexName: "createdDate-index",
       KeyConditionExpression: "gameOver = :f and createdDate > :yesterday",
       ExpressionAttributeValues: {
@@ -98,7 +100,7 @@ module.exports = {
     // Create storage record, add timestamp (add sourceIp?)
     //----------------------------------------
     let dbParams = {
-      TableName : 'Games',
+      TableName : tableName,
       Item: game
     };
     dbParams.Item.id = game.id;   // PK, createdDate is Range Key
@@ -114,7 +116,7 @@ module.exports = {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        console.log("Dynamo resp: " + data );
+        console.log("Dynamo resp: " + JSON.stringify( data ));
         callback( null );   // data is just AWS usage data
       }
     });
