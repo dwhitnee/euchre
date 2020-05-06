@@ -23,6 +23,8 @@
 
     <h3>Current Games</h3>
     <div v-if="games.length">
+      <li v-for="game in games">{{ game.id }}
+      </li>
     </div>
     <div v-else>
       No games in progress

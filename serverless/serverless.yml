@@ -4,6 +4,7 @@
 #----------------------------------------
 #
 # edit ~/.aws/credentials with [serverless-admin] private keys
+#
 #    export AWS_PROFILE="serverless-admin"
 #    export AWS_REGION=us-west-2
 #    serverless deploy    # --aws-profile serverless-admin --region us-west-2
@@ -14,16 +15,27 @@
 # The `service` block is the name of the service, as in
 # https://1zqvyi3gfk.execute-api.us-east-1.amazonaws.com/dev/euchre
 #
+#  https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/games
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/game
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/newGame
+ # https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/joinGame
+
+# serverless logs -f gameList -t
+
 # See also https://serverless.com/blog/quick-tips-for-faster-serverless-development/
 #----------------------------------------
 
-service: euchre
+service:
+   name: euchre
 
+#----------------------------------------
 # Where the service will be deployed and what it can access
+#----------------------------------------
 provider:
   name: aws
   region: us-west-2
-  runtime: nodejs6.10
+  runtime: nodejs12.x
+  versionFunctions: false
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -32,55 +44,57 @@ provider:
         "arn:aws:dynamodb:us-west-2:*:table/Euchre*"
       ]
 
-#----------------------------------------------------------------------
+#----------------------------------------
+# if we put DB config here, then every deploy fails with "Table already exists"
+#
 # see db/serverless.yml to create the DB table. This will create the table:
 #  cd db; serverless deploy
-#
-# if we put this config here, then every deploy fails with "BusEvents already exists"
-#resources:
-#  Resources:
-#    EuchreGameTable:
-#      Type: AWS::DynamoDB::Table
-#   ...
-#----------------------------------------------------------------------
+#----------------------------------------
 
 
 #----------------------------------------
-# What code to deploy
+# Code to deploy
 # The 'events' block defines how to trigger the handler code
 # 'handler' refers to <file name>.<function name>
 #----------------------------------------
 functions:
 
-getGames:
-    handler: euchre.getGames
+  getGameList:
+    handler: euchre.getGameList
+    description: List of active games to join or spectate
     events:
       - http:
-          path: games
+          path: listGames
           method: get
           cors: true
 
-  getGameState:
-    handler: euchre.getGameState
+  getGame:
+    handler: euchre.getGameData
+    description: All data about the game from "playerId"s perspective
     events:
       - http:
           path: game
           method: get
           cors: true
 
-  storeGameData:
-    handler: euchre.storeGameData
+  newGame:
+    handler: euchre.createNewGame
+    description: Create an empty table, add "playerName" to it, return gameId
     events:
       - http:
-          path: event
+          path: newGame
           cors: true
           method: post
 
+  joinGame:
+    handler: euchre.joinGame
+    description: Join "gameId", add "playerName" to it.
+    events:
+      - http:
+          path: joinGame
+          cors: true
+          method: post
 
-
-# createTable => gameId
-
-# addPlayer?name (until 4)
 
 # startGame?dealer (zero score, pick first dealer)
 

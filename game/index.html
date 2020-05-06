@@ -25,9 +25,9 @@
       @dragover.prevent @drop="playCard">
       <div v-for="(card, i) in playedCards" v-bind:class="'player'+i">
 
-      <div v-if="playedCards[i]" class="card"
+        <div v-if="playedCards[i]" class="card"
           v-bind:style="getCardStyle( playedCards[i].id )"></div>
-          <div v-else class="card"></div>
+        <div v-else class="card"></div>
       </div>
     </div>
 

@@ -12,8 +12,9 @@ let euchreDB = require('euchreDB');
 let successResponse = {
   body: "RESPONSE GOES HERE - REPLACE ME",
   statusCode: 200,
-  headers: {
-    'Access-Control-Allow-Origin': '*'  // Allow any web page to call us (CORS support)
+  headers: {  // Allow any web page to call us (CORS support)
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Credentials': true
   }
 };
 
@@ -171,6 +172,7 @@ module.exports = {
 
   //----------------------------------------------------------------------
   // return gameId, can we do that with a POST?
+  // @param playerName
   //----------------------------------------------------------------------
   createNewGame: function( request, context, callback ) {
 
