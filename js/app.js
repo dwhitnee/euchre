@@ -1,5 +1,7 @@
 /*global fetch, Vue, VueRouter, Card, Util */
 
+let serverURL = "https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/";
+
 var router = new VueRouter({
   mode: 'history',
   routes: [ ]
@@ -15,8 +17,8 @@ let app = new Vue({
   //----------------------------------------
   data: {
     version: 1,
-    playerId: 3,   // FIXME - how to determine this? server?
-    canDeal: false,  // functions, computed?
+    playerId: 0,   // FIXME - how to determine this? server?
+    canDeal: true,  // functions, computed?
     canPickUp: false,
     canTurnDown: false,
     playedCard: undefined,
@@ -25,7 +27,7 @@ let app = new Vue({
 
     // game data from server, players are in NESW/0123 order
     game: {
-      id: 123,
+      id: "BasicBud-463046",
       dealerId: 0,
       trumpCallerId: 1,
       trumpSuit: 3,
@@ -128,9 +130,11 @@ let app = new Vue({
   },
 
   mounted() {
-    console.log( this.$route.query );
-    console.log( this.$route.hash );
+    // console.log( this.$route.query );
+    // console.log( this.$route.hash );
     // grab gameId from #
+    this.gameId = this.$route.query.id;
+    this.updateFromServer();
   },
 
   // synchronous app setup before event handling starts
@@ -144,6 +148,23 @@ let app = new Vue({
 
   // event handlers accessible from the web page
   methods: {
+
+    // See what's changed in the wide world
+    async updateFromServer() {
+      try {
+        let response = await fetch( serverURL + "game?gameId=" + this.gameId );
+        if (response.ok) {
+          this.game = await response.json();  // response is a stream
+        } else {
+          debugger  // FIXME
+        }
+      }
+      catch( err ) {
+        this.games = [{id:err}];
+      };
+    },
+
+
     showCards: function() {
       this.cards;//???
     },
@@ -194,6 +215,9 @@ let app = new Vue({
     },
 
     dealCards: function() {
+      this.updateFromServer();  // FIXME!
+      return;
+
       console.log("Dealing: asking server to issue new cards");
       // animate?
 

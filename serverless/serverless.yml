@@ -79,6 +79,8 @@ functions:
           path: game
           method: get
           cors: true
+#          cors:
+ #           origin: '*'
 
   newGame:
     handler: euchre.createNewGame
@@ -113,3 +115,10 @@ functions:
 
 # takeTrick (update trick count, assign lead to playCard
 #         unless 5 tricks then change delaer and shuffleAndDeal)
+
+
+
+
+resources:
+  # API Gateway Errors
+  - ${file(resources/api-gateway-errors.yml)}

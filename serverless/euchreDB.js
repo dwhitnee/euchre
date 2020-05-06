@@ -19,19 +19,21 @@ module.exports = {
 
     let dbRequest = {
       TableName : tableName,
-      Key: {"id" : { S: gameId } } };
+      Key: {"id": gameId }};
+
+    // KeyConditions
 
     console.log( dbRequest );
 
     let AWS = require('aws-sdk');
     let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
-    dynamoDB.query( dbRequest, function( err, data ) {
+    dynamoDB.get( dbRequest, function( err, data ) {
       if (err) {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        callback( null, data.Items );
+        callback( null, data.Item );
       }
     });
   },
