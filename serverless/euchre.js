@@ -13,8 +13,8 @@ let successResponse = {
   body: "RESPONSE GOES HERE - REPLACE ME",
   statusCode: 200,
   headers: {  // Allow any web page to call us (CORS support)
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Credentials': true
+    'Access-Control-Allow-Origin': 'localhost'
+    // Access-Control-Allow-Credentials': true // only for auth
   }
 };
 
@@ -90,25 +90,10 @@ function respond( err, data, callback ) {
 
 module.exports = {
   //----------------------------------------
-  // example
   // @param request -  info about the call (URL params, caller, etc)
   // @param context -  info about AWS (generally uninteresting)
   // @param callback - function to invoke when we are done
   //----------------------------------------
-  busRoutes: function( request, context, callback ) {
-    let response = successResponse;
-    response.body = JSON.stringify({
-      busRoutes: [1004, 1005, 1006],
-      bus: {
-        1006: {
-          stops: ["x", "y", "z", "w"]
-        }
-      },
-      debug: request
-    });
-    callback( null, response );
-  },
-
 
   //----------------------------------------------------------------------
   // Async, retrieve a single game record from DB and invoke callback
@@ -121,24 +106,18 @@ module.exports = {
       return;
     }
 
-    euchreDB.getGameDataFromDB( query.gameId, function( err, game ) {
+    euchreDB.getGameData( query.gameId, function( err, game ) {
       respond( err, game, callback );
     });
   },
 
-    //----------------------------------------------------------------------
+  //----------------------------------------------------------------------
   // Async, retrieve a single game record from DB and invoke callback
   // This is intended to be called internally
   //----------------------------------------------------------------------
   getGameList: function( request, context, callback ) {
-    let query = request.queryStringParameters;
-
-    if (!verifyQuery( request, callback, "gameId")) {
-      return;
-    }
-
-    euchreDB.getGameDataFromDB( query.gameId, function( err, game ) {
-      respond( err, game, callback );
+    euchreDB.getGameList( function( err, games ) {
+      respond( err, games, callback );
     });
   },
 
@@ -192,6 +171,7 @@ module.exports = {
     let newGame = {
       id: newGameId,                            // PK
       createdDate: (new Date()).toISOString(),  // Range Key
+      gameOver: false,
       dealerId: 0,
       trumpCallerId: undefined,
       trumpSuit: undefined,
@@ -232,8 +212,6 @@ module.exports = {
       },
       ReturnValues="UPDATED_NEW"
   */
-)
   }
-
 
 };

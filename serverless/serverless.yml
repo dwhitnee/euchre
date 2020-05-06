@@ -64,7 +64,7 @@ functions:
     description: List of active games to join or spectate
     events:
       - http:
-          path: listGames
+          path: games
           method: get
           cors: true
 
@@ -83,8 +83,8 @@ functions:
     events:
       - http:
           path: newGame
-          cors: true
           method: post
+          cors: true
 
   joinGame:
     handler: euchre.joinGame
@@ -92,8 +92,8 @@ functions:
     events:
       - http:
           path: joinGame
-          cors: true
           method: post
+          cors: true
 
 
 # startGame?dealer (zero score, pick first dealer)

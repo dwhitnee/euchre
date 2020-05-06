@@ -29,6 +29,7 @@ provider:
         "arn:aws:dynamodb:us-west-2:*:table/Euchre*"
       ]
 
+# we need a secondary index on lastUpdated to query by date range?!
 resources:
   Resources:
     EuchreGameStateTable:
@@ -44,9 +45,20 @@ resources:
         KeySchema:
           - AttributeName: id
             KeyType: HASH
-          - AttributeName: lastUpdated
-            KeyType: RANGE
 
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+
+        GlobalSecondaryIndexes:
+          - IndexName: createdDate-index
+            KeySchema:
+              - AttributeName: gameOver
+                KeyType: HASH
+              - AttributeName: createdDate
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1

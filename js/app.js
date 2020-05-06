@@ -21,6 +21,7 @@ let app = new Vue({
     canTurnDown: false,
     playedCard: undefined,
     movingCard: undefined,
+    gameOver: false,
 
     // game data from server, players are in NESW/0123 order
     game: {

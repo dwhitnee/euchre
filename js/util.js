@@ -7,6 +7,21 @@ Array.prototype.rotate = function(n) {
 };
 
 var Util = {
+
+  //----------------------------------------
+  // Do HTTP whizbangery to post a JSON blob
+  //----------------------------------------
+  makeJsonPostParams: function( data ) {
+    return {
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      method: "POST",
+      body: JSON.stringify( data )
+    };
+  },
+
   //----------------------------------------
   // cookies are raw text mushed together
   //----------------------------------------

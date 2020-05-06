@@ -11,7 +11,7 @@ module.exports = {
   // This is intended to be called internally
   // Params: gameId and callback( error, gameData )
   //----------------------------------------------------------------------
-  getGameDataFromDB: function( gameId, callback ) {
+  getGameData: function( gameId, callback ) {
 
     console.log("Getting game data for " + gameId );
 
@@ -41,7 +41,7 @@ module.exports = {
   //  (optional: &day="Thu Jan 18 2018")
   // Params: callback( err, gameList )
   //----------------------------------------------------------------------
-  getGameList: function( request, callback ) {
+  getGameList: function( callback ) {
 
     let someTime = new Date();
     someTime.setDate( someTime.getDate()-1);
@@ -60,9 +60,11 @@ module.exports = {
 
     let dbRequest = {
       TableName : "EuchreGames",
-      KeyConditionExpression: "createdDate > :yesterday",
+      IndexName: "createdDate-index",
+      KeyConditionExpression: "gameOver = :f and createdDate > :yesterday",
       ExpressionAttributeValues: {
-        ":yesterday": yesterday        // "2020-05-04T09:46:26.500Z"
+        ":yesterday": yesterday,       // "2020-05-04T09:46:26.500Z"
+        ":f": "false"
       }
     };
 
@@ -90,7 +92,6 @@ module.exports = {
   // Params: request and callback from original user action
   //----------------------------------------
   saveGameData: function( game, callback ) {
-
     let now = new Date();
 
     //----------------------------------------
@@ -101,7 +102,7 @@ module.exports = {
       Item: game
     };
     dbParams.Item.id = game.id;   // PK, createdDate is Range Key
-    dbParams.Item.lastUpdated = now.toDateString(), // "Thu Jan 18 2018"
+    dbParams.Item.createdDate = now.toISOString(),
 
     console.log( JSON.stringify( dbParams ));
 

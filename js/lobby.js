@@ -44,13 +44,11 @@ let app = new Vue({
     // },
   },
 
-  // event handlers accessible from the web page
+  //----------------------------------------------------------------------
+  //----------------------------------------------------------------------
   methods: {
-    // ask server to create a new game and re-route us to the URL
-    newGame: function() {
-      alert("wooo!");
-    },
 
+    //----------------------------------------
     getGameList() {
       let self = this;
       fetch( serverURL + "games")
@@ -60,6 +58,28 @@ let app = new Vue({
           self.games = data;
         })
         .catch( err => self.games = [{id:err}] );
+    },
+
+    //----------------------------------------
+    // ask server to create a new game and re-route us to the URL
+    //----------------------------------------
+    newGame() {
+      let postData = {
+        playerName: this.playerName
+      };
+
+      let self = this;
+      fetch( serverURL + "newGame", Util.makeJsonPostParams( postData ))
+        .then( function( resp ) { if (resp.ok) { return resp.json(); }})
+        .then( function( resp ) {
+          console.log( resp );
+          // FIXME, how to get gameId from POST?
+          // window.location.href = "game/?id=" + gameId;
+        })
+        .catch(function ( err ) {
+          console.error( err );
+          alert("something's broken :(");
+        });
     },
 
     // Put name in cookie
