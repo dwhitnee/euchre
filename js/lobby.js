@@ -15,13 +15,17 @@ let app = new Vue({
     playerName: "Alphonso Beetlegeuse",
     message: "Happy " + (new Date()).toLocaleString("en-US", {weekday: 'long'}),
     games: [],
-    createInProgress: false
+    createInProgress: false,
+    loadInProgress: false
   },
 
   //----------------------------------------
   // derived attributes
   //----------------------------------------
   computed: {
+    isAdmin: function() {
+      return this.playerName == "Admin";
+    }
   },
 
   mounted() {
@@ -54,17 +58,18 @@ let app = new Vue({
     // Bad POST = "Failed to fetch"
     //----------------------------------------
     async getGameList() {
+      this.loadInProgress = true;
       try {
         let response = await fetch( serverURL + "games");
-        if (!response.ok) { throw response; }
+        if (!response.ok) { throw await response.json; }
         this.games = await response.json();  // response is a stream
       }
       catch( err ) {
         // FIXME: test bad fetch (404) and bad data (how?)
-        err.text().then( errorMessage => {
-          this.games = [{id:errorMessage}];
-        });
+        this.games = [{ id: err.message }];
       };
+
+      this.loadInProgress = false;
     },
 
     //----------------------------------------
@@ -81,8 +86,8 @@ let app = new Vue({
         // response is an async stream
         let response = await fetch( serverURL + "newGame",
                                     Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
         let data = await response.json();
-        if (!response.ok) { throw data; }
 
         let gameId = data.gameId;
         let playerId = data.playerId;  // how to pass this to game?
@@ -103,17 +108,51 @@ let app = new Vue({
       }
       catch( err) {
         console.error( err );
-        alert("Create failed /sadface: " + err);
+        alert("Create failed " + Util.sadface + err);
       };
 
       this.createInProgress = false;          // leave spinny mode
     },
 
+    //----------------------------------------
     // Put name in cookie
+    //----------------------------------------
     saveName: function( e ) {
       this.playerName = e.target.innerHTML.trim();
       Util.setCookie("name", this.playerName);
       console.log( this.playerName + " to cookie" );
-    }
+    },
+
+
+    //----------------------------------------------------------------------
+    // Admin functions
+    //----------------------------------------------------------------------
+    //----------------------------------------
+    // Buh-bye data
+    //----------------------------------------
+    async deleteGame( gameId ) {
+      console.log("Nuking " + gameId );
+
+      if (!confirm("Nuke " + gameId + "?")) {
+        return;
+      }
+      // Pre-emptive remove game from list (doesn't hurt and better feedback)
+      this.games.splice( this.games.findIndex( game =>
+                                               (game.id === gameId)), 1);
+      try {
+        let postData = {
+          gameId: gameId
+        };
+        let response = await fetch( serverURL + "deleteGame",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+
+      }
+      catch( err) {
+        console.error( err );
+        alert("Delete failed " + Util.sadface + err.message);
+      };
+    },
+
   }
 });

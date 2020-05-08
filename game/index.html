@@ -1,7 +1,8 @@
 <head>
   <title>Euchre</title>
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="../styles/euchre.css"/>
 </head>
 
@@ -11,8 +12,7 @@
 
     <div class="gridGameInfo" style="display:block;">
     <div class="title">Euchre</div>
-      <span v-if="saveInProgress" class="spinner-border spinner-border-sm"></span>
-       <small v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</small>
+      <small v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</small>
     </div>
 
     <div class="playerName gridPlayer1">
@@ -41,7 +41,11 @@
         @blur="setPlayerName"
         @keypress.enter="setPlayerName"
         @keypress.enter.prevent>{{ playerName }}</div>
-        </div>
+
+    <span v-if="saveInProgress" class="spinner-border spinner-border-sm"></span>
+
+
+    </div>
 
     <div class="gridPlayer0">
       <div class="cards">

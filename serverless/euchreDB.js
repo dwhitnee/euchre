@@ -30,8 +30,10 @@ module.exports = {
 
     dynamoDB.get( dbRequest, function( err, data ) {
       if (err) {
-        console.log("DynamoDB error:" + err );
+        console.log("DynamoDB error: " + err );
         callback( err );
+      } else if (!data.Item) {  // no data returns undefined, not an object
+        callback( null, {} );   // return empty object instead
       } else {
         callback( null, data.Item );
       }
@@ -80,7 +82,7 @@ module.exports = {
         console.log("DynamoDB error:" + err );
         callback( err );
       } else {
-        callback( null, data.Items );
+        callback( null, data.Items );  // no data is an empty list
       }
     });
   },
@@ -124,6 +126,29 @@ module.exports = {
     });
   },
 
+  //----------------------------------------
+  // Wipe game out
+  // Params: gameId
+  //----------------------------------------
+  deleteGame: function( gameId, callback ) {
+    console.log("Permanently Deleting " + gameId );
+
+    let dbRequest = {
+      TableName : tableName,
+      Key: {"id": gameId }};
+
+    let AWS = require('aws-sdk');
+    let dynamoDB = new AWS.DynamoDB.DocumentClient();
+
+    dynamoDB.delete( dbRequest, function( err, data ) {
+      if (err) {
+        console.log("DynamoDB error:" + err );
+        callback( err );
+      } else {
+        callback( null );
+      }
+    });
+  },
 
   // can I update IFF version = V
 /*

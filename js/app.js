@@ -171,7 +171,9 @@ let app = new Vue({
     this.updateFromServer().then( () => {
       // should we fail if this is not true?  FIXME
       let playerName = Util.getCookie("name");
-      console.log( playerName + " should be " + this.game.players[this.playerId].name);
+      if (this.isGameLoaded()) {
+        console.log( playerName + " should be " + this.game.players[this.playerId].name);
+      }
     });
   },
 
@@ -203,9 +205,15 @@ let app = new Vue({
         let response = await fetch( serverURL + "game?gameId=" + this.gameId );
         if (!response.ok) { throw await response.json(); }
         this.game = await response.json();
+
+        // If game got deleted or messed up, we get an empty object
+        if (!Object.keys( this.game ).length) {
+          this.game = undefined;
+          alert("No game found named " + this.gameId );
+        }
       }
       catch( err ) {
-        alert("Problem updating game from server /sadface: " +
+        alert("Problem updating game from server " + Util.sadface +
               (err.message || err));
 
         debugger;    // FIXME
@@ -227,7 +235,7 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("Game update failed: " + JSON.stringify( err ));
-        alert("Game update failed /sadface: " + (err.message || err));
+        alert("Game update failed " + Util.sadface + (err.message || err));
       };
 
       this.saveInProgress = false;          // leave spinny mode

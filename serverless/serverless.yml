@@ -79,8 +79,6 @@ functions:
           path: game
           method: get
           cors: true
-#          cors:
- #           origin: '*'
 
   newGame:
     handler: euchre.createNewGame
@@ -97,6 +95,15 @@ functions:
     events:
       - http:
           path: updateGame
+          method: post
+          cors: true
+
+  deleteGame:
+    handler: euchre.deleteGame
+    description: Game record permanently deleted
+    events:
+      - http:
+          path: deleteGame
           method: post
           cors: true
 

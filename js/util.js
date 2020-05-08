@@ -8,6 +8,8 @@ Array.prototype.rotate = function(n) {
 
 var Util = {
 
+  sadface: "(╯°□°)╯︵ ┻━┻  ",
+
   //----------------------------------------
   // Do HTTP whizbangery to post a JSON blob
   //----------------------------------------

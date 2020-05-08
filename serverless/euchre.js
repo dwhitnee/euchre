@@ -66,7 +66,7 @@ function respondWithSuccess( data, callback ) {
   //   debug: request
   // });
 
-  console.log( response.body );
+  console.log("Successful Response: " + response.body );
   callback( null, response );
 }
 
@@ -75,6 +75,7 @@ function respondWithSuccess( data, callback ) {
 //----------------------------------------------------------------------
 function respond( err, data, callback ) {
   if (err) {
+    console.error("FAIL: " + err );
     callback( err );
   } else {
     respondWithSuccess( data, callback );
@@ -206,7 +207,7 @@ module.exports = {
 
 
   //----------------------------------------------------------------------
-  // return gameId, can we do that with a POST?
+  // Update game state in DB
   // @param game
   // @return nothing
   //----------------------------------------------------------------------
@@ -218,6 +219,23 @@ module.exports = {
 
     // Tell DB to put the data, respond to AWS call here.
     euchreDB.saveGameData( data.game, function( err, response ) {
+      respond( err, response , callback );
+    });
+  },
+
+  //----------------------------------------------------------------------
+  // Wipe game out
+  // @param gameId
+  // @return nothing
+  //----------------------------------------------------------------------
+  deleteGame: function( request, context, callback ) {
+    if (!verifyQuery( request, callback, "gameId")) {
+      return;
+    }
+    let params = JSON.parse( request.body );
+
+    // Tell DB to put the data, respond to AWS call here.
+    euchreDB.deleteGame( params.gameId, function( err, response ) {
       respond( err, response , callback );
     });
   },

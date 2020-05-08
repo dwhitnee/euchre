@@ -28,12 +28,6 @@ h1 {
     padding-left: 8em;
 }
 
-.loading {
-    background: url("../images/loading.gif") 240px 120px no-repeat;
-    height:200px;
-    width:300px;
-}
-
 a.button {
     display: block;
     font: bold 10pt Arial, Helvetica, sans-serif;
@@ -200,7 +194,18 @@ a.button.disabled {
   margin: 4em;
 }
 
+.loading {
+  display: block;
+  margin-left: 4em;
+}
+
 .lobby button,
 .lobby h3 {
   margin-top: 2em;
+}
+.lobby button.badge
+{
+  margin-top: 0;
+  padding: .25em;
+  vertical-align: text-bottom;
 }

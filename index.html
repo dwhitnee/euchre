@@ -1,5 +1,6 @@
 <head>
   <title>Euchre</title>
+  <meta charset="utf-8">
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="styles/euchre.css"/>
@@ -23,15 +24,22 @@
 
       <h3>Current Games</h3>
 
-      <div v-if="games.length">
-        <li v-for="game in games">
-          <a :href="`game/?id=`+game.id">{{ game.id }}</a>
-        </li>
+      <div v-if="loadInProgress" class="loading spinner-border" style="display: block">
       </div>
       <div v-else>
-        No games in progress
+        <div v-if="games.length">
+          <li v-for="game in games">
+            <a :href="`game/?id=`+game.id">{{ game.id }}</a>
+            <button v-if="isAdmin" @click="deleteGame(game.id)"
+                    class="badge badge-danger">x</button>
+
+          </li>
+        </div>
+        <div v-else>
+          No games in progress
+        </div>
+        <li>(<a href="game">demo game</a>)</li>
       </div>
-      <li>(<a href="game">demo game</a>)</li>
 
       <button class="btn btn-primary" type="button" @click="newGame"
           :disabled="createInProgress"> Start a New Game
