@@ -72,14 +72,14 @@ a.button.disabled {
 }
 
 
-.card {
+.playingCard {
   background: url("../images/cards.png") 240px 120px no-repeat;
   height: 95px;
   width: 70px;
-  display: inline-block;
-  margin-left: 2em;
+  /* display: inline-block; */
   background-color: #d12d36;
   border: 1px solid white;
+  border-radius: .25rem;
 }
 
 .cards {
@@ -93,7 +93,12 @@ a.button.disabled {
 .playerName {
   padding: 1em;
 }
-
+.nameOverlay {
+  color: #55d15d;  /* words */
+  font-weight: bold;
+  padding: .3em;
+  text-shadow: 1px 1px 2px black, 0 0 2px gray, 0 0 5px gray;
+}
 
 .cardTable {
   padding: 1em;
@@ -164,14 +169,10 @@ a.button.disabled {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1em;
 }
 
 /* fake a few cards underneath */
 .pile {
-  color: #55d15d;
-  font-weight: bold;
-  padding: .3em;
   box-shadow:
     0 0.1em 0.2em 0 rgba(0, 0, 0, 0.5),
     0 0.5em 0 -0.25em #d12d36,
@@ -208,4 +209,9 @@ a.button.disabled {
   margin-top: 0;
   padding: .25em;
   vertical-align: text-bottom;
+}
+
+button.join {
+  position: relative;
+  left: -3.5em;
 }

@@ -19,7 +19,7 @@ let app = new Vue({
     version: 1,
     saveInProgress: false,
 
-    canDeal: true,  // functions, computed?
+    canDeal: false,  // functions, computed?
     canPickUp: false,
     canTurnDown: false,
     playedCard: undefined,
@@ -89,7 +89,9 @@ let app = new Vue({
     cards: {
       cache: false,
       get () {
-        if (!this.isGameLoaded()) { return []; }
+        if (!this.isGameLoaded() || !this.game.players[this.playerId].cardIds) {
+          return [];
+        }
 
         return this.game.players[this.playerId].cardIds.map(
           id => Card.fromId( id ));
@@ -163,7 +165,14 @@ let app = new Vue({
     if (this.playerId === undefined) {
       this.isSpectator = true;
       this.spectatorName = Util.getCookie("name");
-      this.playerId = 1;      // how to spectate different players?
+      this.playerId = 2;      // how to spectate different players?
+
+      if (this.isSpectator && !this.spectatorName) {
+        this.spectatorName = "Incontinentia";
+        Util.setCookie("name", this.spectatorName);
+      }
+
+
     } else {
       this.isSpectator = false;
     }
@@ -287,8 +296,21 @@ let app = new Vue({
 
     // enter existing game, we are Player n+1
     // get this from URL
-    joinGame: function( gameId ) {
+    join: function( seatId ) {
+      let playerId = (seatId + this.playerId) % 4;
+      console.log("Joining as " + this.spectatorName + " at spot #" + playerId);
+      this.game.players[playerId].name = this.spectatorName;
+      this.playerId = playerId;
+      // instantiate rest of Player object?
 
+
+      // FIXME, update cookie with our playerId
+      let playerData = Util.getCookie("player");
+      playerData[this.gameId] = playerId;
+      Util.setCookie("player", playerData );
+
+      this.isSpectator = false;
+      this.saveToServer();
     },
 
     dealCards: function() {

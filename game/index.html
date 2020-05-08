@@ -9,29 +9,50 @@
 
 <div id="euchreApp" v-cloak>
   <div class="playGrid withBorder">
-
+<!--
+    <div v-if="isSpectator && !spectatorName">
+      What's your name?
+    </div>
+-->
     <div class="gridGameInfo" style="display:block;">
     <div class="title">Euchre</div>
       <small v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</small>
     </div>
 
     <div class="playerName gridPlayer1">
-      <div class="card pile" :style="getCardStyle()">{{ names[1] }}</div>
-    </div>
-    <div class="playerName gridPlayer2">
-      <div class="card pile" :style="getCardStyle()">{{ names[2] }}</div>
-    </div>
-    <div class="playerName gridPlayer3">
-      <div class="card pile" :style="getCardStyle()">{{ names[3] }}</div>
+      <div class="playingCard pile" :style="getCardStyle()">
+        <div class="nameOverlay">{{ names[1] }}</div>
+      </div>
+      <div v-if="!names[1] && isSpectator">
+        <button class="button btn-primary btn-lg join"
+                @click="join(1)">Join</button></div>
     </div>
 
-    <div id="cardTable" class="cardTable gridCardTable"
+    <div class="playerName gridPlayer2">
+      <div class="playingCard pile" :style="getCardStyle()">
+        <div class="nameOverlay">{{ names[2] }}</div>
+      </div>
+      <div v-if="!names[2] && isSpectator">
+        <button class="button btn-primary btn-lg join"
+              @click="join(2)">Join</button></div>
+    </div>
+
+    <div class="playerName gridPlayer3">
+      <div class="playingCard pile" :style="getCardStyle()">
+        <div class="nameOverlay">{{ names[3] }}</div>
+      </div>
+      <div v-if="!names[3] && isSpectator">
+        <button class="button btn-primary btn-lg join"
+                @click="join(3)">Join</button></div>
+    </div>
+
+    <div id="cardTable" class="cardTable gridCardTable withBorder"
       @dragover.prevent @drop="playCard">
       <div v-for="(card, i) in playedCards" :class="'player'+i">
 
         <div v-if="playedCards[i]" class="card"
           :style="getCardStyle( playedCards[i].id )"></div>
-        <div v-else class="card"></div>
+        <div v-else class="playingCard"></div>
       </div>
     </div>
 
@@ -50,7 +71,7 @@
     <div class="gridPlayer0">
       <div class="cards">
         <div v-for="(card,i) in cards">
-          <div class="card"
+          <div class="playingCard"
             :style="getCardStyle( card.id )"
             :data-card="card.id"
             draggable="true"
@@ -65,6 +86,9 @@
 
       <!-- fixme -->
     <div class="buttons">
+      <div v-if="!names[0] && isSpectator">
+        <button class="button btn-primary btn-lg" @click="join(0)">Join</button></div>
+
       <button class="btn btn-primary btn-lg" v-if="canDeal" @click="dealCards">Deal</button>
       <button class="btn btn-primary btn-lg" v-if="canPickUp"   @click="pickUpCard">Pick Up Card</button>
       <button class="btn btn-primary btn-lg" v-if="canTurnDown" @click="turnDownCard">Turn Down Card</button>
