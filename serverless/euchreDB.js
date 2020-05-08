@@ -102,13 +102,18 @@ module.exports = {
       Item: game
     };
     dbParams.Item.id = game.id;   // PK, createdDate is Range Key
-    dbParams.Item.createdDate = now.toISOString(),
+    dbParams.Item.updatedDate = now.toISOString();
+
+    if (!dbParams.Item.createdDate) {
+      dbParams.Item.createdDate = now.toISOString();  // can't update keys
+    }
 
     console.log( JSON.stringify( dbParams ));
 
     let AWS = require('aws-sdk');
     let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
+    // Put and not Update, we want to clobber old entry
     dynamoDB.put( dbParams, function( err, data ) {
       if (err) {
         console.log("DynamoDB error:" + err );
@@ -117,5 +122,23 @@ module.exports = {
         callback( null );  // success! Nothing to report
       }
     });
+  },
+
+
+  // can I update IFF version = V
+/*
+  updateGameData: function() {
+    response = dynamodb.update_item(
+      TableName="euchreGames",
+      Key={
+        'gameId':{'S': "abdefg"}
+      },
+      UpdateExpression='SET version = version + :inc',
+      ExpressionAttributeValues = {
+        ':inc': {'N': '1'}
+      },
+      ReturnValues="UPDATED_NEW"
   }
+*/
+
 };

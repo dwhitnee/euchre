@@ -78,13 +78,12 @@ let app = new Vue({
           playerName: this.playerName
         };
 
+        // response is an async stream
         let response = await fetch( serverURL + "newGame",
                                     Util.makeJsonPostParams( postData ));
-        if (!response.ok) { throw response.text(); }
+        let data = await response.json();
+        if (!response.ok) { throw data; }
 
-        this.createInProgress = false;          // leave spinny mode
-
-        let data = await response.json();  // response is a stream
         let gameId = data.gameId;
         let playerId = data.playerId;  // how to pass this to game?
 
@@ -105,8 +104,9 @@ let app = new Vue({
       catch( err) {
         console.error( err );
         alert("Create failed /sadface: " + err);
-        this.createInProgress = false;          // leave spinny mode
       };
+
+      this.createInProgress = false;          // leave spinny mode
     },
 
     // Put name in cookie

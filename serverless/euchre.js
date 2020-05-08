@@ -150,8 +150,9 @@ module.exports = {
   },
 
   //----------------------------------------------------------------------
-  // return gameId, can we do that with a POST?
+  // Create new game state with given playerName as Player One
   // @param playerName
+  // @return newly created gameId and playerId
   //----------------------------------------------------------------------
   createNewGame: function( request, context, callback ) {
 
@@ -171,7 +172,7 @@ module.exports = {
     let newGame = {
       id: newGameId,                            // PK
       createdDate: (new Date()).toISOString(),  // Range Key
-      gameOver: "false",   // this would be bool if gameOver weren't an index?
+      gameOver: "false",   // Dynamo hack: indexes can't be BOOL
       dealerId: 0,
       trumpCallerId: undefined,
       trumpSuit: undefined,
@@ -187,10 +188,13 @@ module.exports = {
           pickItUp: false,
           cardIds: [],
         },
+        {},   // empty player slots
+        {},
+        {}
       ]
     };
 
-    // put the data, but respond to AWS call here.
+    // Tell DB to put the data, respond to AWS call here.
     euchreDB.saveGameData( newGame, function( err, data ) {
       let response = {
         gameId: newGameId,
@@ -201,20 +205,21 @@ module.exports = {
   },
 
 
-  // can I update IFF version = V
-  foo: function() {
-/*
-    response = dynamodb.update_item(
-      TableName="euchreGames",
-      Key={
-        'gameId':{'S': "abdefg"}
-      },
-      UpdateExpression='SET version = version + :inc',
-      ExpressionAttributeValues = {
-        ':inc': {'N': '1'}
-      },
-      ReturnValues="UPDATED_NEW"
-  */
-  }
+  //----------------------------------------------------------------------
+  // return gameId, can we do that with a POST?
+  // @param game
+  // @return nothing
+  //----------------------------------------------------------------------
+  updateGame: function( request, context, callback ) {
+    if (!verifyQuery( request, callback, "game")) {
+      return;
+    }
+    let data = JSON.parse( request.body );
+
+    // Tell DB to put the data, respond to AWS call here.
+    euchreDB.saveGameData( data.game, function( err, response ) {
+      respond( err, response , callback );
+    });
+  },
 
 };

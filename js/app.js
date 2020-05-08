@@ -17,6 +17,7 @@ let app = new Vue({
   //----------------------------------------
   data: {
     version: 1,
+    saveInProgress: false,
 
     canDeal: true,  // functions, computed?
     canPickUp: false,
@@ -135,8 +136,6 @@ let app = new Vue({
     names: function() {
       if (!this.game) { return []; }  // wait for game load
 
-      // What about spectating?  FIXME
-
       let names = [];
       this.game.players.forEach(
         function( player ) {
@@ -162,9 +161,11 @@ let app = new Vue({
 
     // this player is not part of this game yet -- according to their cookie
     if (this.playerId === undefined) {
-      this.spectator = true;
+      this.isSpectator = true;
       this.spectatorName = Util.getCookie("name");
-      this.playerId = 0;      // how to spectate different players?
+      this.playerId = 1;      // how to spectate different players?
+    } else {
+      this.isSpectator = false;
     }
 
     this.updateFromServer().then( () => {
@@ -192,21 +193,44 @@ let app = new Vue({
     isGameLoaded() {   return this.game; },
     isPlayerInGame() { return this.playerId !== undefined; },
 
+    //----------------------------------------
     // See what's changed in the wide world
+    //----------------------------------------
     async updateFromServer() {
 
       try {
+        // response is an async stream
         let response = await fetch( serverURL + "game?gameId=" + this.gameId );
-        if (response.ok) {
-
-          this.game = await response.json();  // response is a stream
-        } else {
-          debugger  // FIXME
-        }
+        if (!response.ok) { throw await response.json(); }
+        this.game = await response.json();
       }
       catch( err ) {
-        this.games = [{id:err}];
+        alert("Problem updating game from server /sadface: " +
+              (err.message || err));
+
+        debugger;    // FIXME
       };
+    },
+
+    //----------------------------------------
+    // See what's changed in the wide world
+    //----------------------------------------
+    async saveToServer() {
+      this.saveInProgress = true;          // spinny mode
+
+      try {
+        let response = await fetch( serverURL + "updateGame",
+                                    Util.makeJsonPostParams({
+                                      game: this.game
+                                    }));
+        if (!response.ok) { throw await response.json(); }
+      }
+      catch( err ) {
+        console.error("Game update failed: " + JSON.stringify( err ));
+        alert("Game update failed /sadface: " + (err.message || err));
+      };
+
+      this.saveInProgress = false;          // leave spinny mode
     },
 
 
@@ -327,8 +351,10 @@ let app = new Vue({
     },
     takeTrick: function() {
     },
+
+    // Update local name, save to cookie, update name in Game as well?
     setPlayerName: function(event) {
-      event.target.blur();  // done editing
+      event.target.blur();  // done editing, this forces a second update FIXME
 
       if (this.isSpectator) {
         console.log("Nice try");
@@ -338,12 +364,14 @@ let app = new Vue({
 
       let playerName = event.target.innerHTML.trim();
 
-      Util.setCookie("name", playerName );
-      this.game.players[this.playerId].name = playerName;
+      // onl udpate if changed
+      if (this.game.players[this.playerId].name != playerName) {
+        Util.setCookie("name", playerName );
+        this.game.players[this.playerId].name = playerName;
+        console.log( playerName + " saved to cookie" );
 
-      // FIXME, update gamedata
-
-      console.log( playerName + " saved to cookie" );
+        this.saveToServer();
+      }
     }
   }
 });

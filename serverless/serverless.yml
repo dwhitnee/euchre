@@ -91,6 +91,15 @@ functions:
           method: post
           cors: true
 
+  updateGame:
+    handler: euchre.updateGame
+    description: Update current game state, clobbers old data
+    events:
+      - http:
+          path: updateGame
+          method: post
+          cors: true
+
   joinGame:
     handler: euchre.joinGame
     description: Join "gameId", add "playerName" to it.
