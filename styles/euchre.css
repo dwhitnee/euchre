@@ -186,10 +186,11 @@ a.button.disabled {
     0 1em 0.2em -0.5em rgba(0, 0, 0, 0.5);
 }
 
-.notEditable {
-  border-style: outset;
-  padding: .25em;
+.editable {
+  padding: 0 .2em;
   max-width: 8em;
+  border: 1px solid gray;
+  display: inline;
   overflow-wrap: break-word;
   hyphen: auto;
 }
@@ -202,10 +203,4 @@ a.button.disabled {
 .lobby button,
 .lobby h3 {
   margin-top: 2em;
-}
-
-.editable {
-  padding: 0 .2em;
-  border: 1px solid gray;
-  display: inline;
 }

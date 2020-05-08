@@ -9,7 +9,10 @@
 <div id="euchreApp" v-cloak>
   <div class="playGrid withBorder">
 
-    <div class="gridGameInfo title">Euchre</div>
+    <div class="gridGameInfo" style="display:block;">
+      <div class="title">Euchre</div>
+      <div v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</div>
+    </div>
 
     <div class="playerName gridPlayer1">
       <div class="card pile" :style="getCardStyle()">{{ names[1] }}</div>
@@ -36,8 +39,8 @@
         title="click to edit name"
         @blur="setPlayerName"
         @keypress.enter="setPlayerName"
-        @keypress.enter.prevent>{{ name }}</div>
-    </div>
+        @keypress.enter.prevent>{{ playerName }}</div>
+        </div>
 
     <div class="gridPlayer0">
       <div class="cards">

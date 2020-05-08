@@ -23,10 +23,20 @@ var Util = {
   },
 
   //----------------------------------------
-  // cookies are raw text mushed together
+  // cookies are raw key/value text mushed together with ;'s
   //----------------------------------------
   getCookie: function( key ) {
-    return ('; '+document.cookie).split('; ' + key + '=').pop().split(';').shift();
+    let value = ('; '+document.cookie). // homogenize string
+        split('; ' + key + '=').        // array of all pairs
+        pop().                          // lose leading empty element
+        split(';').                     // remove everything after the ";"
+        shift();                        // get first element out of array
+
+    if (!value) {
+      return ""; }
+    else {
+      return JSON.parse( value );
+    }
   },
 
   //----------------------------------------
@@ -34,6 +44,7 @@ var Util = {
   // you get different cookie spaces depending on URL
   //----------------------------------------
   setCookie: function( key, value ) {
+    value = JSON.stringify( value );
     document.cookie = key+"="+value+"; path=/; max-age=99999999";
   }
 };

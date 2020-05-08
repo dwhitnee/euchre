@@ -192,7 +192,11 @@ module.exports = {
 
     // put the data, but respond to AWS call here.
     euchreDB.saveGameData( newGame, function( err, data ) {
-      respond( err, newGameId, callback );
+      let response = {
+        gameId: newGameId,
+        playerId: 0    // game creator is always first player
+      };
+      respond( err, response , callback );
     });
   },
 

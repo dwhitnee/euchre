@@ -50,52 +50,63 @@ let app = new Vue({
   methods: {
     //----------------------------------------
     // would be cool to async the fetches - FIXME
+    // Bad GET = "Missing Authentication Token"
+    // Bad POST = "Failed to fetch"
     //----------------------------------------
     async getGameList() {
-
-      // async/await way, is it better?
       try {
         let response = await fetch( serverURL + "games");
+        if (!response.ok) { throw response; }
         this.games = await response.json();  // response is a stream
       }
       catch( err ) {
-        this.games = [{id:err}];
+        // FIXME: test bad fetch (404) and bad data (how?)
+        err.text().then( errorMessage => {
+          this.games = [{id:errorMessage}];
+        });
       };
-
-      // let self = this;
-      // fetch( serverURL + "games")
-      //   .then( function( resp ) { if (resp.ok) { return resp.json(); }})
-      //   .then( function( data ) {
-      //     self.games = data;
-      //   })
-      //   .catch( err => self.games = [{id:err}] );
-
     },
 
     //----------------------------------------
     // ask server to create a new game and re-route us to the URL
     //----------------------------------------
-    newGame() {
-      this.createInProgress = true;   // go into spinny mode
+    async newGame() {
+      try {
+        this.createInProgress = true;   // go into spinny mode
 
-      let postData = {
-        playerName: this.playerName
+        let postData = {
+          playerName: this.playerName
+        };
+
+        let response = await fetch( serverURL + "newGame",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw response.text(); }
+
+        this.createInProgress = false;          // leave spinny mode
+
+        let data = await response.json();  // response is a stream
+        let gameId = data.gameId;
+        let playerId = data.playerId;  // how to pass this to game?
+
+        // v URL - hackable, unshareable
+        // v Cookie - must include game/player pair. sharable
+        // X uuencoded json blob of game/player - unshareable
+        // X Need authentication - which is cookie based anyway
+
+        // use both for now
+
+        let playerGameData = {};
+        playerGameData[gameId] = playerId;
+        Util.setCookie("player", playerGameData );
+
+        // remove playerId...eventually?  FIXME
+        window.location.href = "game/?id=" + gameId + "&playerId=" + playerId;
+      }
+      catch( err) {
+        console.error( err );
+        alert("Create failed /sadface: " + err);
+        this.createInProgress = false;          // leave spinny mode
       };
-
-      let self = this;
-      fetch( serverURL + "newGame", Util.makeJsonPostParams( postData ))
-        .then( function( resp ) { if (resp.ok) { return resp.json(); }})
-        .then( function( gameId ) {
-          // leave spinny mode
-          self.createInProgress = false;          // leave spinny mode
-          self.getGameList();
-          window.location.href = "game/?id=" + gameId;
-        })
-        .catch(function ( err ) {
-          console.error( err );
-          alert("Create failed /sadface: " + err);
-          self.createInProgress = false;          // leave spinny mode
-        });
     },
 
     // Put name in cookie

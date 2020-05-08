@@ -17,7 +17,7 @@ let app = new Vue({
   //----------------------------------------
   data: {
     version: 1,
-    playerId: 0,   // FIXME - how to determine this? server?
+
     canDeal: true,  // functions, computed?
     canPickUp: false,
     canTurnDown: false,
@@ -25,8 +25,13 @@ let app = new Vue({
     movingCard: undefined,
     gameOver: false,
 
+    isSpectator: true,
+    spectatorName: "",
+
+    playerId: undefined, // Loaded from game cookie
     // game data from server, players are in NESW/0123 order
-    game: {
+    game: undefined,
+/*    {
       id: "BasicBud-463046",
       dealerId: 0,
       trumpCallerId: 1,
@@ -67,7 +72,7 @@ let app = new Vue({
         }
       ]
     }
-
+*/
   },
 
   //----------------------------------------
@@ -83,6 +88,8 @@ let app = new Vue({
     cards: {
       cache: false,
       get () {
+        if (!this.isGameLoaded()) { return []; }
+
         return this.game.players[this.playerId].cardIds.map(
           id => Card.fromId( id ));
       }
@@ -94,6 +101,8 @@ let app = new Vue({
     playedCards: {
       cache: false,
       get () {
+        if (!this.isGameLoaded()) { return []; }
+
         let ids = this.game.playedCardIds;  // in NESW order
         let cards = [];
         for (var i=0; i < 4; i++) {
@@ -110,14 +119,24 @@ let app = new Vue({
     //----------------------------------------
     // player's name
     //----------------------------------------
-    name: function() {
-      return this.game.players[this.playerId].name;
+    playerName: {
+      cache: false,
+      get () {
+        // game might not be loaded, user might not have joined game yet
+        if (!this.isGameLoaded()) { return "..."; }
+
+        return this.game.players[this.playerId].name;
+      }
     },
 
     //----------------------------------------
     // All players, as seen from player's view
     //----------------------------------------
     names: function() {
+      if (!this.game) { return []; }  // wait for game load
+
+      // What about spectating?  FIXME
+
       let names = [];
       this.game.players.forEach(
         function( player ) {
@@ -129,12 +148,30 @@ let app = new Vue({
 
   },
 
+  //----------------------------------------
+  //----------------------------------------
   mounted() {
-    // console.log( this.$route.query );
-    // console.log( this.$route.hash );
-    // grab gameId from #
     this.gameId = this.$route.query.id;
-    this.updateFromServer();
+
+    // should read playerId from cookie player[gameId]
+    // this.playerId = this.$route.query.playerId;
+
+    // See who this is and where they sit at the table
+    let playerData = Util.getCookie("player");
+    this.playerId = playerData[this.gameId];
+
+    // this player is not part of this game yet -- according to their cookie
+    if (this.playerId === undefined) {
+      this.spectator = true;
+      this.spectatorName = Util.getCookie("name");
+      this.playerId = 0;      // how to spectate different players?
+    }
+
+    this.updateFromServer().then( () => {
+      // should we fail if this is not true?  FIXME
+      let playerName = Util.getCookie("name");
+      console.log( playerName + " should be " + this.game.players[this.playerId].name);
+    });
   },
 
   // synchronous app setup before event handling starts
@@ -149,11 +186,19 @@ let app = new Vue({
   // event handlers accessible from the web page
   methods: {
 
+    //----------------------------------------
+    //----------------------------------------
+    // methods to determine how much to show
+    isGameLoaded() {   return this.game; },
+    isPlayerInGame() { return this.playerId !== undefined; },
+
     // See what's changed in the wide world
     async updateFromServer() {
+
       try {
         let response = await fetch( serverURL + "game?gameId=" + this.gameId );
         if (response.ok) {
+
           this.game = await response.json();  // response is a stream
         } else {
           debugger  // FIXME
@@ -215,6 +260,7 @@ let app = new Vue({
     },
 
     dealCards: function() {
+      debugger;
       this.updateFromServer();  // FIXME!
       return;
 
@@ -282,9 +328,20 @@ let app = new Vue({
     takeTrick: function() {
     },
     setPlayerName: function(event) {
+      event.target.blur();  // done editing
+
+      if (this.isSpectator) {
+        console.log("Nice try");
+        event.target.innerHTML = this.playerName;
+        return;
+      }
+
       let playerName = event.target.innerHTML.trim();
+
       Util.setCookie("name", playerName );
       this.game.players[this.playerId].name = playerName;
+
+      // FIXME, update gamedata
 
       console.log( playerName + " saved to cookie" );
     }
