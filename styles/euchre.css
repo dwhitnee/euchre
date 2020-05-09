@@ -80,6 +80,12 @@ a.button.disabled {
   background-color: #d12d36;
   border: 1px solid white;
   border-radius: .25rem;
+  text-align: center;
+}
+
+.unplayed {
+  opacity: .50;
+  border: black 1px dashed;
 }
 
 .cards {

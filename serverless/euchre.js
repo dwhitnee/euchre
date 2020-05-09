@@ -181,19 +181,21 @@ module.exports = {
       leadPlayerId: undefined,
       deck: [],
       playedCardIds: [],
-      players: [
-        {
-          name: postData.playerName,
-          score: 0,
-          tricks: 0,
-          pickItUp: false,
-          cardIds: [],
-        },
-        {},   // empty player slots
-        {},
-        {}
-      ]
+      players: []
     };
+
+    for (var i=0; i < 4; i++) {
+      newGame.players[i] = {
+//         name: undefined,    FIXME, just for testing
+        name: "Player " + i,
+        score: 0,
+        tricks: 0,
+        pickItUp: false,
+        cardIds: [],
+      };
+    }
+
+    newGame.players[0].name = postData.playerName;
 
     // Tell DB to put the data, respond to AWS call here.
     euchreDB.saveGameData( newGame, function( err, data ) {

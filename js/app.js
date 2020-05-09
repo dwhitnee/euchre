@@ -82,6 +82,31 @@ let app = new Vue({
   //----------------------------------------
   computed: {
     //----------------------------------------
+    //----------------------------------------
+    player: function() {
+      if (this.isGameLoaded()) {
+        return this.game.players[this.playerId];
+      } else {
+        return undefined;
+      }
+    },
+
+    //----------------------------------------
+    // player's name
+    //----------------------------------------
+    playerName: {
+      cache: false,
+      get () {
+        if (this.player) {
+          return this.player.name;
+        } else {
+          // game might not be loaded, user might not have joined game yet
+          return "...";
+        }
+      }
+    },
+
+    //----------------------------------------
     // just this player's cards, create Card objects from the list of
     // game state list of ids.
     // Can't cahce otherwise Vue doesn't notice the update after drag and drop
@@ -89,7 +114,7 @@ let app = new Vue({
     cards: {
       cache: false,
       get () {
-        if (!this.isGameLoaded() || !this.game.players[this.playerId].cardIds) {
+        if (!this.isGameLoaded() || !this.player || !this.player.cardIds) {
           return [];
         }
 
@@ -120,19 +145,6 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // player's name
-    //----------------------------------------
-    playerName: {
-      cache: false,
-      get () {
-        // game might not be loaded, user might not have joined game yet
-        if (!this.isGameLoaded()) { return "..."; }
-
-        return this.game.players[this.playerId].name;
-      }
-    },
-
-    //----------------------------------------
     // All players, as seen from player's view
     //----------------------------------------
     names: function() {
@@ -154,34 +166,40 @@ let app = new Vue({
   mounted() {
     this.gameId = this.$route.query.id;
 
-    // should read playerId from cookie player[gameId]
-    // this.playerId = this.$route.query.playerId;
+    // Spectator can view different hands this way
+    this.playerId = this.$route.query.playerId;
 
-    // See who this is and where they sit at the table
+    // remove this in PROD, used for inhabiting different players
+    if (this.playerId) {
+      console.log("CHEATING! I am player " + this.playerId);
+      this.isSpectator = false;   // TESTING
+      this.updateFromServer();    // TESTING
+      return;                     // TESTING
+    }
+
+    // See who this is and where they sit at the table, cookie
     let playerData = Util.getCookie("player");
     this.playerId = playerData[this.gameId];
 
-    // this player is not part of this game yet -- according to their cookie
-    if (this.playerId === undefined) {
-      this.isSpectator = true;
-      this.spectatorName = Util.getCookie("name");
-      this.playerId = 2;      // how to spectate different players?
-
-      if (this.isSpectator && !this.spectatorName) {
-        this.spectatorName = "Incontinentia";
-        Util.setCookie("name", this.spectatorName);
-      }
-
-
-    } else {
-      this.isSpectator = false;
-    }
-
     this.updateFromServer().then( () => {
-      // should we fail if this is not true?  FIXME
       let playerName = Util.getCookie("name");
       if (this.isGameLoaded()) {
-        console.log( playerName + " should be " + this.game.players[this.playerId].name);
+        console.log( playerName + " should be " +
+                     this.game.players[this.playerId].name);
+
+        // this player is not part of this game yet -- according to their cookie
+        if ((this.playerId === undefined) || !this.player) {
+          this.isSpectator = true;
+          this.spectatorName = Util.getCookie("name");
+          this.playerId = 2;      // how to spectate different players?
+
+          if (this.isSpectator && !this.spectatorName) {
+            this.spectatorName = "Incontinentia";
+            Util.setCookie("name", this.spectatorName);
+          }
+        } else {
+          this.isSpectator = false;
+        }
       }
     });
   },
