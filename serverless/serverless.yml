@@ -72,7 +72,7 @@ functions:
           cors: true
 
   getGame:
-    handler: euchre.getGameData
+    handler: euchre.getGameDataForPlayer
     description: All data about the game from "playerId"s perspective
     events:
       - http:
@@ -107,12 +107,32 @@ functions:
           method: post
           cors: true
 
+
+
   joinGame:
-    handler: euchre.joinGame
+    handler: gameLogic.joinGame
     description: Join "gameId", add "playerName" to it.
     events:
       - http:
           path: joinGame
+          method: post
+          cors: true
+
+  setPlayerName:
+    handler: gameLogic.joinGame
+    description: Change player's name in the game
+    events:
+      - http:
+          path: setPlayerName
+          method: post
+          cors: true
+
+  deal:
+    handler: gameLogic.deal
+    description: Shuffle and deal the cards
+    events:
+      - http:
+          path: deal
           method: post
           cors: true
 

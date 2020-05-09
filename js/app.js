@@ -83,12 +83,26 @@ let app = new Vue({
   //----------------------------------------
   computed: {
     //----------------------------------------
+    // dig player info out of the bowels of game data
     //----------------------------------------
     player: function() {
       if (this.isGameLoaded()) {
         return this.game.players[this.playerId];
       } else {
         return undefined;
+      }
+    },
+
+    //----------------------------------------
+    playerName: {
+      cache: false,
+      get () {
+        if (this.player) {
+          return this.player.name;
+        } else {
+          // game might not be loaded, user might not have joined game yet
+          return "...";
+        }
       }
     },
 
@@ -101,22 +115,6 @@ let app = new Vue({
     // Four players and no cards and haven't dealt yet.
     timeToDeal: function() {
       return (this.numPlayers == 4) && (this.game.deck.length == 0);
-    },
-
-
-    //----------------------------------------
-    // player's name
-    //----------------------------------------
-    playerName: {
-      cache: false,
-      get () {
-        if (this.player) {
-          return this.player.name;
-        } else {
-          // game might not be loaded, user might not have joined game yet
-          return "...";
-        }
-      }
     },
 
     //----------------------------------------
@@ -245,7 +243,9 @@ let app = new Vue({
 
       try {
         // response is an async stream
-        let response = await fetch( serverURL + "game?gameId=" + this.gameId );
+        let response = await fetch(serverURL +
+                                   "game?gameId=" + this.gameId +
+                                   "&playerId=" + this.playerId);
         if (!response.ok) { throw await response.json(); }
         this.game = await response.json();
 
@@ -266,6 +266,7 @@ let app = new Vue({
 
     //----------------------------------------
     // See what's changed in the wide world
+    // FIXME, this shouldn't be here, should be server-side
     //----------------------------------------
     async saveToServer() {
       this.saveInProgress = true;          // spinny mode
@@ -329,17 +330,16 @@ let app = new Vue({
 
     },
 
+    //----------------------------------------
     // enter existing game, we are Player n+1
-    // get this from URL
-    join: function( seatId ) {
+    // FIXME - this should happen server side.
+    //----------------------------------------
+    joinLocallyHack: function( seatId ) {
       let playerId = (seatId + this.playerId) % 4;
       console.log("Joining as " + this.spectatorName + " at spot #" + playerId);
       this.game.players[playerId].name = this.spectatorName;
       this.playerId = playerId;
-      // instantiate rest of Player object?
 
-
-      // FIXME, update cookie with our playerId
       let playerData = Util.getCookie("player");
       playerData[this.gameId] = playerId;
       Util.setCookie("player", playerData );
@@ -348,21 +348,63 @@ let app = new Vue({
       this.saveToServer();
     },
 
-    dealCards: function() {
-      debugger;
-      this.updateFromServer();  // FIXME!
-      return;
+    //----------------------------------------
+    // enter existing game, we are Player n+1
+    //----------------------------------------
+    async join( seatId ) {
+      try {
+        this.saveInProgress = true;
 
-      console.log("Dealing: asking server to issue new cards");
-      // animate?
+        let playerId = (seatId + this.playerId) % 4;
+        console.log("Joining as " + this.spectatorName + " at spot #"+playerId);
 
-      let self = this;
-      fetch( serverURL + "deal")
-        .then( function( resp ) { if (resp.ok) { return resp.json(); }})
-        .then( function( data ) {
-          console.log( data );
-          self.state = data;
-        });
+        let postData = {
+          gameId: this.gameId,
+          playerId: playerId,
+          name: this.spectatorName
+        };
+        let response = await fetch( serverURL + "deal",
+                                    Util.makeJsonPostParams({
+                                      gameId: this.gameId
+                                    }));
+        if (!response.ok) { throw await response.json(); }
+
+        let playerData = Util.getCookie("player");
+        playerData[this.gameId] = playerId;
+        Util.setCookie("player", playerData );
+
+        this.isSpectator = false;
+
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Join failed: " + JSON.stringify( err ));
+        alert("Try again. Join failed " + Util.sadface + (err.message || err));
+      };
+
+      this.saveInProgress = false;
+    },
+
+    //----------------------------------------
+    //----------------------------------------
+    async dealCards() {
+      try {
+        console.log("Dealing: asking server to issue new cards");
+
+        // animate?  FIXME  - make cards fly around until game load?
+
+        let response = await fetch( serverURL + "deal",
+                                    Util.makeJsonPostParams({
+                                      gameId: this.gameId
+                                    }));
+        if (!response.ok) { throw await response.json(); }
+
+        // stop animating  FIXME
+      }
+      catch( err ) {
+        console.error("Deal failed: " + JSON.stringify( err ));
+        alert("Dealing cards failed " + Util.sadface + (err.message || err));
+      };
     },
 
     //----------------------------------------
@@ -418,8 +460,8 @@ let app = new Vue({
     },
 
     // Update local name, save to cookie, update name in Game as well?
-    setPlayerName: function(event) {
-      event.target.blur();  // done editing, this forces a second update FIXME
+    setPlayerNameLocalHack: function(event) {
+      event.target.blur();  // done editing
 
       if (this.isSpectator) {
         console.log("Nice try");
@@ -437,6 +479,49 @@ let app = new Vue({
 
         this.saveToServer();
       }
-    }
+
+      // fetch( "/setPlayerName")
+    },
+
+    //----------------------------------------
+    // Update local name, save to cookie, update name in server-side Game also
+    //----------------------------------------
+    async setPlayerName(event) {
+      event.target.blur();  // done editing
+
+      let playerName = event.target.innerHTML.trim();
+
+      if ((this.isSpectator) || (this.playerName === playerName)) {
+        console.log("Name NOP");
+        event.target.innerHTML = this.playerName;
+        return;
+      }
+
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+          playerName: playerName
+        };
+        let response = await fetch( serverURL + "setPlayerName",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        Util.setCookie("name", playerName );
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Change name: " + JSON.stringify( err ));
+        alert("Try again. Change name failed " +
+              Util.sadface + (err.message || err));
+
+        // D'oh. revert
+        event.target.innerHTML = this.playerName;
+      };
+
+      this.saveInProgress = false;
+    },
+
   }
 });

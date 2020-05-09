@@ -1,86 +1,13 @@
 //----------------------------------------
-//  Functions to be uploaded to the cloud (AWS Lambda and API Gateway)
+//  AWS Lambda Functions to be uploaded.  These are the public API.
 //  All code related to HTTP requests here.
 //----------------------------------------
 
 'use strict';
 
-// All Dynamo stuff
-let euchreDB = require('euchreDB');
-
-// HTTP response for a successful call
-let successResponse = {
-  body: "RESPONSE GOES HERE - REPLACE ME",
-  statusCode: 200,
-  headers: {  // Allow any web page to call us (CORS support)
-    "Access-Control-Allow-Origin": "*"
-    // Access-Control-Allow-Credentials': true // only for auth/cookies
-  }
-};
-
-// There is a bug/"feauture" in API Gateway that swallows these errors
-let errorResponse = {
-  error: { messageString: "huh? ATTACH REAL ERROR HERE" },
-  messageString: "Doh! There was an error in the request OR MAYBE HERE"
-};
-
-
-//----------------------------------------
-// check for required params, abort if not r=there
-//----------------------------------------
-function verifyQuery( request, callback, param ) {
-  let query = request.queryStringParameters;   // GET
-
-  if (!query) {    // POST
-    try {
-      query = JSON.parse( request.body );
-    } catch (e) {
-      console.error( e.message + ":'" + request.body +"'" );
-    }
-  }
-
-  if (!query || (param && !query[param])) {
-    let errorMsg = "bad request/missing param: " + param;
-    console.error( errorMsg );
-    console.error( JSON.stringify( request ));
-
-    // attach error message to response? I think it's just a 400 error
-    callback( null, errorResponse );
-    return false;
-  }
-  return true;
-}
-
-//----------------------------------------------------------------------
-// Take this data and shove it, back to the AWS user who requested it.
-//----------------------------------------------------------------------
-function respondWithSuccess( data, callback ) {
-  let response = successResponse;
-  response.body = JSON.stringify( data );  // prettify for transit
-
-  // This can be inspected in firebug, but we really don't need it otherwise
-  // response.body = JSON.stringify({
-  //   gameId: postData.gameId,
-  //   playerId: postData.playerId,
-  //   gameData: game,
-  //   debug: request
-  // });
-
-  console.log("Successful Response: " + response.body );
-  callback( null, response );
-}
-
-//----------------------------------------------------------------------
-// AWS response boilerplate - 200, CORS, etc...
-//----------------------------------------------------------------------
-function respond( err, data, callback ) {
-  if (err) {
-    console.error("FAIL: " + err );
-    callback( err );
-  } else {
-    respondWithSuccess( data, callback );
-  }
-}
+let euchreDB = require('euchreDB');  // All the Dynamo stuff
+let thomas = require('thomas');   // Thomas is our private middleware
+let message = require('responseHandler');  // HTTP message handling
 
 //----------------------------------------
 //----------------------------------------
@@ -100,25 +27,9 @@ module.exports = {
   // Async, retrieve a single game record from DB and invoke callback
   // This is intended to be called internally
   //----------------------------------------------------------------------
-  getGameData: function( request, context, callback ) {
-    let query = request.queryStringParameters;
-
-    if (!verifyQuery( request, callback, "gameId")) {
-      return;
-    }
-
-    euchreDB.getGameData( query.gameId, function( err, game ) {
-      respond( err, game, callback );
-    });
-  },
-
-  //----------------------------------------------------------------------
-  // Async, retrieve a single game record from DB and invoke callback
-  // This is intended to be called internally
-  //----------------------------------------------------------------------
   getGameList: function( request, context, callback ) {
     euchreDB.getGameList( function( err, games ) {
-      respond( err, games, callback );
+      message.respond( err, games, callback );
     });
   },
 
@@ -131,8 +42,8 @@ module.exports = {
   {
     let query = request.queryStringParameters;
 
-    if (!verifyQuery( request, callback, "gameId") ||
-        !verifyQuery( request, callback, "playerId")) {
+    if (!message.verifyParam( request, callback, "gameId") ||
+        !message.verifyParam( request, callback, "playerId")) {
       return;
     }
 
@@ -145,7 +56,7 @@ module.exports = {
             game.players[i].cardIds= [];
           }
         }
-        respond( err, game, callback );
+        message.respond( err, game, callback );
       }
     });
   },
@@ -157,7 +68,7 @@ module.exports = {
   //----------------------------------------------------------------------
   createNewGame: function( request, context, callback ) {
 
-    if (!verifyQuery( request, callback, "playerName")) {
+    if (!message.verifyParam( request, callback, "playerName")) {
       return;
     }
 
@@ -198,12 +109,12 @@ module.exports = {
     newGame.players[0].name = postData.playerName;
 
     // Tell DB to put the data, respond to AWS call here.
-    euchreDB.saveGameData( newGame, function( err, data ) {
+    thomas.updateGame( newGame, function( err, data ) {
       let response = {
         gameId: newGameId,
         playerId: 0    // game creator is always first player
       };
-      respond( err, response , callback );
+      message.respond( err, response , callback );
     });
   },
 
@@ -214,14 +125,12 @@ module.exports = {
   // @return nothing
   //----------------------------------------------------------------------
   updateGame: function( request, context, callback ) {
-    if (!verifyQuery( request, callback, "game")) {
+    if (!message.verifyParam( request, callback, "game")) {
       return;
     }
     let data = JSON.parse( request.body );
-
-    // Tell DB to put the data, respond to AWS call here.
-    euchreDB.saveGameData( data.game, function( err, response ) {
-      respond( err, response , callback );
+    thomas.updateGame( data.game, function( err, response ) {
+      message.respond( err, response , callback );
     });
   },
 
@@ -231,15 +140,14 @@ module.exports = {
   // @return nothing
   //----------------------------------------------------------------------
   deleteGame: function( request, context, callback ) {
-    if (!verifyQuery( request, callback, "gameId")) {
+    if (!message.verifyParam( request, callback, "gameId")) {
       return;
     }
     let params = JSON.parse( request.body );
 
     // Tell DB to put the data, respond to AWS call here.
     euchreDB.deleteGame( params.gameId, function( err, response ) {
-      respond( err, response , callback );
+      message.respond( err, response , callback );
     });
-  },
-
+  }
 };

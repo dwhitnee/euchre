@@ -90,8 +90,10 @@ module.exports = {
 
   //----------------------------------------
   // Some action occured, let's store the effect in DynamoDB
+  // FIXME -- this should optimistically lock on a versionId or something.
+  //
   // Params: gameData blob
-  // Params: request and callback from original user action
+  // Params: callback( err, data )  success IFF err==null
   //----------------------------------------
   saveGameData: function( game, callback ) {
     let now = new Date();
@@ -110,7 +112,7 @@ module.exports = {
       dbParams.Item.createdDate = now.toISOString();  // can't update keys
     }
 
-    console.log( JSON.stringify( dbParams ));
+    console.log("PUT request: " +  JSON.stringify( dbParams ));
 
     let AWS = require('aws-sdk');
     let dynamoDB = new AWS.DynamoDB.DocumentClient();
