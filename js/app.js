@@ -16,6 +16,7 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
+    gameDataReady: false,
     version: 1,
     saveInProgress: false,
 
@@ -92,6 +93,18 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    weAreDealer: function() {
+      return this.playerId == this.game.dealerId;
+    },
+
+    //----------------------------------------
+    // Four players and no cards and haven't dealt yet.
+    timeToDeal: function() {
+      return (this.numPlayers == 4) && (this.game.deck.length == 0);
+    },
+
+
+    //----------------------------------------
     // player's name
     //----------------------------------------
     playerName: {
@@ -150,18 +163,21 @@ let app = new Vue({
     names: function() {
       if (!this.game) { return []; }  // wait for game load
 
+      this.numPlayers = 0;
       let names = [];
-      this.game.players.forEach(
-        function( player ) {
-          names.push( player.name );
-        });
+      this.game.players.forEach( player => {
+        names.push( player.name );
+        if (player.name) {
+          this.numPlayers++;
+        }
+      });
 
       return names.rotate( this.playerId );   // rotate from NESW
     }
-
   },
 
   //----------------------------------------
+  // We spin until game loaded so this can be anywhere in lifecycle
   //----------------------------------------
   mounted() {
     this.gameId = this.$route.query.id;
@@ -238,6 +254,7 @@ let app = new Vue({
           this.game = undefined;
           alert("No game found named " + this.gameId );
         }
+        this.gameDataReady = true;
       }
       catch( err ) {
         alert("Problem updating game from server " + Util.sadface +

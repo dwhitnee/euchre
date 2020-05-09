@@ -6,9 +6,15 @@
   <link rel="stylesheet" type="text/css" href="../styles/euchre.css"/>
 </head>
 
+<body>
 
-<div id="euchreApp" v-cloak>
-  <div class="playGrid withBorder">
+<div id="euchreApp" v-cloak style="width: 100%">
+
+  <div v-if="!gameDataReady" class="loadingContainer">
+    <div class="spinner-border loading"></div>
+  </div>
+
+  <div v-else class="playGrid withBorder">
 <!--
     <div v-if="isSpectator && !spectatorName">
       What's your name?
@@ -89,7 +95,7 @@
       <div v-if="!names[0] && isSpectator">
         <button class="button btn-primary btn-lg" @click="join(0)">Join</button></div>
 
-      <button class="btn btn-primary btn-lg" v-if="canDeal" @click="dealCards">Deal</button>
+      <button class="btn btn-primary btn-lg" v-if="timeToDeal && weAreDealer" @click="dealCards">Deal</button>
       <button class="btn btn-primary btn-lg" v-if="canPickUp"   @click="pickUpCard">Pick Up Card</button>
       <button class="btn btn-primary btn-lg" v-if="canTurnDown" @click="turnDownCard">Turn Down Card</button>
     </div>
@@ -108,3 +114,5 @@
 <script src="../js/util.js"></script>
 <script src="../js/card.js"></script>
 <script src="../js/app.js"></script>
+
+</body>
