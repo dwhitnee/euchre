@@ -254,10 +254,11 @@ let app = new Vue({
           this.game = undefined;
           alert("No game found named " + this.gameId );
         }
+        console.log("Loaded game for " + this.playerName );
         this.gameDataReady = true;
       }
       catch( err ) {
-        alert("Problem updating game from server " + Util.sadface +
+        alert("Problem reading game from server " + Util.sadface +
               (err.message || err));
 
         debugger;    // FIXME
@@ -479,8 +480,6 @@ let app = new Vue({
 
         this.saveToServer();
       }
-
-      // fetch( "/setPlayerName")
     },
 
     //----------------------------------------
@@ -491,11 +490,14 @@ let app = new Vue({
 
       let playerName = event.target.innerHTML.trim();
 
-      if ((this.isSpectator) || (this.playerName === playerName)) {
+      // don't make spurrious or duplicate requests
+      if (this.saveInProgress || this.isSpectator ||
+          (this.playerName === playerName)) {
         console.log("Name NOP");
-        event.target.innerHTML = this.playerName;
         return;
       }
+      console.log("changing player name from " + this.playerName +
+                  " to " + playerName );
 
       try {
         this.saveInProgress = true;

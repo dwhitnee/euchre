@@ -30,9 +30,11 @@ module.exports = {
         game.players[i].cardIds = ["12:"+i,"9:"+i,"10:"+i,"11:"+i, "13:"+i];
       }
 
-      // FIXME, no "this", put get/update in another module?
-      thomas.updateGame( request, context, callback );
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
     });
+
   },
 
 
@@ -50,7 +52,10 @@ module.exports = {
       console.log("Joining as " + params.playerName +
                   " at spot #" + params.playerId);
       game.players[params.playerId].name = params.playerName;
-      thomas.updateGame( game, callback );
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
     });
   },
 

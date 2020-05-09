@@ -44,7 +44,8 @@ module.exports = {
       }
     }
 
-    if (!query || (param && !query[param])) {
+    // 0 is a valid param so can't do !query[param]
+    if (!query || (param && (query[param]) === undefined)) {
       let errorMsg = "bad request/missing param: " + param;
       console.error( errorMsg );
       console.error( JSON.stringify( request ));
