@@ -7,6 +7,11 @@ var router = new VueRouter({
   routes: [ ]
 });
 
+// Need either a compiler or inline template -- time for webpack?
+// Vue.component("modal", {
+//   template: "#modal-template"
+// });
+
 
 let app = new Vue({
   router,
@@ -29,6 +34,7 @@ let app = new Vue({
 
     isSpectator: true,
     spectatorName: "",
+    spectatorNameTmp: "",
 
     playerId: undefined, // Loaded from game cookie
     // game data from server, players are in NESW/0123 order
@@ -183,6 +189,9 @@ let app = new Vue({
     // Spectator can view different hands this way
     this.playerId = this.$route.query.playerId;
 
+    // we may not need this, but it is used in page logic.  Oof
+    this.spectatorName = Util.getCookie("name");
+
     // remove this in PROD, used for inhabiting different players
     if (this.playerId) {
       console.log("CHEATING! I am player " + this.playerId);
@@ -198,19 +207,17 @@ let app = new Vue({
     this.updateFromServer().then( () => {
       let playerName = Util.getCookie("name");
       if (this.isGameLoaded()) {
-        console.log( playerName + " should be " +
-                     this.game.players[this.playerId].name);
+
+        // test, remove me
+        if (!this.isSpectator) {
+          console.log( playerName + " should be " +
+                       this.game.players[this.playerId].name);
+        }
 
         // this player is not part of this game yet -- according to their cookie
         if ((this.playerId === undefined) || !this.player) {
           this.isSpectator = true;
-          this.spectatorName = Util.getCookie("name");
-          this.playerId = 2;      // how to spectate different players?
-
-          if (this.isSpectator && !this.spectatorName) {
-            this.spectatorName = "Incontinentia";
-            Util.setCookie("name", this.spectatorName);
-          }
+          this.playerId = 2;        // this should come from query FIXME TESTING
         } else {
           this.isSpectator = false;
         }
@@ -458,6 +465,12 @@ let app = new Vue({
     turnDownCard: function() {
     },
     takeTrick: function() {
+    },
+
+    setSpectatorName: function() {
+      // use tmp or else page updates as soon as first key is pressed
+      this.spectatorName = this.spectatorNameTmp;
+      Util.setCookie("name", this.spectatorNameTmp.trim());
     },
 
     // Update local name, save to cookie, update name in Game as well?
