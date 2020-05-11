@@ -108,13 +108,16 @@ let app = new Vue({
       }
     },
 
+    dealerName: function() {
+      return this.game.players[this.game.dealerId].name;
+    },
+
     //----------------------------------------
     // lots of state
     //----------------------------------------
-    bidding: function() { return this.game.bidding; },
+    bidding: function() { return this.game.cardsDealt && this.game.bidding; },
     ourTurn: function() { return this.playerId == this.game.playerTurn; },
-    canPickUp: function() { return this.game.bidding && this.upCard; },
-    upCard: function()  { return this.game.playedCardIds[this.dealerId]; },
+    canPickUp: function() { return this.game.bidding && this.upCard(); },
     weAreDealer: function() { return this.playerId == this.game.dealerId; },
     timeToDeal: function() {
       return (this.numPlayers == 4) && !this.game.cardsDealt;
@@ -239,19 +242,22 @@ let app = new Vue({
   beforeCreate: function() {
   },
 
-  watch: {
-    // turn: {
-    // },
-  },
-
-  // event handlers accessible from the web page
+  //----------------------------------------------------------------------
+  // event handlers and other fns accessible from the web page
+  //----------------------------------------------------------------------
   methods: {
 
     //----------------------------------------
     //----------------------------------------
     // methods to determine how much to show
-    isGameLoaded() {   return this.game; },
+    isGameLoaded()   { return this.game; },
     isPlayerInGame() { return this.playerId !== undefined; },
+
+    // Potential trump
+    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
+
+    // [0, n)
+    random: function( max ) { return Math.floor(max * Math.random());  },
 
     //----------------------------------------
     // get actual playerId from seatId
@@ -262,39 +268,6 @@ let app = new Vue({
       return playerId == this.game.dealerId;
     },
 
-    //----------------------------------------
-    // See what's changed in the wide world
-    //----------------------------------------
-    async updateFromServer() {
-
-      try {
-        // response is an async stream
-        let response = await fetch(serverURL +
-                                   "game?gameId=" + this.gameId +
-                                   "&playerId=" + this.playerId);
-        if (!response.ok) { throw await response.json(); }
-        this.game = await response.json();
-
-        // If game got deleted or messed up, we get an empty object
-        if (!Object.keys( this.game ).length) {
-          this.game = undefined;
-          alert("No game found named " + this.gameId );
-        }
-        console.log("Loaded game for " + this.playerName );
-        this.gameDataReady = true;
-      }
-      catch( err ) {
-        alert("Problem reading game from server " + Util.sadface +
-              (err.message || err));
-
-        debugger;    // FIXME
-      };
-    },
-
-    // [0, n)
-    random: function( max ) {
-      return Math.floor( Math.random() * Math.floor(max) );
-    },
 
     //----------------------------------------
     // point at who's up, account for seat locations
@@ -380,6 +353,35 @@ let app = new Vue({
     // SERVER CALLS
     //----------------------------------------------------------------------
     //----------------------------------------
+    // See what's changed in the wide world
+    //----------------------------------------
+    async updateFromServer() {
+
+      try {
+        // response is an async stream
+        let response = await fetch(serverURL +
+                                   "game?gameId=" + this.gameId +
+                                   "&playerId=" + this.playerId);
+        if (!response.ok) { throw await response.json(); }
+        this.game = await response.json();
+
+        // If game got deleted or messed up, we get an empty object
+        if (!Object.keys( this.game ).length) {
+          this.game = undefined;
+          alert("No game found named " + this.gameId );
+        }
+        console.log("Loaded game for " + this.playerName );
+        this.gameDataReady = true;
+      }
+      catch( err ) {
+        alert("Problem reading game from server " + Util.sadface +
+              (err.message || err));
+
+        debugger;    // FIXME
+      };
+    },
+
+    //----------------------------------------
     // enter existing game, we are Player n+1
     //----------------------------------------
     async join( seatId ) {
@@ -415,14 +417,16 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // deal
     //----------------------------------------
     async dealCards() {
       try {
-        this.saveInProgress();
+        this.saveInProgress = true;
 
         console.log("Dealing: asking server to issue new cards");
 
         // animate?  FIXME  - make cards fly around until game load?
+        // start an async aimation but dont await it
 
         let response = await fetch( serverURL + "deal",
                                     Util.makeJsonPostParams({
@@ -430,6 +434,7 @@ let app = new Vue({
                                     }));
         if (!response.ok) { throw await response.json(); }
 
+        await this.updateFromServer();
         // stop animating  FIXME
       }
       catch( err ) {
@@ -456,7 +461,16 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // pass
+    //----------------------------------------
     async pass() {
+      // if this is the dealer, turn down the card
+
+      if (this.playerId == this.game.dealerId) {
+        // animate turning down card?  FIXME
+        alert("Turning down card");
+      }
+
       this.game.playerTurn = (this.game.playerTurn+1)%4;
 
       try {

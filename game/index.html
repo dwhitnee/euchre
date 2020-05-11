@@ -111,10 +111,16 @@
 
           <button  v-if="timeToDeal && weAreDealer && !saveInProgress"
                    @click="dealCards" class="btn btn-primary btn-lg" >Deal</button>
+          <div v-if="timeToDeal && !weAreDealer">
+            Waiting for {{ dealerName }} to deal the cards...
+          </div>
           <button v-if="ourTurn && bidding"
                   @click="pass" class="btn btn-primary btn-lg">Pass</button>
           <button v-if="ourTurn && bidding && canPickUp"
                   @click="pickUpCard" class="btn btn-primary btn-lg">Pick It Up</button>
+          <button v-if="ourTurn && bidding && canPickUp"
+                  @click="pickUpCard" class="btn btn-primary btn-lg">Call Spades</button>
+
         </div>
       </div>
 

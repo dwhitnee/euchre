@@ -111,6 +111,10 @@ module.exports = {
       console.log( params.playerId + "Passes ");
       game.playerTurn = (game.playerTurn + 1 ) % 4;
 
+      if (params.playerId == game.dealerId) {
+        game.playedCardIds[game.dealerId] = null;
+      }
+
       thomas.updateGame( game, function( err, response ) {
         message.respond( err, response , callback );
       });

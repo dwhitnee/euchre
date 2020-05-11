@@ -90,7 +90,6 @@ a.button.disabled {
 
 .cards {
   display: inline-flex;
-  padding-right: 1em;
 }
 
 .cards:hover {
@@ -142,7 +141,9 @@ a.button.disabled {
 
 .playGrid > .gridGameInfo { grid-area: info; }
 .playGrid > .gridPlayer0  { grid-area: player0;
-                            border-top: 3px solid; padding-top: 1em; }
+  border-top: 3px solid;
+  padding-top: 1em;
+}
 .playGrid > .gridPlayer1  { grid-area: player1; }
 .playGrid > .gridPlayer2  { grid-area: player2; }
 .playGrid > .gridPlayer3  { grid-area: player3; }
@@ -228,7 +229,9 @@ a.button.disabled {
   color: lightblue;
 }
 
-
+.buttons button {
+  margin-left: 1em;
+}
 
 .lobby button,
 .lobby h3 {
@@ -251,6 +254,4 @@ button.join {
   height: 3em;
   border: .75em solid #33a532;
   border-radius: 0 50% 50% 50%;
-}
-
 }
