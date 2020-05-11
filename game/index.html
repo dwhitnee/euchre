@@ -69,7 +69,7 @@
          @dragover.prevent @drop="playCard">
       <div v-for="(card, i) in playedCards" :class="'player'+i">
 
-        <div v-if="playedCards[i]" class="card"
+        <div v-if="playedCards[i]" class="playingCard"
              :style="getCardStyle( playedCards[i].id )"></div>
         <div v-else class="unplayed playingCard"></div>
       </div>

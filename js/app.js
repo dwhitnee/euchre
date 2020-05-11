@@ -114,7 +114,7 @@ let app = new Vue({
 
     //----------------------------------------
     weAreDealer: function() {
-      return this.playerId == this.game.dealerId;
+      return this.playerId == this.game.cardsDealt;
     },
 
     //----------------------------------------

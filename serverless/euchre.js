@@ -50,7 +50,7 @@ module.exports = {
     euchreDB.getGameData( query.gameId, function( err, game ) {
       if (!err) {
         // post process gameData to remove face down cards
-        game.deck = [];
+        game.deck = [];  // card up is considered "played", blind is invisible
         for (var i=0; i < 4; i++) {
           if (i != query.playerId) {
             game.players[i].cardIds= [];
@@ -78,7 +78,7 @@ module.exports = {
       ((new Date()).getTime() - new Date("2020-05-01").getTime()) / 1000);
 
     // gameId is first player name (w/o spaces/specials) plus 2020 epoch seconds
-    let newGameId = postData.playerName.replace(/\W/g,'').slice(0,8) +
+    let newGameId = postData.playerName.replace(/\W/g,'').slice(0,12) +
         "-" + timeSinceEpoch;
 
     let newGame = {
@@ -91,6 +91,7 @@ module.exports = {
       goingAlone: false,
       leadPlayerId: undefined,
       deck: [],
+      cardsDealt: false,
       playedCardIds: [],
       players: []
     };
