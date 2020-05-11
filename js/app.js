@@ -446,9 +446,13 @@ let app = new Vue({
 
     //----------------------------------------
     // drop a card on table
-    // tell server
     //----------------------------------------
     playCard: function( event ) {
+      // if dealer has 6 then only they must play and discard
+      // play a card IFF playerTurn (and not discarding), and only one card
+      // FIXME, call server
+
+
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
       if (card) {

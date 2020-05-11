@@ -144,7 +144,10 @@ module.exports = {
       game.playerTurn = (game.dealerId + 1) % 4;
 
       // bidding isn't technically over because dealer still needs to discard
-      //FIXME: discard or playCard?
+      game.bidding = false;
+
+      // FIXME: how to proceed with dealer:
+      //   new fn discard(), or special case of playCard?
 
       thomas.updateGame( game, function( err, response ) {
         message.respond( err, response , callback );
