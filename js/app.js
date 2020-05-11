@@ -493,8 +493,31 @@ let app = new Vue({
       this.saveInProgress = false;
     },
 
-    pickUpCard: function() {
+    //----------------------------------------
+    // put up card in dealer's hand.  Bidding is over, start playing
+    //----------------------------------------
+    async pickUpCard() {
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+        };
+        let response = await fetch( serverURL + "pickItUp",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Pickup failed: " + JSON.stringify( err ));
+        alert("Try again. Pickup failed " + Util.sadface + (err.message || err));
+      };
+
+      this.saveInProgress = false;
     },
+
+
     turnDownCard: function() {
     },
     takeTrick: function() {

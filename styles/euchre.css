@@ -167,11 +167,11 @@ a.button.disabled {
 }
 
 .buttons {
-  grid-column: 1 / 3;  // useless?
-  grid-row: 4;
-  display: flex;
-  justify-content: bottom;
-  align-items: bottom;
+  padding-left: 2em;
+  display: grid;
+}
+.buttons button {
+  margin-bottom: .25em;
 }
 
 .withBorder {
@@ -227,10 +227,6 @@ a.button.disabled {
   height: 5em;
   border-width: 10;
   color: lightblue;
-}
-
-.buttons button {
-  margin-left: 1em;
 }
 
 .lobby button,

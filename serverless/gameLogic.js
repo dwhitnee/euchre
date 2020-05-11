@@ -121,6 +121,36 @@ module.exports = {
     });
   },
 
+  //----------------------------------------------------------------------
+  // Tell dealer to pick up card, playerId has called trump, set leader
+  //----------------------------------------------------------------------
+  pickItUp: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+
+      console.log( params.playerId + " orders it up");
+      game.trumpCallerId = parseInt( params.playerId );
+
+      // put card in dealer's hand
+      game.players[game.dealerId].cardIds.push(
+        game.playedCardIds[game.dealerId]);
+      game.playedCardIds[game.dealerId] = null;
+
+      // play will start at dealer's left
+      game.playerTurn = (game.dealerId + 1) % 4;
+
+      // bidding isn't technically over because dealer still needs to discard
+      //FIXME: discard or playCard?
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
+    });
+  },
 
 
 

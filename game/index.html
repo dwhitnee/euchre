@@ -116,10 +116,10 @@
           </div>
           <button v-if="ourTurn && bidding"
                   @click="pass" class="btn btn-primary btn-lg">Pass</button>
-          <button v-if="ourTurn && bidding && canPickUp"
+
+          <small v-if ="ourTurn && canPickUp && !weAreDealer">Tell dealer to</small>
+          <button v-if="ourTurn && canPickUp"
                   @click="pickUpCard" class="btn btn-primary btn-lg">Pick It Up</button>
-          <button v-if="ourTurn && bidding && canPickUp"
-                  @click="pickUpCard" class="btn btn-primary btn-lg">Call Spades</button>
 
         </div>
       </div>

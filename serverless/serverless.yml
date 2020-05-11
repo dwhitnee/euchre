@@ -145,6 +145,15 @@ functions:
           method: post
           cors: true
 
+  pickItUp:
+    handler: gameLogic.pickItUp
+    description: Next player's turn
+    events:
+      - http:
+          path: pickItUp
+          method: post
+          cors: true
+
 
 # startGame?dealer (zero score, pick first dealer)
 
