@@ -57,12 +57,12 @@ a.button.disabled {
 /* I hate !important, but this class needs to make things invisible and
    preserve previous display style of element */
 .hidden {
-    display: none !important;
+  display: none !important;
 }
 
 .fadeOut {
-    opacity: 0;
-    transition: all 0.5s ease-in-out;
+  opacity: 0;
+  transition: all 0.5s ease-in-out;
 }
 
 .unselectable {
@@ -94,6 +94,15 @@ a.button.disabled {
 
 .cards:hover {
   cursor: grab;
+}
+
+.dealer {
+  background: url("../images/dealer.gif");
+  height: 44px;
+  width: 54px;
+  position: relative;
+  left: 2em;
+  bottom: -1em;
 }
 
 .playerName {

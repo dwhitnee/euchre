@@ -162,21 +162,32 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // All players, as seen from player's view
+    // All players, as seen from main player's view
     //----------------------------------------
-    names: function() {
+    players: function() {
       if (!this.game) { return []; }  // wait for game load
 
       this.numPlayers = 0;
-      let names = [];
+      let players = [];
       this.game.players.forEach( player => {
-        names.push( player.name );
+        players.push( player );
         if (player.name) {
           this.numPlayers++;
         }
       });
 
-      return names.rotate( this.playerId );   // rotate from NESW
+      return players.rotate( this.playerId );   // rotate from NESW
+    },
+
+    //----------------------------------------
+    // All players, as seen from player's view
+    //----------------------------------------
+    names: function() {
+      let names = [];
+      this.players.forEach( player => {
+        names.push( player.name );
+      });
+      return names;   // assumes players are already rotated to face user
     }
   },
 
@@ -187,13 +198,15 @@ let app = new Vue({
     this.gameId = this.$route.query.id;
 
     // Spectator can view different hands this way
-    this.playerId = this.$route.query.playerId;
+    this.playerId = parseInt( this.$route.query.playerId );
+    if (isNaN( this.playerId)) { this.playerId = undefined; }
+    console.log("Viewing from the perspective of player " + this.playerId );
 
     // we may not need this, but it is used in page logic.  Oof
     this.spectatorName = Util.getCookie("name");
 
     // remove this in PROD, used for inhabiting different players
-    if (this.playerId) {
+    if (this.playerId !== undefined) {
       console.log("CHEATING! I am player " + this.playerId);
       this.isSpectator = false;   // TESTING
       this.updateFromServer();    // TESTING
@@ -242,6 +255,15 @@ let app = new Vue({
     // methods to determine how much to show
     isGameLoaded() {   return this.game; },
     isPlayerInGame() { return this.playerId !== undefined; },
+
+    //----------------------------------------
+    // get actual playerId from seatId
+    //----------------------------------------
+    dealerIs: function( seatId ) {
+      // need to unrotate back to playerIds
+      let playerId = (seatId + this.playerId) % 4;
+      return playerId == this.game.dealerId;
+    },
 
     //----------------------------------------
     // See what's changed in the wide world

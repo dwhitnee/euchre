@@ -38,6 +38,7 @@
     <div class="playerName gridPlayer1">
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[1] }}</div>
+        <div v-if="dealerIs(1)" class="dealer"></div>
       </div>
       <div v-if="!names[1] && isSpectator">
         <button class="button btn-primary btn-lg join"
@@ -47,6 +48,7 @@
     <div class="playerName gridPlayer2">
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[2] }}</div>
+        <div v-if="dealerIs(2)" class="dealer"></div>
       </div>
       <div v-if="!names[2] && isSpectator">
         <button class="button btn-primary btn-lg join"
@@ -56,6 +58,7 @@
     <div class="playerName gridPlayer3">
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[3] }}</div>
+        <div v-if="dealerIs(3)" class="dealer"></div>
       </div>
       <div v-if="!names[3] && isSpectator">
         <button class="button btn-primary btn-lg join"
@@ -79,9 +82,8 @@
            @keypress.enter="setPlayerName"
            @keypress.enter.prevent>{{ playerName }}</div>
 
+      <div v-if="weAreDealer" class="dealer"></div>
       <span v-if="saveInProgress" class="spinner-border spinner-border-sm"></span>
-
-
     </div>
 
     <div class="gridPlayer0">
