@@ -97,6 +97,32 @@ module.exports = {
     });
   },
 
+
+  //----------------------------------------------------------------------
+  // Pass to next player
+  //----------------------------------------------------------------------
+  pass: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+      console.log( params.playerId + "Passes ");
+      game.playerTurn = (game.playerTurn + 1 ) % 4;
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
+    });
+  },
+
+
+
+
+
+
+
   /*
   //----------------------------------------------------------------------
   // same logic as joining, on the back end, just putting a name in a slot

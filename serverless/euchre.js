@@ -82,16 +82,21 @@ module.exports = {
         "-" + timeSinceEpoch;
 
     let newGame = {
+
+      // fixed data
       id: newGameId,                            // PK
       createdDate: (new Date()).toISOString(),  // Range Key
-      gameOver: "false",   // Dynamo hack: indexes can't be BOOL
-      dealerId: 0,   // randomize this  FIXME
-      trumpCallerId: undefined,
+      dealerId: 0,                // randomize this  FIXME
+      trumpCallerId: undefined,   // who needs to take all the tricks
       trumpSuit: undefined,
       goingAlone: false,
+
+      // dynamic data
+      gameOver: "false",   // Dynamo hack: indexes can't be BOOL
+      bidding: true,   // we're either bidding or playing tricks
       leadPlayerId: undefined,
-      deck: [],
       cardsDealt: false,
+      deck: [],
       playedCardIds: [],
       players: []
     };

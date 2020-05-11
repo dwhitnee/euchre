@@ -103,16 +103,18 @@
           </div>
         </div>
       </div>
-      <div>
 
-        <!-- fixme -->
+      <div>
         <div class="buttons">
           <div v-if="!names[0] && isSpectator">
             <button class="button btn-primary btn-lg" @click="join(0)">Join</button></div>
 
-          <button class="btn btn-primary btn-lg" v-if="timeToDeal && weAreDealer" @click="dealCards">Deal</button>
-          <button class="btn btn-primary btn-lg" v-if="canPickUp"   @click="pickUpCard">Pick Up Card</button>
-          <button class="btn btn-primary btn-lg" v-if="canTurnDown" @click="turnDownCard">Turn Down Card</button>
+          <button  v-if="timeToDeal && weAreDealer && !saveInProgress"
+                   @click="dealCards" class="btn btn-primary btn-lg" >Deal</button>
+          <button v-if="ourTurn && bidding"
+                  @click="pass" class="btn btn-primary btn-lg">Pass</button>
+          <button v-if="ourTurn && bidding && canPickUp"
+                  @click="pickUpCard" class="btn btn-primary btn-lg">Pick It Up</button>
         </div>
       </div>
 

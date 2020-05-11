@@ -136,6 +136,15 @@ functions:
           method: post
           cors: true
 
+  pass:
+    handler: gameLogic.pass
+    description: Next player's turn
+    events:
+      - http:
+          path: pass
+          method: post
+          cors: true
+
 
 # startGame?dealer (zero score, pick first dealer)
 
