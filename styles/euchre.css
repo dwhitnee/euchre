@@ -127,15 +127,16 @@ a.button.disabled {
 #cardTable > .player1 {  grid-area: card1; }
 #cardTable > .player2 {  grid-area: card2; }
 #cardTable > .player3 {  grid-area: card3; }
+#cardTable > .turnIndicator {  grid-area: turn; }
 
 #cardTable {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: auto;
   grid-template-areas:
-    ".  card2 ."
-    "card1 . card3"
-    ".  card0 .";
+    ".     card2 ."
+    "card1 turn  card3"
+    ".     card0 .";
 }
 
 .playGrid > .gridGameInfo { grid-area: info; }
@@ -241,4 +242,40 @@ a.button.disabled {
 button.join {
   position: relative;
   left: -3.5em;
+}
+
+.arrow {
+  width: 3em;
+  height: 3em;
+  border: .75em solid #33a532;
+  border-radius: 0 50% 50% 50%;
+  transform: rotate( 45deg );
+}
+
+.arrow-pointer {
+  width: 250px;
+  height: 50px;
+  background: #32557f;
+  position: relative;
+
+  &:after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0; width: 0; height: 0;
+    border-left: 25px solid #7eb4e2;
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+  }
+
+  &:before {
+    content: '';
+    position: absolute;
+    right: -25px;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-left: 25px solid #32557f;
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+  }
 }

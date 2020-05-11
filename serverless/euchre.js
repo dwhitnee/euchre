@@ -85,7 +85,7 @@ module.exports = {
       id: newGameId,                            // PK
       createdDate: (new Date()).toISOString(),  // Range Key
       gameOver: "false",   // Dynamo hack: indexes can't be BOOL
-      dealerId: 0,
+      dealerId: 0,   // randomize this  FIXME
       trumpCallerId: undefined,
       trumpSuit: undefined,
       goingAlone: false,
@@ -95,6 +95,9 @@ module.exports = {
       playedCardIds: [],
       players: []
     };
+
+    // always start to the left of the dealer
+    newGame.playerTurn = (newGame.dealerId + 1) % 4;
 
     for (var i=0; i < 4; i++) {
       newGame.players[i] = {

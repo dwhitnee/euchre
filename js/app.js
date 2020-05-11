@@ -37,7 +37,9 @@ let app = new Vue({
     spectatorNameTmp: "",
 
     playerId: undefined, // Loaded from game cookie
+    playerTurn: 0,
     // game data from server, players are in NESW/0123 order
+    // player 0 is at the bottom
     game: undefined,
 /*    {
       id: "BasicBud-463046",
@@ -243,7 +245,7 @@ let app = new Vue({
   },
 
   watch: {
-    // playedCard: {
+    // turn: {
     // },
   },
 
@@ -261,7 +263,7 @@ let app = new Vue({
     //----------------------------------------
     dealerIs: function( seatId ) {
       // need to unrotate back to playerIds
-      let playerId = (seatId + this.playerId) % 4;
+      let playerId = this.getPlayerInSeat( seatId );
       return playerId == this.game.dealerId;
     },
 
@@ -326,6 +328,14 @@ let app = new Vue({
       return Math.floor( Math.random() * Math.floor(max) );
     },
 
+    //----------------------------------------
+    // point at who's up, account for seat locations
+    //----------------------------------------
+    arrowRotation: function() {
+
+      let angle = -45 + (90* this.getSeatForPlayer( this.playerTurn ));
+      return "transform: rotate(" + angle + "deg";
+    },
 
     getCardStyle: function( id ) {
       let face = "";
@@ -379,13 +389,26 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // View is from current player's perspective,
+    // but playerId's are absolute NESW (0,1,2,3)
+    // i.e., if playerId is 0, then seatId's match playerId
+    //----------------------------------------
+    getPlayerInSeat: function( seatId ) {
+      return (seatId + this.playerId) % 4;
+    },
+
+    getSeatForPlayer: function( playerId ) {
+      return (4- (playerId + this.playerId)) % 4;
+    },
+
+    //----------------------------------------
     // enter existing game, we are Player n+1
     //----------------------------------------
     async join( seatId ) {
       try {
         this.saveInProgress = true;
 
-        let playerId = (seatId + this.playerId) % 4;
+        let playerId = this.getPlayerInSeat( seatId );
         console.log("Joining as " + this.spectatorName + " at spot #"+playerId);
 
         let postData = {
