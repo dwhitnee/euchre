@@ -140,7 +140,8 @@ a.button.disabled {
 }
 
 .playGrid > .gridGameInfo { grid-area: info; }
-.playGrid > .gridPlayer0  { grid-area: player0; }
+.playGrid > .gridPlayer0  { grid-area: player0;
+                            border-top: 3px solid; padding-top: 1em; }
 .playGrid > .gridPlayer1  { grid-area: player1; }
 .playGrid > .gridPlayer2  { grid-area: player2; }
 .playGrid > .gridPlayer3  { grid-area: player3; }

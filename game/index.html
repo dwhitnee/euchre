@@ -73,7 +73,7 @@
              :style="getCardStyle( playedCards[i].id )"></div>
         <div v-else class="unplayed playingCard"></div>
       </div>
-      <div class="turnIndicator">
+      <div class="turnIndicator" v-if="game.cardsDealt">
         <div class="arrow" :style="arrowRotation()"></div>
       </div>
     </div>

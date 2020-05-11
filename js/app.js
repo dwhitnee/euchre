@@ -25,7 +25,6 @@ let app = new Vue({
     version: 1,
     saveInProgress: false,
 
-    canDeal: false,  // functions, computed?
     canPickUp: false,
     canTurnDown: false,
     playedCard: undefined,
@@ -116,13 +115,13 @@ let app = new Vue({
 
     //----------------------------------------
     weAreDealer: function() {
-      return this.playerId == this.game.cardsDealt;
+      return this.playerId == this.game.dealerId;
     },
 
     //----------------------------------------
     // Four players and no cards and haven't dealt yet.
     timeToDeal: function() {
-      return (this.numPlayers == 4) && (this.game.deck.length == 0);
+      return (this.numPlayers == 4) && !this.game.cardsDealt;
     },
 
     //----------------------------------------
