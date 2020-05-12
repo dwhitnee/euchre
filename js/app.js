@@ -23,6 +23,7 @@ let app = new Vue({
   data: {
     gameDataReady: false,          // wait to load the page
     saveInProgress: false,
+    message: "",
 
     playedCard: undefined,
     movingCard: undefined,
@@ -126,7 +127,7 @@ let app = new Vue({
     // The potential trump
     upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
     trickWinnerName: function() {
-      if (this.game.trickWinner) {
+      if (this.game.trickWinner !== undefined) {
         return this.game.players[this.game.trickWinner].name;
       } else {
         return undefined;
@@ -535,12 +536,18 @@ let app = new Vue({
         if (this.followsSuit( playedCard ) ||
             this.playerIsVoid( this.leadCard, this.game.trumpSuit ))
         {
+          // finally play card
           this.game.playedCardIds[this.playerId] = playedCard.id;
           this.nextPlayer();
+          this.message = "";
+
         } else {
-          // display error message on screen, explain right bower? FIXME
-          alert("The " + this.leadCard.toString() +
-                " was lead. You must follow suit if you can");
+          // bad card played
+          this.message = "The " + this.leadCard.toString() +
+                " was lead. You must follow suit if you can.";
+          setTimeout(() => { this.message = ""; }, 5000);
+          // setInterval(() => { this.updateFromServer();}, 2000);
+
           // put card back and exit
           this.game.playedCardIds[this.playerId] = null;
           return;
@@ -550,8 +557,6 @@ let app = new Vue({
       // take card out of hand
       let cards = this.game.players[this.playerId].cardIds;
       cards.splice( cards.indexOf( playedCard.id), 1);
-
-      // trickOver is taken care of in game state
 
       try {
         this.saveInProgress = true;
@@ -572,8 +577,6 @@ let app = new Vue({
         await this.updateFromServer();
       };
       this.saveInProgress = false;
-
-      // this.$forceUpdate();   // need this so computed values update
     },
 
     //----------------------------------------

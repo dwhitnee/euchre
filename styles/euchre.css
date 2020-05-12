@@ -245,12 +245,25 @@ button.join {
   left: -3.5em;
 }
 
+.winner.message {
+  background: none;
+}
+
 .message {
   position: absolute;
   z-index: 10;
   font-weight: bold;
   text-shadow: 1px 2px lightgrey;
+  background: lightgrey;
+  border-radius: .25em;
+  padding: 0 .5em;
+  opacity: 75%;
 }
+
+/* text fade in/out effects */
+.fade-enter-active,.fade-leave-active {  transition: opacity 1s; }
+.fade-enter,.fade-leave-to  {  opacity: 0  }
+
 
 .arrow {
   width: 3em;
