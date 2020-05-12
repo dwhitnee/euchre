@@ -125,7 +125,13 @@ let app = new Vue({
     trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
     // The potential trump
     upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
-
+    trickWinnerName: function() {
+      if (this.game.trickWinner) {
+        return this.game.players[this.game.trickWinner].name;
+      } else {
+        return undefined;
+      }
+    },
     // first card in trick
     leadCard: function() {
       let leadCard = this.game.playedCardIds[this.game.leadPlayerId];
@@ -530,10 +536,11 @@ let app = new Vue({
             this.playerIsVoid( this.leadCard, this.game.trumpSuit ))
         {
           this.game.playedCardIds[this.playerId] = playedCard.id;
+          this.nextPlayer();
         } else {
           // display error message on screen, explain right bower? FIXME
-          alert("Lead card was " + this.leadCard.toString() +
-                ". You must follow suit if you can");
+          alert("The " + this.leadCard.toString() +
+                " was lead. You must follow suit if you can");
           // put card back and exit
           this.game.playedCardIds[this.playerId] = null;
           return;
@@ -543,7 +550,6 @@ let app = new Vue({
       // take card out of hand
       let cards = this.game.players[this.playerId].cardIds;
       cards.splice( cards.indexOf( playedCard.id), 1);
-      this.nextPlayer();
 
       // trickOver is taken care of in game state
 

@@ -29,6 +29,33 @@ function getShuffledDeck() {
   return cards;
 }
 
+//----------------------------------------
+// If 4 cards where played, which card is highest
+// @return winning playerId or undefined if any card is null
+//----------------------------------------
+function determineTrickWinner( cardIds, trumpSuit ) {
+  let highestId = 0;
+  let highestCard = undefined;
+
+  if (!cardIds[0]) {
+    return undefined;
+  } else {
+    highestCard = Card.fromId( cardIds[0] );
+    highestId = 0;
+  }
+
+  for (let i=1; i < 4; i++) {
+    if (!cardIds[i]) {
+      return undefined;
+    }
+    let card = Card.fromId( cardIds[i] );
+    if (card.isBetterThan( highestCard, trumpSuit )) {
+      highestCard = card;
+      highestId = i;
+    }
+  }
+  return highestId;
+}
 
 module.exports = {
 
@@ -209,11 +236,11 @@ module.exports = {
         game.playerTurn = (game.playerTurn + 1) % 4;
 
         // FIXME, check for end of trick
-        // if (isEndOfTrick) {
-        //   game.trickIsOver = true;
-        //   game.trickWinner = foo();
-        //   game.playerTurn = trickWinner
-        // }
+        let winner = determineTrickWinner( game.playedCardIds, game.trumpSuit );
+        if (winner !== undefined) {
+          game.trickWinner = winner;   // does takeTrick reset this?
+          game.playerTurn = winner;
+        }
       }
 
       thomas.updateGame( game, function( err, response ) {
