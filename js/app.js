@@ -579,6 +579,7 @@ let app = new Vue({
       if (this.playerId == this.game.dealerId) {
         // animate turning down card?  FIXME
         alert("Turning down card");
+        this.game.playedCardIds[this.game.dealerId] = null;  // poof
       }
 
       this.nextPlayer();   // this is visual only, real state is on server

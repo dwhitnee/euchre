@@ -55,10 +55,10 @@ class Card {
     let thisSuit = this.suit;
 
     if (card.isLeftBower( trumpSuit )) {
-      cardSuit = Card.leftSuits[trumpSuit];
+      cardSuit = Card.leftSuits[cardSuit];
     }
     if (this.isLeftBower( trumpSuit )) {
-      thisSuit = Card.leftSuits[trumpSuit];
+      thisSuit = Card.leftSuits[thisSuit];
     }
 
     return (thisSuit == cardSuit);
