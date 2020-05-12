@@ -47,16 +47,21 @@ class Card {
       (this.rankName === "Jack");
   }
 
-  // compare suits, also check if lead card was the left bower indicating
+  // compare suits, also check if either card is the left bower indicating
   // it's really the other suit of the same color
-  isSameSuitAsLeadCard( card, trumpSuit ) {
-    // What suit is lead card really?
-    let leadSuit = card.suit;
+  isSameSuitAs( card, trumpSuit ) {
+    // What suit is each card really?
+    let cardSuit = card.suit;
+    let thisSuit = this.suit;
+
     if (card.isLeftBower( trumpSuit )) {
-      leadSuit = Card.leftSuits[trumpSuit];
+      cardSuit = Card.leftSuits[trumpSuit];
+    }
+    if (this.isLeftBower( trumpSuit )) {
+      thisSuit = Card.leftSuits[trumpSuit];
     }
 
-    return (this.suit == leadSuit);
+    return (thisSuit == cardSuit);
   }
 
   /**

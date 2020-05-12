@@ -33,6 +33,8 @@
     <div class="gridGameInfo" style="display:block;">
       <div class="title">Euchre</div>
       <small v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</small>
+      <small v-if="trumpSuit" class="text-muted">{{ trumpSuit }} are trump</small>
+
     </div>
 
     <div class="playerName gridPlayer1">

@@ -117,10 +117,22 @@ let app = new Vue({
     //----------------------------------------
     bidding: function() { return this.game.cardsDealt && this.game.bidding; },
     ourTurn: function() { return this.playerId == this.game.playerTurn; },
-    canPickUp: function() { return this.game.bidding && this.upCard(); },
+    canPickUp: function() { return this.game.bidding && this.upCard; },
     weAreDealer: function() { return this.playerId == this.game.dealerId; },
     timeToDeal: function() {
       return (this.numPlayers == 4) && !this.game.cardsDealt;
+    },
+    trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
+    // The potential trump
+    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
+
+    // first card in trick
+    leadCard: function() {
+      let leadCard = this.game.playedCardIds[this.game.leadPlayerId];
+      if (leadCard) {
+        return Card.fromId( leadCard );
+      }
+      return undefined;
     },
 
     // logic to trigger trick winner and reset to next hand
@@ -262,24 +274,23 @@ let app = new Vue({
     isGameLoaded()   { return this.game; },
     isPlayerInGame() { return this.playerId !== undefined; },
 
-    // Potential trump
-    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
-    // first card in trick
-    leadCard: function() {
-      let leadCard = this.game.playedCardIds[this.game.leadPlayerId];
-      if (leadCard) {
-        return Card.fromId( leadCard );
-      }
-      return undefined;
-    },
-
     // Is card the same suit as what was lead or is it the first card.
     followsSuit: function( card ) {
-      if (this.leadCard()) {
-        return card.isSameSuitAsLeadCard( this.leadCard, this.game.trumpSuit );
+      if (this.leadCard) {
+        return card.isSameSuitAs( this.leadCard, this.game.trumpSuit );
       } else {
         return true;   // no cards played yet
       }
+    },
+    playerIsVoid( suit ) {
+      let haveSuit = false;
+      this.cards.forEach(
+        card => { if (card.suit == suit) { haveSuit = true; }});
+
+      if (!haveSuit) {
+        console.log("Player is void in " + Card.suitNames[suit]);
+      }
+      return !haveSuit;
     },
 
     // [0, n)
@@ -477,7 +488,7 @@ let app = new Vue({
     // drop a card on table.
     // o Can only play on your turn IFF you have not already played
     // o if dealer has 6 then only they can play and it's discarded.
-    // o Card must follow lead suit
+    // o Card must follow lead suit unless void
     // o bidding must be over
     // If trick is done, determine winner (let server figure it out?)
     //----------------------------------------
@@ -510,12 +521,14 @@ let app = new Vue({
       if (discarding) {
         this.game.playedCardIds[this.playerId] = null;
       } else {
-        // check for following lead suit
-        if (this.followsSuit( playedCard )) {
+        // check for proper following card (follow suit if possible)
+        if (this.followsSuit( playedCard ) ||
+            this.playerIsVoid( this.leadCard.suit ))
+        {
           this.game.playedCardIds[this.playerId] = playedCard.id;
         } else {
           // display error message on screen, explain right bower? FIXME
-          alert("Lead card was " + this.leadCard().toString() +
+          alert("Lead card was " + this.leadCard.toString() +
                 ". You must follow suit if you can");
           // put card back and exit
           this.game.playedCardIds[this.playerId] = null;
