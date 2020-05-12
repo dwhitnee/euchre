@@ -105,8 +105,20 @@ module.exports = {
       TableName : tableName,
       Item: game
     };
-    dbParams.Item.id = game.id;   // PK, createdDate is Range Key
+    dbParams.Item.id = game.id;   // PK
     dbParams.Item.updatedDate = now.toISOString();
+
+    // optimistic locking  TEST ME
+    // Make sure version # has not been incremented since last read
+    if (game.version) {
+      dbParams.ConditionExpression = "version = :oldVersion";
+      dbParams.ExpressionAttributeValues = {
+        ":oldVersion" : game.version
+      };
+      game.version++;   // write new version of data
+    } else {
+      game.version = 1;   // first write
+    }
 
     if (!dbParams.Item.createdDate) {
       dbParams.Item.createdDate = now.toISOString();  // can't update keys

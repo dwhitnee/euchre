@@ -21,22 +21,17 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    gameDataReady: false,
-    version: 1,
+    gameDataReady: false,          // wait to load the page
     saveInProgress: false,
 
-    canPickUp: false,
-    canTurnDown: false,
     playedCard: undefined,
     movingCard: undefined,
-    gameOver: false,
 
     isSpectator: true,
     spectatorName: "",
     spectatorNameTmp: "",
+    playerId: undefined, // Loaded from game cookie, who user is
 
-    playerId: undefined, // Loaded from game cookie
-    playerTurn: 0,
     // game data from server, players are in NESW/0123 order
     // player 0 is at the bottom
     game: undefined,
@@ -113,15 +108,40 @@ let app = new Vue({
       }
     },
 
-    //----------------------------------------
-    weAreDealer: function() {
-      return this.playerId == this.game.dealerId;
+    dealerName: function() {
+      return this.game.players[this.game.dealerId].name;
     },
 
     //----------------------------------------
-    // Four players and no cards and haven't dealt yet.
+    // lots of state
+    //----------------------------------------
+    bidding: function() { return this.game.cardsDealt && this.game.bidding; },
+    ourTurn: function() { return this.playerId == this.game.playerTurn; },
+    canPickUp: function() { return this.game.bidding && this.upCard; },
+    weAreDealer: function() { return this.playerId == this.game.dealerId; },
     timeToDeal: function() {
       return (this.numPlayers == 4) && !this.game.cardsDealt;
+    },
+    trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
+    // The potential trump
+    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
+
+    // first card in trick
+    leadCard: function() {
+      let leadCard = this.game.playedCardIds[this.game.leadPlayerId];
+      if (leadCard) {
+        return Card.fromId( leadCard );
+      }
+      return undefined;
+    },
+
+    // logic to trigger trick winner and reset to next hand
+    trickOver: function() {
+      let cardsPlayed = 0;
+      this.game.playedCardIds.forEach(
+        card => { if (card != null) { cardsPlayed++; }});
+
+      return cardsPlayed == 4;
     },
 
     //----------------------------------------
@@ -243,19 +263,41 @@ let app = new Vue({
   beforeCreate: function() {
   },
 
-  watch: {
-    // turn: {
-    // },
-  },
-
-  // event handlers accessible from the web page
+  //----------------------------------------------------------------------
+  // event handlers and other fns accessible from the web page
+  //----------------------------------------------------------------------
   methods: {
 
     //----------------------------------------
     //----------------------------------------
     // methods to determine how much to show
-    isGameLoaded() {   return this.game; },
+    isGameLoaded()   { return this.game; },
     isPlayerInGame() { return this.playerId !== undefined; },
+
+    // Is card the same suit as what was lead or is it the first card.
+    followsSuit: function( card ) {
+      if (this.leadCard) {
+        return card.isSameSuitAs( this.leadCard, this.game.trumpSuit );
+      } else {
+        return true;   // no cards played yet
+      }
+    },
+    // see if we have any cards of the lead suit, including the left bower
+    playerIsVoid( leadCard, trumpSuit ) {
+      let haveSuit = false;
+      this.cards.forEach( card => {
+        if (card.isSameSuitAs( leadCard, trumpSuit )) {
+          haveSuit = true;
+        }});
+
+      if (!haveSuit) {
+        console.log("Player is void in " + Card.suitNames[leadCard.suit]);
+      }
+      return !haveSuit;
+    },
+
+    // [0, n)
+    random: function( max ) { return Math.floor(max * Math.random());  },
 
     //----------------------------------------
     // get actual playerId from seatId
@@ -266,6 +308,93 @@ let app = new Vue({
       return playerId == this.game.dealerId;
     },
 
+    nextPlayer: function() {
+      this.game.playerTurn = (this.game.playerTurn+1)%4;
+    },
+
+    //----------------------------------------
+    // point at who's up, account for seat locations
+    //----------------------------------------
+    arrowRotation: function() {
+      let angle = -135 + (90* this.getSeatForPlayer( this.game.playerTurn ));
+      return "transform: rotate(" + angle + "deg";
+    },
+
+    getCardStyle: function( id ) {
+      let face = "";
+
+      if (id) {
+        let card = Card.fromId( id );
+        face = "background-position: " + this.getCardFaceStyle( card );
+      }
+
+      let entropy =  "transform: rotate(" + (this.random(10)-5) + "deg";
+      return entropy + ";" + face;
+    },
+
+    //----------------------------------------
+    // sprite: http://www.milefoot.com/math/discrete/counting/images/cards.png
+    //----------------------------------------
+    getCardFaceStyle: function( card ) {
+      let height = 98;
+      let width = 73;
+      let suitRows = [Card.suits.Clubs, Card.suits.Spades,
+                      Card.suits.Hearts,Card.suits.Diamonds];
+
+      let border=2;  // css border 1px
+      return -(width*(card.rank-1) + border) + "px " +
+             -(height*suitRows[card.suit] + border) + "px";
+    },
+
+    //----------------------------------------
+    // View is from current player's perspective,
+    // but playerId's are absolute NESW (0,1,2,3)
+    // p = s+p0, s = p-p0
+    // i.e., if playerId is 0, then seatId's match playerId
+    //----------------------------------------
+    getPlayerInSeat: function( seatId ) {
+      return (seatId + this.playerId) % 4;},
+    getSeatForPlayer: function( playerId ) {
+      return (4 + (playerId - this.playerId)) % 4;
+    },
+
+
+    //----------------------------------------------------------------------
+    // DRAGGING
+    //----------------------------------------------------------------------
+    //----------------------------------------
+    // attach card to drag event
+    //----------------------------------------
+    dragCardStart: function( card, event ) {
+      this.movingCard = card;
+      event.dataTransfer.setData("card", JSON.stringify( card ));
+
+      // event.target.style.opacity = '0.2';
+      console.log("Dragging the " + card);
+    },
+
+    //----------------------------------------
+    // remove card from old place, swpa with target card
+    //----------------------------------------
+    moveCard: function( overCard, event ) {
+      if (this.movingCard === overCard) {
+        return;   // draggin over ourselves
+      }
+      console.log("Swapping " + this.movingCard + " with " + overCard );
+
+      let cards = this.game.players[this.playerId].cardIds;
+      let a = cards.indexOf( this.movingCard.id );
+      let b = cards.indexOf( overCard.id );
+      // ES6 magic swapping
+      [cards[a], cards[b]] = [cards[b], cards[a]];
+
+      this.$forceUpdate();   // need this so computed values update
+    },
+
+
+    //----------------------------------------------------------------------
+    // SERVER CALLS
+    //----------------------------------------------------------------------
     //----------------------------------------
     // See what's changed in the wide world
     //----------------------------------------
@@ -296,111 +425,6 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // See what's changed in the wide world
-    // FIXME, this shouldn't be here, should be server-side
-    //----------------------------------------
-    async saveToServer() {
-      this.saveInProgress = true;          // spinny mode
-
-      try {
-        let response = await fetch( serverURL + "updateGame",
-                                    Util.makeJsonPostParams({
-                                      game: this.game
-                                    }));
-        if (!response.ok) { throw await response.json(); }
-      }
-      catch( err ) {
-        console.error("Game update failed: " + JSON.stringify( err ));
-        alert("Game update failed " + Util.sadface + (err.message || err));
-      };
-
-      this.saveInProgress = false;          // leave spinny mode
-    },
-
-
-    showCards: function() {
-      this.cards;//???
-    },
-
-    // [0, n)
-    random: function( max ) {
-      return Math.floor( Math.random() * Math.floor(max) );
-    },
-
-    //----------------------------------------
-    // point at who's up, account for seat locations
-    //----------------------------------------
-    arrowRotation: function() {
-
-      let angle = -45 + (90* this.getSeatForPlayer( this.playerTurn ));
-      return "transform: rotate(" + angle + "deg";
-    },
-
-    getCardStyle: function( id ) {
-      let face = "";
-
-      if (id) {
-        let card = Card.fromId( id );
-        face = "background-position: " + this.getCardFaceStyle( card );
-      }
-
-      let entropy =  "transform: rotate(" + (this.random(10)-5) + "deg";
-      return entropy + ";" + face;
-    },
-
-    //----------------------------------------
-    // sprite: http://www.milefoot.com/math/discrete/counting/images/cards.png
-    //----------------------------------------
-    getCardFaceStyle: function( card ) {
-      let height = 98;
-      let width = 73;
-      let suitRows = [Card.suits.Clubs, Card.suits.Spades,
-                      Card.suits.Hearts,Card.suits.Diamonds];
-
-      let border=2;  // css border 1px
-      return -(width*(card.rank-1) + border) + "px " +
-             -(height*suitRows[card.suit] + border) + "px";
-    },
-
-
-    // ask server to generate game id, we are Player One
-    // If no gameId, come here?
-    startGame: function() {
-
-    },
-
-    //----------------------------------------
-    // enter existing game, we are Player n+1
-    // FIXME - this should happen server side.
-    //----------------------------------------
-    joinLocallyHack: function( seatId ) {
-      let playerId = (seatId + this.playerId) % 4;
-      console.log("Joining as " + this.spectatorName + " at spot #" + playerId);
-      this.game.players[playerId].name = this.spectatorName;
-      this.playerId = playerId;
-
-      let playerData = Util.getCookie("player");
-      playerData[this.gameId] = playerId;
-      Util.setCookie("player", playerData );
-
-      this.isSpectator = false;
-      this.saveToServer();
-    },
-
-    //----------------------------------------
-    // View is from current player's perspective,
-    // but playerId's are absolute NESW (0,1,2,3)
-    // i.e., if playerId is 0, then seatId's match playerId
-    //----------------------------------------
-    getPlayerInSeat: function( seatId ) {
-      return (seatId + this.playerId) % 4;
-    },
-
-    getSeatForPlayer: function( playerId ) {
-      return (4- (playerId + this.playerId)) % 4;
-    },
-
-    //----------------------------------------
     // enter existing game, we are Player n+1
     //----------------------------------------
     async join( seatId ) {
@@ -416,9 +440,7 @@ let app = new Vue({
           name: this.spectatorName
         };
         let response = await fetch( serverURL + "deal",
-                                    Util.makeJsonPostParams({
-                                      gameId: this.gameId
-                                    }));
+                                    Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
         let playerData = Util.getCookie("player");
@@ -438,12 +460,16 @@ let app = new Vue({
     },
 
     //----------------------------------------
+    // deal
     //----------------------------------------
     async dealCards() {
       try {
+        this.saveInProgress = true;
+
         console.log("Dealing: asking server to issue new cards");
 
         // animate?  FIXME  - make cards fly around until game load?
+        // start an async aimation but dont await it
 
         let response = await fetch( serverURL + "deal",
                                     Util.makeJsonPostParams({
@@ -451,61 +477,158 @@ let app = new Vue({
                                     }));
         if (!response.ok) { throw await response.json(); }
 
+        await this.updateFromServer();
         // stop animating  FIXME
       }
       catch( err ) {
         console.error("Deal failed: " + JSON.stringify( err ));
         alert("Dealing cards failed " + Util.sadface + (err.message || err));
       };
+      this.saveInProgress = false;
     },
 
     //----------------------------------------
-    // attach card to drag event
+    // drop a card on table.
+    // o Can only play on your turn IFF you have not already played
+    // o if dealer has 6 then only they can play and it's discarded.
+    // o Card must follow lead suit unless void
+    // o bidding must be over
+    // If trick is done, determine winner (let server figure it out?)
     //----------------------------------------
-    dragCardStart: function( card, event ) {
-      this.movingCard = card;
-      event.dataTransfer.setData("card", JSON.stringify( card ));
-
-      // event.target.style.opacity = '0.2';
-      console.log("Dragging the " + card);
-    },
-
-    //----------------------------------------
-    // remove card from old place, swpa with target card
-    //----------------------------------------
-    moveCard: function( overCard, event ) {
-      if (this.movingCard === overCard) {
-        return;   // draggin over ourselves
-      }
-      console.log("Swapping " + this.movingCard + " with " + overCard );
-
-      let cards = this.game.players[this.playerId].cardIds;
-      let a = cards.indexOf( this.movingCard.id );
-      let b = cards.indexOf( overCard.id );
-      // ES6 magic swapping
-      [cards[a], cards[b]] = [cards[b], cards[a]];
-
-      this.$forceUpdate();   // need this so computed values update
-    },
-
-    //----------------------------------------
-    // drop a card on table
-    // tell server
-    //----------------------------------------
-    playCard: function( event ) {
+    async playCard( event ) {
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
-      if (card) {
-        this.game.playedCardIds[this.playerId] = this.movingCard.id;
-        let cards = this.game.players[this.playerId].cardIds;
-        cards.splice( cards.indexOf(this.movingCard.id), 1);
-        this.movingCard = undefined;
-        this.$forceUpdate();   // need this so computed values update
+      if (!card) {
+        console.error("No card played: "+ JSON.stringify( event.dataTransfer));
+        return;
       }
+      let playedCard = this.movingCard;
+      this.movingCard = undefined;
+
+      let discarding = this.weAreDealer && this.game.dealerMustDiscard;
+
+      // Is a play allowed now?
+      if (!discarding) {
+        if ((this.game.playedCardIds[this.playerId]) ||  // play one card
+            (this.playerId !== this.game.playerTurn) ||  // on your turn
+            this.game.dealerMustDiscard ||               // waiting for dealer
+            this.game.bidding)                           // while hand is going
+        {
+          // A misplay here should be self evident to user
+          console.log("Can't play a card right now");
+          return;
+        }
+      }
+
+      // the rest is visual-only, real state is on server
+
+      if (discarding) {
+        this.game.playedCardIds[this.playerId] = null;
+      } else {
+        // check for proper following card (follow suit if possible)
+        if (this.followsSuit( playedCard ) ||
+            this.playerIsVoid( this.leadCard, this.game.trumpSuit ))
+        {
+          this.game.playedCardIds[this.playerId] = playedCard.id;
+        } else {
+          // display error message on screen, explain right bower? FIXME
+          alert("Lead card was " + this.leadCard.toString() +
+                ". You must follow suit if you can");
+          // put card back and exit
+          this.game.playedCardIds[this.playerId] = null;
+          return;
+        }
+      }
+
+      // take card out of hand
+      let cards = this.game.players[this.playerId].cardIds;
+      cards.splice( cards.indexOf( playedCard.id), 1);
+      this.nextPlayer();
+
+      // trickOver is taken care of in game state
+
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+          cardId: playedCard.id
+        };
+        let response = await fetch( serverURL + "playCard",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("playCard failed: " + JSON.stringify( err ));
+        alert("Try again. Card play failed " + Util.sadface + (err.message || err));
+        await this.updateFromServer();
+      };
+      this.saveInProgress = false;
+
+      // this.$forceUpdate();   // need this so computed values update
     },
 
-    pickUpCard: function() {
+    //----------------------------------------
+    // pass
+    //----------------------------------------
+    async pass() {
+      // if this is the dealer, turn down the card
+
+      if (this.playerId == this.game.dealerId) {
+        // animate turning down card?  FIXME
+        alert("Turning down card");
+        this.game.playedCardIds[this.game.dealerId] = null;  // poof
+      }
+
+      this.nextPlayer();   // this is visual only, real state is on server
+
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+        };
+        let response = await fetch( serverURL + "pass",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Join failed: " + JSON.stringify( err ));
+        alert("Try again. Join failed " + Util.sadface + (err.message || err));
+      };
+
+      this.saveInProgress = false;
     },
+
+    //----------------------------------------
+    // put up card in dealer's hand.  Bidding is over, start playing
+    //----------------------------------------
+    async pickUpCard() {
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+        };
+        let response = await fetch( serverURL + "pickItUp",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Pickup failed: " + JSON.stringify( err ));
+        alert("Try again. Pickup failed " + Util.sadface + (err.message || err));
+      };
+
+      this.saveInProgress = false;
+    },
+
+
     turnDownCard: function() {
     },
     takeTrick: function() {
@@ -515,28 +638,6 @@ let app = new Vue({
       // use tmp or else page updates as soon as first key is pressed
       this.spectatorName = this.spectatorNameTmp;
       Util.setCookie("name", this.spectatorNameTmp.trim());
-    },
-
-    // Update local name, save to cookie, update name in Game as well?
-    setPlayerNameLocalHack: function(event) {
-      event.target.blur();  // done editing
-
-      if (this.isSpectator) {
-        console.log("Nice try");
-        event.target.innerHTML = this.playerName;
-        return;
-      }
-
-      let playerName = event.target.innerHTML.trim();
-
-      // onl udpate if changed
-      if (this.game.players[this.playerId].name != playerName) {
-        Util.setCookie("name", playerName );
-        this.game.players[this.playerId].name = playerName;
-        console.log( playerName + " saved to cookie" );
-
-        this.saveToServer();
-      }
     },
 
     //----------------------------------------

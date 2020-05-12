@@ -97,6 +97,136 @@ module.exports = {
     });
   },
 
+
+  //----------------------------------------------------------------------
+  // Pass to next player
+  //----------------------------------------------------------------------
+  pass: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+      console.log( params.playerId + "Passes ");
+      game.playerTurn = (game.playerTurn + 1 ) % 4;
+
+      if (params.playerId == game.dealerId) {
+        game.playedCardIds[game.dealerId] = null;
+      }
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
+    });
+  },
+
+  //----------------------------------------------------------------------
+  // Tell dealer to pick up card, playerId has called trump, set leader
+  // FIXME: can this double for callTrumpSuit?
+  //----------------------------------------------------------------------
+  pickItUp: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+      console.log( params.playerId + " orders it up");
+
+      // take up-card
+      let upCardId = game.playedCardIds[game.dealerId];
+      game.playedCardIds[game.dealerId] = null;
+
+      // declare trump suit
+      game.trumpCallerId = parseInt( params.playerId );
+      game.trumpSuit = Card.fromId( upCardId ).suit;   // id
+
+      // put card in dealer's hand
+      game.players[game.dealerId].cardIds.push( upCardId );
+      game.dealerMustDiscard = true;
+
+      // play will start at dealer's left
+      game.playerTurn = (game.dealerId + 1) % 4;
+      game.leadPlayerId = game.playerTurn;     // need this to check trick
+
+      // bidding isn't technically over because dealer still needs to discard
+      game.bidding = false;
+
+      // FIXME: how to proceed with dealer an their extra card:
+      //   new fn discard(), or special case of playCard?
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
+    });
+  },
+
+  //----------------------------------------------------------------------
+  // Move card from player's hand to table. Check for legality and trick ending
+  // special case for discarding 6th card from dealer's hand at beginning.
+  //----------------------------------------------------------------------
+  playCard: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+    if (!message.verifyParam( request, callback, "cardId")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+      console.log( params.playerId + " played card " + params.cardId );
+
+      // special case for dealer discard after pickItUp
+      let discarding =
+          (game.players[game.dealerId].cardIds.length == 6) &&
+          (params.playerId == game.dealerId);
+
+      if (!discarding) {
+        if ((game.playedCardIds[params.playerId]) ||    // already played
+            (params.playerId !== game.playerTurn) ||    // not her turn
+            game.bidding)                        // not playing yet
+        {
+          callback("Can't play a card now"); // doh! fail
+        }
+      }
+
+      // remove card from player's hand
+      let cards = game.players[params.playerId].cardIds;
+      cards.splice( cards.indexOf(params.cardId), 1);
+
+      if (discarding) {
+        game.dealerMustDiscard = false;
+
+      } else {      // play card
+        // FIXME, ensure player followed suit - can be done client side
+        let leadCard = game.playedCardIds[game.leadPlayerId];
+        // checkForFollowingSuit( leadCard, cardId, cards )
+
+        // put card on table
+        game.playedCardIds[params.playerId] = params.cardId;
+
+        // next player's turn
+        game.playerTurn = (game.playerTurn + 1) % 4;
+
+        // FIXME, check for end of trick
+        // if (isEndOfTrick) {
+        //   game.trickIsOver = true;
+        //   game.trickWinner = foo();
+        //   game.playerTurn = trickWinner
+        // }
+      }
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
+    });
+  },
+
+
+
+
+
+
   /*
   //----------------------------------------------------------------------
   // same logic as joining, on the back end, just putting a name in a slot

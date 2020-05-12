@@ -141,7 +141,9 @@ a.button.disabled {
 
 .playGrid > .gridGameInfo { grid-area: info; }
 .playGrid > .gridPlayer0  { grid-area: player0;
-                            border-top: 3px solid; padding-top: 1em; }
+  border-top: 3px solid;
+  padding-top: 1em;
+}
 .playGrid > .gridPlayer1  { grid-area: player1; }
 .playGrid > .gridPlayer2  { grid-area: player2; }
 .playGrid > .gridPlayer3  { grid-area: player3; }
@@ -165,11 +167,11 @@ a.button.disabled {
 }
 
 .buttons {
-  grid-column: 1 / 3;  // useless?
-  grid-row: 4;
-  display: flex;
-  justify-content: bottom;
-  align-items: bottom;
+  padding-left: 2em;
+  display: grid;
+}
+.buttons button {
+  margin-bottom: .25em;
 }
 
 .withBorder {
@@ -227,8 +229,6 @@ a.button.disabled {
   color: lightblue;
 }
 
-
-
 .lobby button,
 .lobby h3 {
   margin-top: 2em;
@@ -250,33 +250,4 @@ button.join {
   height: 3em;
   border: .75em solid #33a532;
   border-radius: 0 50% 50% 50%;
-  transform: rotate( 45deg );
-}
-
-.arrow-pointer {
-  width: 250px;
-  height: 50px;
-  background: #32557f;
-  position: relative;
-
-  &:after {
-    content: '';
-    position: absolute;
-    left: 0; bottom: 0; width: 0; height: 0;
-    border-left: 25px solid #7eb4e2;
-    border-top: 25px solid transparent;
-    border-bottom: 25px solid transparent;
-  }
-
-  &:before {
-    content: '';
-    position: absolute;
-    right: -25px;
-    bottom: 0;
-    width: 0;
-    height: 0;
-    border-left: 25px solid #32557f;
-    border-top: 25px solid transparent;
-    border-bottom: 25px solid transparent;
-  }
 }

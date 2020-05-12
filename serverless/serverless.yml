@@ -108,7 +108,6 @@ functions:
           cors: true
 
 
-
   joinGame:
     handler: gameLogic.joinGame
     description: Join "gameId", add "playerName" to it.
@@ -136,18 +135,35 @@ functions:
           method: post
           cors: true
 
+  pass:
+    handler: gameLogic.pass
+    description: Next player's turn
+    events:
+      - http:
+          path: pass
+          method: post
+          cors: true
 
-# startGame?dealer (zero score, pick first dealer)
+  pickItUp:
+    handler: gameLogic.pickItUp
+    description: Call trump suit and put up card in dealer's hand
+    events:
+      - http:
+          path: pickItUp
+          method: post
+          cors: true
 
-# shuffleAndDeal (start a round)
+  playCard:
+    handler: gameLogic.playCard
+    description: Play a card on the table. Handles game rules/trick ending
+    events:
+      - http:
+          path: playCard
+          method: post
+          cors: true
 
-# pass?playerId
 
 # chooseTrumpSuit?suit/player  have dealer pick up, or lead playCard
-
-# pickUpCard?hand[] (change players cards, lead playCard)
-
-# playCard?cards[] (until 4 cards played, assert order?)
 
 # takeTrick (update trick count, assign lead to playCard
 #         unless 5 tricks then change delaer and shuffleAndDeal)
