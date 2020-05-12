@@ -282,13 +282,16 @@ let app = new Vue({
         return true;   // no cards played yet
       }
     },
-    playerIsVoid( suit ) {
+    // see if we have any cards of the lead suit, including the left bower
+    playerIsVoid( leadCard, trumpSuit ) {
       let haveSuit = false;
-      this.cards.forEach(
-        card => { if (card.suit == suit) { haveSuit = true; }});
+      this.cards.forEach( card => {
+        if (card.isSameSuitAs( leadCard, trumpSuit )) {
+          haveSuit = true;
+        }});
 
       if (!haveSuit) {
-        console.log("Player is void in " + Card.suitNames[suit]);
+        console.log("Player is void in " + Card.suitNames[leadCard.suit]);
       }
       return !haveSuit;
     },
@@ -502,12 +505,13 @@ let app = new Vue({
       let playedCard = this.movingCard;
       this.movingCard = undefined;
 
-      let discarding = this.weAreDealer && (this.cards.length == 6);
+      let discarding = this.weAreDealer && this.game.dealerMustDiscard;
 
       // Is a play allowed now?
       if (!discarding) {
         if ((this.game.playedCardIds[this.playerId]) ||  // play one card
             (this.playerId !== this.game.playerTurn) ||  // on your turn
+            this.game.dealerMustDiscard ||               // waiting for dealer
             this.game.bidding)                           // while hand is going
         {
           // A misplay here should be self evident to user
@@ -523,7 +527,7 @@ let app = new Vue({
       } else {
         // check for proper following card (follow suit if possible)
         if (this.followsSuit( playedCard ) ||
-            this.playerIsVoid( this.leadCard.suit ))
+            this.playerIsVoid( this.leadCard, this.game.trumpSuit ))
         {
           this.game.playedCardIds[this.playerId] = playedCard.id;
         } else {

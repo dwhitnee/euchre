@@ -33,7 +33,7 @@
     <div class="gridGameInfo" style="display:block;">
       <div class="title">Euchre</div>
       <small v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</small>
-      <small v-if="trumpSuit" class="text-muted">{{ trumpSuit }} are trump</small>
+      <small v-if="trumpSuit">Playing<b> {{ trumpSuit }}</b></small>
 
     </div>
 
@@ -76,6 +76,7 @@
         <div v-else class="unplayed playingCard"></div>
       </div>
       <div class="turnIndicator" v-if="game.cardsDealt">
+        <b v-if="game.dealerMustDiscard">Waiting for dealer to discard</b>
         <div class="arrow" :style="arrowRotation()"></div>
       </div>
     </div>

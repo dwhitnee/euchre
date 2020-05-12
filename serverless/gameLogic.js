@@ -144,6 +144,7 @@ module.exports = {
 
       // put card in dealer's hand
       game.players[game.dealerId].cardIds.push( upCardId );
+      game.dealerMustDiscard = true;
 
       // play will start at dealer's left
       game.playerTurn = (game.dealerId + 1) % 4;
@@ -193,8 +194,10 @@ module.exports = {
       let cards = game.players[params.playerId].cardIds;
       cards.splice( cards.indexOf(params.cardId), 1);
 
-      // play card
-      if (!discarding) {
+      if (discarding) {
+        game.dealerMustDiscard = false;
+
+      } else {      // play card
         // FIXME, ensure player followed suit - can be done client side
         let leadCard = game.playedCardIds[game.leadPlayerId];
         // checkForFollowingSuit( leadCard, cardId, cards )
