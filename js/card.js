@@ -47,6 +47,18 @@ class Card {
       (this.rankName === "Jack");
   }
 
+  // compare suits, also check if lead card was the left bower indicating
+  // it's really the other suit of the same color
+  isSameSuitAsLeadCard( card, trumpSuit ) {
+    // What suit is lead card really?
+    let leadSuit = card.suit;
+    if (card.isLeftBower( trumpSuit )) {
+      leadSuit = Card.leftSuits[trumpSuit];
+    }
+
+    return (this.suit == leadSuit);
+  }
+
   /**
    * precondition: the other card is not the highest card, the right bower
    * Otherwise, a card is better than another if it is...

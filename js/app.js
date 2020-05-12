@@ -123,6 +123,15 @@ let app = new Vue({
       return (this.numPlayers == 4) && !this.game.cardsDealt;
     },
 
+    // logic to trigger trick winner and reset to next hand
+    trickOver: function() {
+      let cardsPlayed = 0;
+      this.game.playedCardIds.forEach(
+        card => { if (card != null) { cardsPlayed++; }});
+
+      return cardsPlayed == 4;
+    },
+
     //----------------------------------------
     // just this player's cards, create Card objects from the list of
     // game state list of ids.
@@ -255,6 +264,23 @@ let app = new Vue({
 
     // Potential trump
     upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
+    // first card in trick
+    leadCard: function() {
+      let leadCard = this.game.playedCardIds[this.game.leadPlayerId];
+      if (leadCard) {
+        return Card.fromId( leadCard );
+      }
+      return undefined;
+    },
+
+    // Is card the same suit as what was lead or is it the first card.
+    followsSuit: function( card ) {
+      if (this.leadCard()) {
+        return card.isSameSuitAsLeadCard( this.leadCard, this.game.trumpSuit );
+      } else {
+        return true;   // no cards played yet
+      }
+    },
 
     // [0, n)
     random: function( max ) { return Math.floor(max * Math.random());  },
@@ -268,6 +294,9 @@ let app = new Vue({
       return playerId == this.game.dealerId;
     },
 
+    nextPlayer: function() {
+      this.game.playerTurn = (this.game.playerTurn+1)%4;
+    },
 
     //----------------------------------------
     // point at who's up, account for seat locations
@@ -445,23 +474,83 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // drop a card on table
+    // drop a card on table.
+    // o Can only play on your turn IFF you have not already played
+    // o if dealer has 6 then only they can play and it's discarded.
+    // o Card must follow lead suit
+    // o bidding must be over
+    // If trick is done, determine winner (let server figure it out?)
     //----------------------------------------
-    playCard: function( event ) {
-      // if dealer has 6 then only they must play and discard
-      // play a card IFF playerTurn (and not discarding), and only one card
-      // FIXME, call server
-
-
+    async playCard( event ) {
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
-      if (card) {
-        this.game.playedCardIds[this.playerId] = this.movingCard.id;
-        let cards = this.game.players[this.playerId].cardIds;
-        cards.splice( cards.indexOf(this.movingCard.id), 1);
-        this.movingCard = undefined;
-        this.$forceUpdate();   // need this so computed values update
+      if (!card) {
+        console.error("No card played: "+ JSON.stringify( event.dataTransfer));
+        return;
       }
+      let playedCard = this.movingCard;
+      this.movingCard = undefined;
+
+      let discarding = this.weAreDealer && (this.cards.length == 6);
+
+      // Is a play allowed now?
+      if (!discarding) {
+        if ((this.game.playedCardIds[this.playerId]) ||  // play one card
+            (this.playerId !== this.game.playerTurn) ||  // on your turn
+            this.game.bidding)                           // while hand is going
+        {
+          // A misplay here should be self evident to user
+          console.log("Can't play a card right now");
+          return;
+        }
+      }
+
+      // the rest is visual-only, real state is on server
+
+      if (discarding) {
+        this.game.playedCardIds[this.playerId] = null;
+      } else {
+        // check for following lead suit
+        if (this.followsSuit( playedCard )) {
+          this.game.playedCardIds[this.playerId] = playedCard.id;
+        } else {
+          // display error message on screen, explain right bower? FIXME
+          alert("Lead card was " + this.leadCard().toString() +
+                ". You must follow suit if you can");
+          // put card back and exit
+          this.game.playedCardIds[this.playerId] = null;
+          return;
+        }
+      }
+
+      // take card out of hand
+      let cards = this.game.players[this.playerId].cardIds;
+      cards.splice( cards.indexOf( playedCard.id), 1);
+      this.nextPlayer();
+
+      // trickOver is taken care of in game state
+
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+          cardId: playedCard.id
+        };
+        let response = await fetch( serverURL + "playCard",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("playCard failed: " + JSON.stringify( err ));
+        alert("Try again. Card play failed " + Util.sadface + (err.message || err));
+        await this.updateFromServer();
+      };
+      this.saveInProgress = false;
+
+      // this.$forceUpdate();   // need this so computed values update
     },
 
     //----------------------------------------
@@ -475,7 +564,7 @@ let app = new Vue({
         alert("Turning down card");
       }
 
-      this.game.playerTurn = (this.game.playerTurn+1)%4;
+      this.nextPlayer();   // this is visual only, real state is on server
 
       try {
         this.saveInProgress = true;

@@ -94,7 +94,7 @@ module.exports = {
       // dynamic data
       gameOver: "false",   // Dynamo hack: indexes can't be BOOL
       bidding: true,   // we're either bidding or playing tricks
-      // leadPlayerId: undefined,
+      leadPlayerId: undefined,
       cardsDealt: false,
       deck: [],
       playedCardIds: [null,null,null,null],   // so this array is always "full"
