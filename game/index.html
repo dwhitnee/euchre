@@ -82,7 +82,7 @@
         </transition>
         <div v-if="game.dealerMustDiscard" class="message">
           Waiting for dealer to discard</div>
-        <div v-if="trickWinnerName" class="winner message">{{ trickWinnerName }} wins</div>
+        <div v-if="trickWinnerName" class="winner message">{{ trickWinnerName }} takes the trick</div>
         <div class="arrow" :style="arrowRotation()"></div>
       </div>
     </div>
@@ -135,8 +135,14 @@
 
         </div>
       </div>
-
     </div>
+
+    <div class="gridCheat">
+      Hello cheater
+      <button v-if="cheating " @click="seeNextPlayer" class="btn btn-primary btn-lg">Next</button>
+    </div>
+
+  </div>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
             integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="

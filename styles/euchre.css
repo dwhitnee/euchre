@@ -149,6 +149,7 @@ a.button.disabled {
 .playGrid > .gridPlayer3  { grid-area: player3; }
 .playGrid > .gridPlayerName { grid-area: playerName; }
 .playGrid > .gridCardTable { grid-area: table; }
+.playGrid > .gridCheat { grid-area: cheat; }
 
 
 .playGrid {
@@ -159,7 +160,7 @@ a.button.disabled {
   grid-template-areas:
     "info       player2   ."
     "player1    table     player3"
-    "playerName  player0 .";
+    "playerName  player0 cheat";
 
   padding: 1em;
   grid-gap: 1em;

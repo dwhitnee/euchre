@@ -31,6 +31,7 @@ let app = new Vue({
     isSpectator: true,
     spectatorName: "",
     spectatorNameTmp: "",
+    cheating: false,
     playerId: undefined, // Loaded from game cookie, who user is
 
     // game data from server, players are in NESW/0123 order
@@ -221,6 +222,11 @@ let app = new Vue({
   mounted() {
     this.gameId = this.$route.query.id;
 
+    if (!this.gameId) {
+      window.location.href =
+        window.location.href.split("game").shift();  // redirect to lobby
+    }
+
     // Spectator can view different hands this way
     this.playerId = parseInt( this.$route.query.playerId );
     if (isNaN( this.playerId)) { this.playerId = null; }
@@ -234,6 +240,7 @@ let app = new Vue({
       console.log("CHEATING! I am player " + this.playerId);
       this.isSpectator = false;   // TESTING
       this.updateFromServer();    // TESTING
+      this.cheating = true;
       return;                     // TESTING
     }
 
@@ -270,6 +277,14 @@ let app = new Vue({
   // event handlers and other fns accessible from the web page
   //----------------------------------------------------------------------
   methods: {
+
+    // cheater!!!
+    seeNextPlayer: function() {
+      debugger
+      window.location = this.$route.path +
+        "?id=" + this.game.id +
+        "&playerId=" + (this.playerId+1)%4;
+    },
 
     //----------------------------------------
     //----------------------------------------
@@ -423,6 +438,8 @@ let app = new Vue({
         alert("Problem reading game from server " + Util.sadface +
               (err.message || err));
 
+        // redirect to home page if we can't load data?
+        // maybe a few retries?
         debugger;    // FIXME
       };
     },
