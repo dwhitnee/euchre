@@ -65,25 +65,34 @@ function giveTeamPoints( game, playerId, points ) {
   playerId = playerId % 4;
   let teammateId = (playerId+2) %4;
 
-  game.player[playerId].score += points;
-  game.player[teammateId].score += points;
+  game.players[playerId].score += points;
+  game.players[teammateId].score += points;
+
+
+  game.message = game.players[playerId].name + " wins " +
+    points + " point" + (points>1) ? "s":"";
 }
 
 //----------------------------------------
 // if hand is over, dole out points to each team member
 //----------------------------------------
 function assignPoints( game ) {
-  if (game.player[game.trumpCallerId].tricks < 3) {
+  let message;
+  if (game.players[game.trumpCallerId].tricks < 3) {
     giveTeamPoints( game, game.trumpCallerId+1, 2);  // Euchred!
+    game.message += " Euchre!";
   } else {
-    if (game.player[game.trumpCallerId].tricks == 5) {  // sweep!
+    if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
       if (game.goingAlone) {
         giveTeamPoints( game, game.trumpCallerId, 4);
+        game.message += " Solo sweep!";
       } else {
         giveTeamPoints( game, game.trumpCallerId, 2);
+        game.message += " Sweep!";
       }
     } else {
-      game.player[game.trumpCallerId].score += 1;    // simple win
+      giveTeamPoints( game, game.trumpCallerId, 1);
+      game.players[game.trumpCallerId].score += 1;    // simple win
     }
   }
 };
@@ -92,7 +101,7 @@ function assignPoints( game ) {
 // check if anyone has 10 points
 function checkGameOver( game ) {
   for (let i=0; i<4; i++) {
-    if (game.player[i].score >= 10) {
+    if (game.players[i].score >= 10) {
       game.winner = i;
     }
   }
@@ -315,12 +324,14 @@ module.exports = {
 
       // if all the cards are played, see who won and start next round
       if (game.players[0].cardIds.length == 0) {
-        assignPoints( game );
+        assignPoints( game );   // FIXME - how to notify client of round result?
 
         // setup next deal
         game.dealerId = (game.dealerId + 1) %4;
         game.playerTurn = (game.dealerId + 1) % 4;
         game.cardsDealt = false;
+        game.trumpCallerId = null;
+        game.trumpSuit = null;
 
         checkGameOver( game );
         if (game.winner) {
@@ -330,10 +341,9 @@ module.exports = {
       }
 
       if (!game.winner) {
-        // clear table and start anew, lead was assigned in playCard
+        // clear table and start next hand,
+        // lead and turn was assigned in playCard or above in next deal
         game.playedCardIds = [ null,null,null,null ];
-        game.playerTurn = game.trickWinner;
-        game.leadPlayerId = game.trickWinner;
         game.trickWinner = null;
       }
 

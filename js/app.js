@@ -326,6 +326,15 @@ let app = new Vue({
       return playerId == this.game.dealerId;
     },
 
+    teamTricks: function( seat ) {
+      let playerId = this.getPlayerInSeat( seat );
+      return this.game.players[playerId].tricks;
+    },
+    teamScore: function( seat ) {
+      let playerId = this.getPlayerInSeat( seat );
+      return this.game.players[playerId].score;
+    },
+
     nextPlayer: function() {
       this.game.playerTurn = (this.game.playerTurn+1)%4;
     },
