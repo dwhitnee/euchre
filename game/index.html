@@ -76,7 +76,13 @@
         <div v-else class="unplayed playingCard"></div>
       </div>
       <div class="turnIndicator" v-if="game.cardsDealt">
-        <b v-if="game.dealerMustDiscard">Waiting for dealer to discard</b>
+
+        <transition name="fade">
+          <div v-if="message" class="message">{{ message }}</div>
+        </transition>
+        <div v-if="game.dealerMustDiscard" class="message">
+          Waiting for dealer to discard</div>
+        <div v-if="trickWinnerName" class="winner message">{{ trickWinnerName }} wins</div>
         <div class="arrow" :style="arrowRotation()"></div>
       </div>
     </div>
@@ -123,6 +129,9 @@
           <small v-if ="ourTurn && canPickUp && !weAreDealer">Tell dealer to</small>
           <button v-if="ourTurn && canPickUp"
                   @click="pickUpCard" class="btn btn-primary btn-lg">Pick It Up</button>
+
+          <button v-if="game.trickWinner == playerId "
+                  @click="takeTrick" class="btn btn-primary btn-lg">Take trick</button>
 
         </div>
       </div>

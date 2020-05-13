@@ -81,21 +81,25 @@ module.exports = {
     let newGameId = postData.playerName.replace(/\W/g,'').slice(0,12) +
         "-" + timeSinceEpoch;
 
+    // main game data structure
     let newGame = {
 
       // fixed data
       id: newGameId,                            // PK
       createdDate: (new Date()).toISOString(),  // Range Key
-      dealerId: Math.floor(4*Math.random()),
-      trumpCallerId: undefined,   // who needs to take all the tricks
-      trumpSuit: undefined,
-      goingAlone: false,
 
-      // dynamic data
+      // round data
+      dealerId: Math.floor(4*Math.random()),
+      trumpCallerId: null,   // who needs to take all the tricks
+      trumpSuit: null,
+      goingAlone: false,
       gameOver: "false",   // Dynamo hack: indexes can't be BOOL
+
+      // hand data
       bidding: true,   // we're either bidding or playing tricks
-      leadPlayerId: undefined,
+      leadPlayerId: null,
       cardsDealt: false,
+      trickWinner: null,
       deck: [],
       playedCardIds: [null,null,null,null],   // so this array is always "full"
       players: []
@@ -106,11 +110,10 @@ module.exports = {
 
     for (var i=0; i < 4; i++) {
       newGame.players[i] = {
-//         name: undefined,    FIXME, just for testing
+//         name: null,    FIXME, just for testing
         name: "Player " + i,
         score: 0,
         tricks: 0,
-        pickItUp: false,
         cardIds: [],
       };
     }

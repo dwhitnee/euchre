@@ -1,5 +1,7 @@
 /*global */
 
+"use strict";
+
 /**
  * A Euchre Card from a standard deck.
  * Aces are high.
@@ -153,7 +155,7 @@ Card.getEuchreDeck = function() {
 
   for (let suit = Card.suits.Clubs; suit <= Card.suits.Spades; suit++ ) {
     ranks.forEach( function( rank ) {
-      deck.push( Card.getByRankSuit( rank, suit ) );
+      deck.push( Card.getByRankAndSuit( rank, suit ) );
     });
   }
 
