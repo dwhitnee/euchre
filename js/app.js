@@ -51,28 +51,24 @@ let app = new Vue({
           name: "Nancy",
           score: 0,
           tricks: 0,
-          pickItUp: false,
           cardIds: ["12:0","9:0","10:0","12:1", "9:1"]
         },
         {
           name: "Ernie",
           score: 0,
           tricks: 0,
-          pickItUp: false,
           cardIds: ["9:0","10:1","11:2","13:3", "1:3"]
         },
         {
           name: "Sam",
           score: 0,
           tricks: 0,
-          pickItUp: false,
           cardIds: ["12:2","9:2","10:2","12:3","9:3"]
         },
         {
           name: "Wendy",
           score: 0,
           tricks: 0,
-          pickItUp: false,
           cardIds: ["12:3","9:3","10:3","1:0", "1:1"]
         }
       ]
@@ -127,10 +123,10 @@ let app = new Vue({
     // The potential trump
     upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
     trickWinnerName: function() {
-      if (this.game.trickWinner !== undefined) {
+      if (this.game.trickWinner !== null) {
         return this.game.players[this.game.trickWinner].name;
       } else {
-        return undefined;
+        return null;
       }
     },
     // first card in trick
@@ -139,7 +135,7 @@ let app = new Vue({
       if (leadCard) {
         return Card.fromId( leadCard );
       }
-      return undefined;
+      return null;
     },
 
     // logic to trigger trick winner and reset to next hand
@@ -227,7 +223,7 @@ let app = new Vue({
 
     // Spectator can view different hands this way
     this.playerId = parseInt( this.$route.query.playerId );
-    if (isNaN( this.playerId)) { this.playerId = undefined; }
+    if (isNaN( this.playerId)) { this.playerId = null; }
     console.log("Viewing from the perspective of player " + this.playerId );
 
     // we may not need this, but it is used in page logic.  Oof
@@ -638,9 +634,28 @@ let app = new Vue({
     },
 
 
-    turnDownCard: function() {
-    },
-    takeTrick: function() {
+    //----------------------------------------
+    // hand is over, update scores and start next hand
+    // This is really a pause for people to look at the cards first
+    //----------------------------------------
+    async takeTrick() {
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+        };
+        let response = await fetch( serverURL + "takeTrick",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Take trick failed: " + JSON.stringify( err ));
+        alert("Try again. Failed to take trick " + Util.sadface + (err.message || err));
+      };
+      this.saveInProgress = false;
     },
 
     setSpectatorName: function() {

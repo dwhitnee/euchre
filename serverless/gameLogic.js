@@ -2,8 +2,7 @@
 //  AWS Lambda API -- Game logic stuff
 
 // Race conditions galore:  we have to load an existing game, modify
-// it, and stuff it back in.  What happens if someone changes their
-// name while we're shuffling?  FIXME  versioning? Optimistic locking?
+// it, and stuff it back in.
 
 //----------------------------------------------------------------------
 'use strict';
@@ -14,6 +13,9 @@ let message = require('responseHandler');  // HTTP message handling
 
 const Card = require('card');
 
+//----------------------------------------
+// Pass Amazon SDE phone screen
+//----------------------------------------
 function getShuffledDeck() {
   let card = new Card();
   let cards = Card.getEuchreDeck();
@@ -56,6 +58,46 @@ function determineTrickWinner( cardIds, trumpSuit ) {
   }
   return highestId;
 }
+
+
+//----------------------------------------
+function giveTeamPoints( game, playerId, points ) {
+  playerId = playerId % 4;
+  let teammateId = (playerId+2) %4;
+
+  game.player[playerId].score += points;
+  game.player[teammateId].score += points;
+}
+
+//----------------------------------------
+// if hand is over, dole out points to each team member
+//----------------------------------------
+function assignPoints( game ) {
+  if (game.player[game.trumpCallerId].tricks < 3) {
+    giveTeamPoints( game, game.trumpCallerId+1, 2);  // Euchred!
+  } else {
+    if (game.player[game.trumpCallerId].tricks == 5) {  // sweep!
+      if (game.goingAlone) {
+        giveTeamPoints( game, game.trumpCallerId, 4);
+      } else {
+        giveTeamPoints( game, game.trumpCallerId, 2);
+      }
+    } else {
+      game.player[game.trumpCallerId].score += 1;    // simple win
+    }
+  }
+};
+
+
+// check if anyone has 10 points
+function checkGameOver( game ) {
+  for (let i=0; i<4; i++) {
+    if (game.player[i].score >= 10) {
+      game.winner = i;
+    }
+  }
+}
+
 
 module.exports = {
 
@@ -113,6 +155,10 @@ module.exports = {
 
     let params = JSON.parse( request.body );
 
+    // FIXME, people can steal seats, prevent seat from being stolen
+    // (as opposed to setPlayerName)  Or is this a feature if someone
+    // change their mind? (would need to flush client side name/seat mapping)
+
     thomas.getGameData( params.gameId, function( err, game ) {
       console.log("Joining as " + params.playerName +
                   " at spot #" + params.playerId);
@@ -150,6 +196,7 @@ module.exports = {
 
   //----------------------------------------------------------------------
   // Tell dealer to pick up card, playerId has called trump, set leader
+  // Discarding is handled as a special case in playCard
   // FIXME: can this double for callTrumpSuit?
   //----------------------------------------------------------------------
   pickItUp: function( request, context, callback ) {
@@ -180,9 +227,6 @@ module.exports = {
       // bidding isn't technically over because dealer still needs to discard
       game.bidding = false;
 
-      // FIXME: how to proceed with dealer an their extra card:
-      //   new fn discard(), or special case of playCard?
-
       thomas.updateGame( game, function( err, response ) {
         message.respond( err, response , callback );
       });
@@ -191,7 +235,7 @@ module.exports = {
 
   //----------------------------------------------------------------------
   // Move card from player's hand to table. Check for legality and trick ending
-  // special case for discarding 6th card from dealer's hand at beginning.
+  // Special case for discarding 6th card from dealer's hand at beginning.
   //----------------------------------------------------------------------
   playCard: function( request, context, callback ) {
     if (!message.verifyParam( request, callback, "gameId")) { return; }
@@ -235,12 +279,62 @@ module.exports = {
         // next player's turn
         game.playerTurn = (game.playerTurn + 1) % 4;
 
-        // FIXME, check for end of trick
         let winner = determineTrickWinner( game.playedCardIds, game.trumpSuit );
         if (winner !== undefined) {
-          game.trickWinner = winner;   // does takeTrick reset this?
+          game.trickWinner = winner;   // takeTrick resets this
           game.playerTurn = winner;
+          game.leadPlayerId = winner;
         }
+      }
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
+    });
+  },
+
+
+  //----------------------------------------------------------------------
+  // Take trick, update score, start next round.
+  //----------------------------------------------------------------------
+  takeTrick: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+      console.log( params.playerId + " takes trick");
+
+      // update team's count
+      let teammate = (game.trickWinner + 2) % 4;
+      game.players[game.trickWinner].tricks =
+        game.players[game.trickWinner].tricks + 1;
+      game.players[teammate].tricks =
+        game.players[teammate].tricks + 1;
+
+      // if all the cards are played, see who won and start next round
+      if (game.players[0].cardIds.length == 0) {
+        assignPoints( game );
+
+        // setup next deal
+        game.dealerId = (game.dealerId + 1) %4;
+        game.playerTurn = (game.dealerId + 1) % 4;
+        game.cardsDealt = false;
+
+        checkGameOver( game );
+        if (game.winner) {
+          // I guess that's it, the rest is client side
+          game.gameOver = "true";  // weird DB index hack
+        }
+      }
+
+      if (!game.winner) {
+        // clear table and start anew, lead was assigned in playCard
+        game.playedCardIds = [ null,null,null,null ];
+        game.playerTurn = game.trickWinner;
+        game.leadPlayerId = game.trickWinner;
+        game.trickWinner = null;
       }
 
       thomas.updateGame( game, function( err, response ) {

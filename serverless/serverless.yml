@@ -162,6 +162,15 @@ functions:
           method: post
           cors: true
 
+  takeTrick:
+    handler: gameLogic.takeTrick
+    description: Pick up the cards and move to the next hand
+    events:
+      - http:
+          path: takeTrick
+          method: post
+          cors: true
+
 
 # chooseTrumpSuit?suit/player  have dealer pick up, or lead playCard
 
