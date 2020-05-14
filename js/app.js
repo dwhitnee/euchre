@@ -116,6 +116,19 @@ let app = new Vue({
     bidding: function() { return this.game.cardsDealt && this.game.bidding; },
     ourTurn: function() { return this.playerId == this.game.playerTurn; },
     canPickUp: function() { return this.game.bidding && this.upCard; },
+    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
+    trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
+    // The potential trump
+    validSuits: function() {
+      let suits = [];
+      for (let i=0; i <4; i++) {
+        if (i != this.game.upCardSuit) {
+          suits.push( Card.suitNames[i] );
+        }
+      }
+      return suits;
+    },
+
     weAreDealer: {
       cache: false,    // uncached so Deal button shows up when 4th joins
       get() {
@@ -130,9 +143,6 @@ let app = new Vue({
           !this.game.winner;
       }
     },
-    trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
-    // The potential trump
-    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
     trickWinnerName: function() {
       if ((this.game.trickWinner != null) && !this.game.winner) {
         return this.game.players[this.game.trickWinner].name;
@@ -676,6 +686,31 @@ let app = new Vue({
       catch( err ) {
         console.error("Pickup failed: " + JSON.stringify( err ));
         alert("Try again. Pickup failed " + Util.sadface + (err.message || err));
+      };
+
+      this.saveInProgress = false;
+    },
+
+    //----------------------------------------
+    // Pick a suit. Bidding is over, start playing
+    //----------------------------------------
+    async callSuit( suit ) {
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+          suitName: suit
+        };
+        let response = await fetch( serverURL + "callSuit",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Call suit failed: " + JSON.stringify( err ));
+        alert("Try again. Call suit failed " + Util.sadface + (err.message || err));
       };
 
       this.saveInProgress = false;

@@ -132,6 +132,10 @@
           <small v-if ="ourTurn && canPickUp && !weAreDealer">Tell dealer to</small>
           <button v-if="ourTurn && canPickUp"
                   @click="pickUpCard" class="btn btn-primary btn-lg">Pick It Up</button>
+          <div v-if="ourTurn && bidding && !upCard">
+            <button v-for="suit in validSuits"
+                  @click="callSuit( suit )" class="btn btn-primary btn-sm">Call {{ suit }}</button>
+          </div>
 
           <button v-if="game.trickWinner == playerId "
                   @click="takeTrick" class="btn btn-primary btn-lg">Take trick</button>

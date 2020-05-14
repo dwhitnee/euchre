@@ -153,6 +153,15 @@ functions:
           method: post
           cors: true
 
+  callSuit:
+    handler: gameLogic.callSuit
+    description: Call trump suit
+    events:
+      - http:
+          path: callSuit
+          method: post
+          cors: true
+
   playCard:
     handler: gameLogic.playCard
     description: Play a card on the table. Handles game rules/trick ending
