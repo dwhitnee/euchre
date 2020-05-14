@@ -32,21 +32,10 @@ let app = new Vue({
     // handle broken promises.
     window.addEventListener('unhandledrejection', function(event) {
       debugger;
-      // alert( event.promise );
-      // alert( event.reason );
     });
 
     this.playerName = Util.getCookie("name") || this.playerName;
     this.getGameList();
-  },
-
-  // synchronous app setup before event handling starts
-  beforeCreate: function() {
-  },
-
-  watch: {
-    // playedCard: {
-    // },
   },
 
   //----------------------------------------------------------------------

@@ -171,10 +171,10 @@ let app = new Vue({
     //----------------------------------------
     // just this player's cards, create Card objects from the list of
     // game state list of ids.
-    // Can't cahce otherwise Vue doesn't notice the update after drag and drop
+    // Can't cache otherwise Vue doesn't notice the update after drag and drop
     //----------------------------------------
     cards: {
-      cache: false,
+      cache: false, // this does not trigger on updateFromServer, which is OK actually
       get () {
         if (!this.isGameLoaded() || !this.player || !this.player.cardIds) {
           return [];
@@ -240,6 +240,12 @@ let app = new Vue({
   // We spin until game loaded so this can be anywhere in lifecycle
   //----------------------------------------
   mounted() {
+    // handle broken promises.
+    window.addEventListener('unhandledrejection', function(event) {
+      debugger;
+      alert("Rat farts " + JSON.stringify( event ));
+    });
+
     this.gameId = this.$route.query.id;
 
     if (!this.gameId) {
@@ -273,7 +279,14 @@ let app = new Vue({
       if (this.isGameLoaded()) {
 
         // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
-        setInterval(() => { this.updateFromServer(); }, 2500);
+        this.autoLoad = setInterval(() => { this.updateFromServer(); }, 2500);
+
+        let gameTime = 1000 * 60 * 30 + 100;  // 30 min
+        // stop reloading after game should be over
+        setTimeout(() => {
+          clearInterval( this.autoLoad );
+          this.message = "Game timed out, refresh the page to continue.";
+        }, gameTime);
 
         // test, remove me
         if (!this.isSpectator) {
@@ -452,13 +465,30 @@ let app = new Vue({
     //----------------------------------------
     async updateFromServer() {
 
+      // preserve hand sort order if we can, dont trigger this.cards cache flush
+      let cards = null;
+      if (this.game) {
+        cards = this.game.players[this.playerId].cardIds;
+      }
+
       try {
         // response is an async stream
         let response = await fetch(serverURL +
                                    "game?gameId=" + this.gameId +
                                    "&playerId=" + this.playerId);
         if (!response.ok) { throw await response.json(); }
-        this.game = await response.json();
+        let updatedGame = await response.json();
+
+        // this seems to trigger only on deal and pickItUp, not on playCard
+        // if we don't do this, this.cards updates every 3 seconds
+        if (cards &&
+            (cards.length == updatedGame.players[this.playerId].cardIds.length))
+        {
+          updatedGame.players[this.playerId].cardIds = cards;
+        } else {
+          console.log("new cards!");
+        }
+        this.game = updatedGame;
 
         // If game got deleted or messed up, we get an empty object
         if (!Object.keys( this.game ).length) {
