@@ -118,13 +118,15 @@ let app = new Vue({
     canPickUp: function() { return this.game.bidding && this.upCard; },
     weAreDealer: function() { return this.playerId == this.game.dealerId; },
     timeToDeal: function() {
-      return (this.numPlayers == 4) && !this.game.cardsDealt;
+      return (this.numPlayers == 4) &&
+        !this.game.cardsDealt &&
+        !this.game.winner;
     },
     trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
     // The potential trump
     upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
     trickWinnerName: function() {
-      if (this.game.trickWinner !== null) {
+      if ((this.game.trickWinner != null) && !this.game.winner) {
         return this.game.players[this.game.trickWinner].name;
       } else {
         return null;
@@ -444,6 +446,11 @@ let app = new Vue({
         if (this.game.message) {
           this.message = this.game.message;
         }
+        // this.game.winner = 2;
+        if (this.game.winner) {
+          this.message =
+            this.game.players[this.game.winner].name + "'s team wins!!";
+        }
         this.gameDataReady = true;
       }
       catch( err ) {
@@ -614,7 +621,6 @@ let app = new Vue({
 
       if (this.playerId == this.game.dealerId) {
         // animate turning down card?  FIXME
-        alert("Turning down card");
         this.game.playedCardIds[this.game.dealerId] = null;  // poof
       }
 
@@ -633,7 +639,7 @@ let app = new Vue({
         await this.updateFromServer();
       }
       catch( err ) {
-        console.error("Join failed: " + JSON.stringify( err ));
+        console.error("Pass failed: " + JSON.stringify( err ));
         alert("Try again. Join failed " + Util.sadface + (err.message || err));
       };
 

@@ -32,23 +32,27 @@ function getShuffledDeck() {
 }
 
 //----------------------------------------
-// If 4 cards where played, which card is highest
+// If 4 cards where played, which card is highest of lead suit, unless trumped
 // @return winning playerId or undefined if any card is null
 //----------------------------------------
-function determineTrickWinner( cardIds, trumpSuit ) {
+function determineTrickWinner( cardIds, leadCardId, trumpSuit ) {
+  console.log("Trick " + JSON.stringify(cardIds));
+  console.log("lead player: " + leadCardId + ", trump: " + trumpSuit );
+
   let highestId = 0;
   let highestCard = undefined;
 
-  if (!cardIds[0]) {
+  if (!cardIds[leadCardId]) {
     return undefined;
   } else {
-    highestCard = Card.fromId( cardIds[0] );
-    highestId = 0;
+    // player to beat is always the leader
+    highestCard = Card.fromId( cardIds[leadCardId] );
+    highestId = leadCardId;
   }
 
-  for (let i=1; i < 4; i++) {
+  for (let i=0; i < 4; i++) {
     if (!cardIds[i]) {
-      return undefined;
+      return undefined;    // hand not done
     }
     let card = Card.fromId( cardIds[i] );
     if (card.isBetterThan( highestCard, trumpSuit )) {
@@ -56,6 +60,7 @@ function determineTrickWinner( cardIds, trumpSuit ) {
       highestId = i;
     }
   }
+  console.log("Winner is " + highestId );
   return highestId;
 }
 
@@ -84,10 +89,10 @@ function assignPoints( game ) {
     if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
       if (game.goingAlone) {
         giveTeamPoints( game, game.trumpCallerId, 4);
-        game.message += " Solo sweep!";
+        game.message += ". Solo sweep!";
       } else {
         giveTeamPoints( game, game.trumpCallerId, 2);
-        game.message += " Sweep!";
+        game.message += ". Sweep!";
       }
     } else {
       giveTeamPoints( game, game.trumpCallerId, 1);
@@ -195,6 +200,8 @@ module.exports = {
       game.playerTurn = (game.playerTurn + 1 ) % 4;
 
       if (params.playerId == game.dealerId) {
+        game.message = "Turning down the " +
+          Card.fromId( game.playedCardIds[game.dealerId] ).toString();
         game.playedCardIds[game.dealerId] = null;
       }
 
@@ -289,7 +296,8 @@ module.exports = {
         // next player's turn
         game.playerTurn = (game.playerTurn + 1) % 4;
 
-        let winner = determineTrickWinner( game.playedCardIds, game.trumpSuit );
+        let winner = determineTrickWinner( game.playedCardIds,
+                                           game.leadPlayerId, game.trumpSuit );
         if (winner !== undefined) {
           game.trickWinner = winner;   // takeTrick resets this
           game.playerTurn = winner;
@@ -336,8 +344,9 @@ module.exports = {
 
         checkGameOver( game );
         if (game.winner) {
-          // I guess that's it, the rest is client side
+          // Game over, don't proceed
           game.gameOver = "true";  // weird DB index hack
+          game.trickWinner = null;
         }
       }
 
