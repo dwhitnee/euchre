@@ -272,8 +272,8 @@ let app = new Vue({
       let playerName = Util.getCookie("name");
       if (this.isGameLoaded()) {
 
-        // keep it coming!
-        setInterval(() => { this.updateFromServer();}, 2000);
+        // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
+        setInterval(() => { this.updateFromServer(); }, 2500);
 
         // test, remove me
         if (!this.isSpectator) {
@@ -473,13 +473,15 @@ let app = new Vue({
             this.game.players[this.game.winner].name + "'s team wins!!";
         }
         this.gameDataReady = true;
+        this.updateRetries = 0;
       }
       catch( err ) {
+        if (++this.updateRetries < 2) { return; }   // ignore first 2 fails
+
         alert("Problem reading game from server " + Util.sadface +
               (err.message || err));
 
         // redirect to home page if we can't load data?
-        // maybe a few retries?
         debugger;    // FIXME
       };
     },
