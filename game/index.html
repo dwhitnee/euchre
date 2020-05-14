@@ -39,6 +39,9 @@
     </div>
 
     <div class="playerName gridPlayer1">
+      <div v-if="!names[1] && isSpectator">
+        <button class="button btn-primary btn-lg join"
+                @click="join(1)">Join</button></div>
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[1] }}</div>
         <div v-if="dealerIs(1)" class="dealer"></div>
@@ -47,9 +50,6 @@
         <div>tricks: {{ teamTricks(1) }}</div>
         <div>score: {{ teamScore(1) }}</div>
       </div>
-      <div v-if="!names[1] && isSpectator">
-        <button class="button btn-primary btn-lg join"
-                @click="join(1)">Join</button></div>
     </div>
 
     <div class="playerName gridPlayer2">
@@ -67,13 +67,13 @@
     </div>
 
     <div class="playerName gridPlayer3">
+      <div v-if="!names[3] && isSpectator">
+        <button class="button btn-primary btn-lg join"
+                @click="join(3)">Join</button></div>
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[3] }}</div>
         <div v-if="dealerIs(3)" class="dealer"></div>
       </div>
-      <div v-if="!names[3] && isSpectator">
-        <button class="button btn-primary btn-lg join"
-                @click="join(3)">Join</button></div>
     </div>
 
     <div id="cardTable" class="cardTable gridCardTable withBorder"
@@ -127,13 +127,13 @@
             <button class="button btn-primary btn-lg" @click="join(0)">Join</button></div>
 
           <button  v-if="timeToDeal && weAreDealer && !saveInProgress"
-                   @click="dealCards" class="btn btn-primary btn-lg" >Deal</button>
+                   @click="dealCards" class="btn btn-primary btn-lg">Deal</button>
+
           <div v-if="timeToDeal && !weAreDealer">
             Waiting for {{ dealerName }} to deal the cards...
           </div>
           <button v-if="ourTurn && bidding"
                   @click="pass" class="btn btn-primary btn-lg">Pass</button>
-
           <small v-if ="ourTurn && canPickUp && !weAreDealer">Tell dealer to</small>
           <button v-if="ourTurn && canPickUp"
                   @click="pickUpCard" class="btn btn-primary btn-lg">Pick It Up</button>

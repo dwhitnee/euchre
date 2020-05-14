@@ -53,7 +53,6 @@ let app = new Vue({
   //----------------------------------------------------------------------
   methods: {
     //----------------------------------------
-    // would be cool to async the fetches - FIXME
     // Bad GET = "Missing Authentication Token"
     // Bad POST = "Failed to fetch"
     //----------------------------------------
@@ -103,8 +102,8 @@ let app = new Vue({
         playerGameData[gameId] = playerId;
         Util.setCookie("player", playerGameData );
 
-        // remove playerId...eventually?  FIXME
-        window.location.href = "game/?id=" + gameId + "&playerId=" + playerId;
+        // remove playerId...eventually?  FIXME TESTING
+        window.location.href = "game/?id=" + gameId; // + "&playerId=" + playerId;
       }
       catch( err) {
         console.error( err );

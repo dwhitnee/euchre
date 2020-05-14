@@ -32,7 +32,7 @@
             <a :href="`game/?id=`+game.id">{{ game.id }}</a>
             <button v-if="isAdmin" @click="deleteGame(game.id)"
                     class="badge badge-danger">x</button>
-
+            <small v-for="player in game.players" style="color:#aaa">{{ player.name }}, </small>
           </li>
         </div>
         <div v-else>

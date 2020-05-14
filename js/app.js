@@ -254,6 +254,9 @@ let app = new Vue({
       let playerName = Util.getCookie("name");
       if (this.isGameLoaded()) {
 
+        // keep it coming!
+        setInterval(() => { this.updateFromServer();}, 2000);
+
         // test, remove me
         if (!this.isSpectator) {
           console.log( playerName + " should be " +
@@ -476,13 +479,13 @@ let app = new Vue({
         let postData = {
           gameId: this.gameId,
           playerId: playerId,
-          name: this.spectatorName
+          playerName: this.spectatorName
         };
-        let response = await fetch( serverURL + "deal",
+        let response = await fetch( serverURL + "joinGame",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
-        let playerData = Util.getCookie("player");
+        let playerData = Util.getCookie("player") || {};
         playerData[this.gameId] = playerId;
         Util.setCookie("player", playerData );
 
@@ -580,7 +583,6 @@ let app = new Vue({
           this.message = "The " + this.leadCard.toString() +
                 " was lead. You must follow suit if you can.";
           setTimeout(() => { this.message = ""; }, 5000);
-          // setInterval(() => { this.updateFromServer();}, 2000);
 
           // put card back and exit
           this.game.playedCardIds[this.playerId] = null;
@@ -640,7 +642,7 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("Pass failed: " + JSON.stringify( err ));
-        alert("Try again. Join failed " + Util.sadface + (err.message || err));
+        alert("Try again. Pass failed " + Util.sadface + (err.message || err));
       };
 
       this.saveInProgress = false;
