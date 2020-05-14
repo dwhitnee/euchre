@@ -15,6 +15,7 @@ module.exports = {
   //----------------------------------------------------------------------
   getGameData: function( gameId, callback ) {
     euchreDB.getGameData( gameId, function( err, game ) {
+      game.message = null;  // reset message after any action
       console.log("Retrieved game: " + JSON.stringify( game ));
       callback( err, game );  // forkin node, why not async here?
     });

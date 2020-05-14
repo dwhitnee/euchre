@@ -10,7 +10,7 @@
 
 <body>
 
-<div id="euchreApp" v-cloak style="width: 100%">
+<div id="euchreApp" v-cloak>
 
   <div v-if="!gameDataReady" class="loadingContainer">
     <div class="spinner-border loading"></div>
@@ -33,14 +33,19 @@
     <div class="gridGameInfo" style="display:block;">
       <div class="title">Euchre</div>
       <small v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</small>
-      <small v-if="trumpSuit">Playing<b> {{ trumpSuit }}</b></small>
-
+      <small v-if="trumpSuit"><i>
+          {{ game.players[game.trumpCallerId].name }} called<b> {{trumpSuit }}</b>
+      </i></small>
     </div>
 
     <div class="playerName gridPlayer1">
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[1] }}</div>
         <div v-if="dealerIs(1)" class="dealer"></div>
+      </div>
+      <div>
+        <div>tricks: {{ teamTricks(1) }}</div>
+        <div>score: {{ teamScore(1) }}</div>
       </div>
       <div v-if="!names[1] && isSpectator">
         <button class="button btn-primary btn-lg join"
@@ -51,6 +56,10 @@
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[2] }}</div>
         <div v-if="dealerIs(2)" class="dealer"></div>
+      </div>
+      <div style="padding-left: 3em;">
+        <div>tricks: {{ teamTricks(2) }}</div>
+        <div>score: {{ teamScore(2) }}</div>
       </div>
       <div v-if="!names[2] && isSpectator">
         <button class="button btn-primary btn-lg join"
@@ -75,14 +84,13 @@
              :style="getCardStyle( playedCards[i].id )"></div>
         <div v-else class="unplayed playingCard"></div>
       </div>
-      <div class="turnIndicator" v-if="game.cardsDealt">
-
+      <div class="turnIndicator">
         <transition name="fade">
           <div v-if="message" class="message">{{ message }}</div>
         </transition>
         <div v-if="game.dealerMustDiscard" class="message">
           Waiting for dealer to discard</div>
-        <div v-if="trickWinnerName" class="winner message">{{ trickWinnerName }} wins</div>
+        <div v-if="trickWinnerName" class="winner message">{{ trickWinnerName }} takes the trick</div>
         <div class="arrow" :style="arrowRotation()"></div>
       </div>
     </div>
@@ -135,8 +143,16 @@
 
         </div>
       </div>
-
     </div>
+
+    <div class="gridCheat">
+      <div v-if="cheating">
+        Hello cheater
+        <button  @click="seeNextPlayer" class="btn btn-primary btn-lg">Next</button>
+      </div>
+    </div>
+
+  </div>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
             integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="

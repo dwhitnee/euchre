@@ -1,8 +1,13 @@
-body {
+html,body {
   font-family: Arial, Helvetica, sans-serif;
+  height: 100%
+}
+#euchreApp {
+  width: 100%;   /* full screen */
+  height: 100%;
 }
 
-[v-cloak] > * {  display:none; }
+[v-cloak] {  display:none; }
 [v-cloak]::before { position: absolute; top: 10em; left: 10em; content: "loading..."; }
 
 
@@ -144,11 +149,12 @@ a.button.disabled {
   border-top: 3px solid;
   padding-top: 1em;
 }
-.playGrid > .gridPlayer1  { grid-area: player1; }
+.playGrid > .gridPlayer1  { grid-area: player1; display: grid;}
 .playGrid > .gridPlayer2  { grid-area: player2; }
 .playGrid > .gridPlayer3  { grid-area: player3; }
 .playGrid > .gridPlayerName { grid-area: playerName; }
 .playGrid > .gridCardTable { grid-area: table; }
+.playGrid > .gridCheat { grid-area: cheat; }
 
 
 .playGrid {
@@ -159,7 +165,7 @@ a.button.disabled {
   grid-template-areas:
     "info       player2   ."
     "player1    table     player3"
-    "playerName  player0 .";
+    "playerName  player0 cheat";
 
   padding: 1em;
   grid-gap: 1em;

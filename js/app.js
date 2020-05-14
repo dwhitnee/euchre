@@ -31,6 +31,7 @@ let app = new Vue({
     isSpectator: true,
     spectatorName: "",
     spectatorNameTmp: "",
+    cheating: false,
     playerId: undefined, // Loaded from game cookie, who user is
 
     // game data from server, players are in NESW/0123 order
@@ -117,13 +118,15 @@ let app = new Vue({
     canPickUp: function() { return this.game.bidding && this.upCard; },
     weAreDealer: function() { return this.playerId == this.game.dealerId; },
     timeToDeal: function() {
-      return (this.numPlayers == 4) && !this.game.cardsDealt;
+      return (this.numPlayers == 4) &&
+        !this.game.cardsDealt &&
+        !this.game.winner;
     },
     trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
     // The potential trump
     upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
     trickWinnerName: function() {
-      if (this.game.trickWinner !== null) {
+      if ((this.game.trickWinner != null) && !this.game.winner) {
         return this.game.players[this.game.trickWinner].name;
       } else {
         return null;
@@ -221,6 +224,11 @@ let app = new Vue({
   mounted() {
     this.gameId = this.$route.query.id;
 
+    if (!this.gameId) {
+      window.location.href =
+        window.location.href.split("game").shift();  // redirect to lobby
+    }
+
     // Spectator can view different hands this way
     this.playerId = parseInt( this.$route.query.playerId );
     if (isNaN( this.playerId)) { this.playerId = null; }
@@ -230,10 +238,11 @@ let app = new Vue({
     this.spectatorName = Util.getCookie("name");
 
     // remove this in PROD, used for inhabiting different players
-    if (this.playerId !== undefined) {
+    if (this.playerId != null) {
       console.log("CHEATING! I am player " + this.playerId);
       this.isSpectator = false;   // TESTING
       this.updateFromServer();    // TESTING
+      this.cheating = true;
       return;                     // TESTING
     }
 
@@ -270,6 +279,14 @@ let app = new Vue({
   // event handlers and other fns accessible from the web page
   //----------------------------------------------------------------------
   methods: {
+
+    // cheater!!!
+    seeNextPlayer: function() {
+      // debugger
+      window.location = this.$route.path +
+        "?id=" + this.game.id +
+        "&playerId=" + (this.playerId+1)%4;
+    },
 
     //----------------------------------------
     //----------------------------------------
@@ -309,6 +326,15 @@ let app = new Vue({
       // need to unrotate back to playerIds
       let playerId = this.getPlayerInSeat( seatId );
       return playerId == this.game.dealerId;
+    },
+
+    teamTricks: function( seat ) {
+      let playerId = this.getPlayerInSeat( seat );
+      return this.game.players[playerId].tricks;
+    },
+    teamScore: function( seat ) {
+      let playerId = this.getPlayerInSeat( seat );
+      return this.game.players[playerId].score;
     },
 
     nextPlayer: function() {
@@ -417,12 +443,22 @@ let app = new Vue({
           alert("No game found named " + this.gameId );
         }
         console.log("Loaded game for " + this.playerName );
+        if (this.game.message) {
+          this.message = this.game.message;
+        }
+        // this.game.winner = 2;
+        if (this.game.winner) {
+          this.message =
+            this.game.players[this.game.winner].name + "'s team wins!!";
+        }
         this.gameDataReady = true;
       }
       catch( err ) {
         alert("Problem reading game from server " + Util.sadface +
               (err.message || err));
 
+        // redirect to home page if we can't load data?
+        // maybe a few retries?
         debugger;    // FIXME
       };
     },
@@ -534,7 +570,9 @@ let app = new Vue({
         {
           // finally play card
           this.game.playedCardIds[this.playerId] = playedCard.id;
-          this.nextPlayer();
+          if (!this.trickOver) {
+            this.nextPlayer();
+          }
           this.message = "";
 
         } else {
@@ -583,7 +621,6 @@ let app = new Vue({
 
       if (this.playerId == this.game.dealerId) {
         // animate turning down card?  FIXME
-        alert("Turning down card");
         this.game.playedCardIds[this.game.dealerId] = null;  // poof
       }
 
@@ -602,7 +639,7 @@ let app = new Vue({
         await this.updateFromServer();
       }
       catch( err ) {
-        console.error("Join failed: " + JSON.stringify( err ));
+        console.error("Pass failed: " + JSON.stringify( err ));
         alert("Try again. Join failed " + Util.sadface + (err.message || err));
       };
 

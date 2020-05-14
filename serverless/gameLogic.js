@@ -32,23 +32,27 @@ function getShuffledDeck() {
 }
 
 //----------------------------------------
-// If 4 cards where played, which card is highest
+// If 4 cards where played, which card is highest of lead suit, unless trumped
 // @return winning playerId or undefined if any card is null
 //----------------------------------------
-function determineTrickWinner( cardIds, trumpSuit ) {
+function determineTrickWinner( cardIds, leadCardId, trumpSuit ) {
+  console.log("Trick " + JSON.stringify(cardIds));
+  console.log("lead player: " + leadCardId + ", trump: " + trumpSuit );
+
   let highestId = 0;
   let highestCard = undefined;
 
-  if (!cardIds[0]) {
+  if (!cardIds[leadCardId]) {
     return undefined;
   } else {
-    highestCard = Card.fromId( cardIds[0] );
-    highestId = 0;
+    // player to beat is always the leader
+    highestCard = Card.fromId( cardIds[leadCardId] );
+    highestId = leadCardId;
   }
 
-  for (let i=1; i < 4; i++) {
+  for (let i=0; i < 4; i++) {
     if (!cardIds[i]) {
-      return undefined;
+      return undefined;    // hand not done
     }
     let card = Card.fromId( cardIds[i] );
     if (card.isBetterThan( highestCard, trumpSuit )) {
@@ -56,6 +60,7 @@ function determineTrickWinner( cardIds, trumpSuit ) {
       highestId = i;
     }
   }
+  console.log("Winner is " + highestId );
   return highestId;
 }
 
@@ -65,25 +70,33 @@ function giveTeamPoints( game, playerId, points ) {
   playerId = playerId % 4;
   let teammateId = (playerId+2) %4;
 
-  game.player[playerId].score += points;
-  game.player[teammateId].score += points;
+  game.players[playerId].score += points;
+  game.players[teammateId].score += points;
+
+  game.message = game.players[playerId].name + " wins " +
+    points + " point" + ((points>1) ? "s":"");
 }
 
 //----------------------------------------
 // if hand is over, dole out points to each team member
 //----------------------------------------
 function assignPoints( game ) {
-  if (game.player[game.trumpCallerId].tricks < 3) {
+  let message;
+  if (game.players[game.trumpCallerId].tricks < 3) {
     giveTeamPoints( game, game.trumpCallerId+1, 2);  // Euchred!
+    game.message += ". Euchre!";
   } else {
-    if (game.player[game.trumpCallerId].tricks == 5) {  // sweep!
+    if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
       if (game.goingAlone) {
         giveTeamPoints( game, game.trumpCallerId, 4);
+        game.message += ". Solo sweep!";
       } else {
         giveTeamPoints( game, game.trumpCallerId, 2);
+        game.message += ". Sweep!";
       }
     } else {
-      game.player[game.trumpCallerId].score += 1;    // simple win
+      giveTeamPoints( game, game.trumpCallerId, 1);
+      game.players[game.trumpCallerId].score += 1;    // simple win
     }
   }
 };
@@ -92,7 +105,7 @@ function assignPoints( game ) {
 // check if anyone has 10 points
 function checkGameOver( game ) {
   for (let i=0; i<4; i++) {
-    if (game.player[i].score >= 10) {
+    if (game.players[i].score >= 10) {
       game.winner = i;
     }
   }
@@ -117,6 +130,7 @@ module.exports = {
       for (var i=0; i < 4; i++) {
         let hand = deck.splice(0, 5);
         game.players[i].cardIds = [];
+        game.players[i].tricks = 0;
         hand.forEach( card => { game.players[i].cardIds.push( card.id ); });
       }
       // turn card face up for dealer
@@ -127,6 +141,7 @@ module.exports = {
       deck.forEach( card => { game.deck.push( card.id ); });
 
       game.cardsDealt = true;
+      game.bidding = true;
 
       // // hard coded unshuffled deck
       // game.deck = ["1:1","1:2","1:3"];  // blind
@@ -185,6 +200,8 @@ module.exports = {
       game.playerTurn = (game.playerTurn + 1 ) % 4;
 
       if (params.playerId == game.dealerId) {
+        game.message = "Turning down the " +
+          Card.fromId( game.playedCardIds[game.dealerId] ).toString();
         game.playedCardIds[game.dealerId] = null;
       }
 
@@ -279,7 +296,8 @@ module.exports = {
         // next player's turn
         game.playerTurn = (game.playerTurn + 1) % 4;
 
-        let winner = determineTrickWinner( game.playedCardIds, game.trumpSuit );
+        let winner = determineTrickWinner( game.playedCardIds,
+                                           game.leadPlayerId, game.trumpSuit );
         if (winner !== undefined) {
           game.trickWinner = winner;   // takeTrick resets this
           game.playerTurn = winner;
@@ -315,25 +333,27 @@ module.exports = {
 
       // if all the cards are played, see who won and start next round
       if (game.players[0].cardIds.length == 0) {
-        assignPoints( game );
+        assignPoints( game );   // FIXME - how to notify client of round result?
 
         // setup next deal
         game.dealerId = (game.dealerId + 1) %4;
         game.playerTurn = (game.dealerId + 1) % 4;
         game.cardsDealt = false;
+        game.trumpCallerId = null;
+        game.trumpSuit = null;
 
         checkGameOver( game );
         if (game.winner) {
-          // I guess that's it, the rest is client side
+          // Game over, don't proceed
           game.gameOver = "true";  // weird DB index hack
+          game.trickWinner = null;
         }
       }
 
       if (!game.winner) {
-        // clear table and start anew, lead was assigned in playCard
+        // clear table and start next hand,
+        // lead and turn was assigned in playCard or above in next deal
         game.playedCardIds = [ null,null,null,null ];
-        game.playerTurn = game.trickWinner;
-        game.leadPlayerId = game.trickWinner;
         game.trickWinner = null;
       }
 
