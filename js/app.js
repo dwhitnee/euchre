@@ -116,11 +116,19 @@ let app = new Vue({
     bidding: function() { return this.game.cardsDealt && this.game.bidding; },
     ourTurn: function() { return this.playerId == this.game.playerTurn; },
     canPickUp: function() { return this.game.bidding && this.upCard; },
-    weAreDealer: function() { return this.playerId == this.game.dealerId; },
-    timeToDeal: function() {
-      return (this.numPlayers == 4) &&
-        !this.game.cardsDealt &&
-        !this.game.winner;
+    weAreDealer: {
+      cache: false,    // uncached so Deal button shows up when 4th joins
+      get() {
+        return this.playerId == this.game.dealerId;
+      }
+    },
+    timeToDeal: {
+      cache: false,    // uncached so Deal button shows up when 4th joins
+      get() {
+        return (this.numPlayers == 4) &&
+          !this.game.cardsDealt &&
+          !this.game.winner;
+      }
     },
     trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
     // The potential trump
@@ -279,7 +287,8 @@ let app = new Vue({
   },
 
   //----------------------------------------------------------------------
-  // event handlers and other fns accessible from the web page
+  // event handlers and other things that should not be computed
+  //fns accessible from the web page
   //----------------------------------------------------------------------
   methods: {
 
@@ -420,7 +429,8 @@ let app = new Vue({
       // ES6 magic swapping
       [cards[a], cards[b]] = [cards[b], cards[a]];
 
-      this.$forceUpdate();   // need this so computed values update
+      this.$forceUpdate();   // need this so getCardStyle updates, why? FIXME
+      // need to make getCardStyle a computed method?  Component?
     },
 
 
@@ -446,10 +456,8 @@ let app = new Vue({
           alert("No game found named " + this.gameId );
         }
         console.log("Loaded game for " + this.playerName );
-        if (this.game.message) {
-          this.message = this.game.message;
-        }
-        // this.game.winner = 2;
+
+        this.message = this.game.message;
         if (this.game.winner) {
           this.message =
             this.game.players[this.game.winner].name + "'s team wins!!";
@@ -485,6 +493,7 @@ let app = new Vue({
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
+        this.playerId = playerId;
         let playerData = Util.getCookie("player") || {};
         playerData[this.gameId] = playerId;
         Util.setCookie("player", playerData );

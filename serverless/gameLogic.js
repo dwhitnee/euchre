@@ -142,15 +142,8 @@ module.exports = {
 
       game.cardsDealt = true;
       game.bidding = true;
-
-      // // hard coded unshuffled deck
-      // game.deck = ["1:1","1:2","1:3"];  // blind
-      // game.playedCardIds = ["","","",""];
-      // for (var i=0; i < 4; i++) {
-      //   game.players[i].cardIds = ["12:"+i,"9:"+i,"10:"+i,"11:"+i, "13:"+i];
-      // }
-      // // turn card face up for dealer
-      // game.playedCardIds[game.dealerId] = ["1:0"];
+      game.message = "Play " +
+        Card.fromId( game.playedCardIds[game.dealerId] ).suitName + "?";
 
       thomas.updateGame( game, function( err, response ) {
         message.respond( err, response , callback );
@@ -178,7 +171,7 @@ module.exports = {
       console.log("Joining as " + params.playerName +
                   " at spot #" + params.playerId);
       game.players[params.playerId].name = params.playerName;
-
+      game.message = params.playerName + " has joined.";
       thomas.updateGame( game, function( err, response ) {
         message.respond( err, response , callback );
       });
@@ -284,6 +277,7 @@ module.exports = {
 
       if (discarding) {
         game.dealerMustDiscard = false;
+        game.message = game.players[game.leadPlayerId].name + " leads";
 
       } else {      // play card
         // FIXME, ensure player followed suit - can be done client side

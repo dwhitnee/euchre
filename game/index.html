@@ -39,9 +39,6 @@
     </div>
 
     <div class="playerName gridPlayer1">
-      <div v-if="!names[1] && isSpectator">
-        <button class="button btn-primary btn-lg join"
-                @click="join(1)">Join</button></div>
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[1] }}</div>
         <div v-if="dealerIs(1)" class="dealer"></div>
@@ -61,15 +58,9 @@
         <div>tricks: {{ teamTricks(2) }}</div>
         <div>score: {{ teamScore(2) }}</div>
       </div>
-      <div v-if="!names[2] && isSpectator">
-        <button class="button btn-primary btn-lg join"
-                @click="join(2)">Join</button></div>
     </div>
 
     <div class="playerName gridPlayer3">
-      <div v-if="!names[3] && isSpectator">
-        <button class="button btn-primary btn-lg join"
-                @click="join(3)">Join</button></div>
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[3] }}</div>
         <div v-if="dealerIs(3)" class="dealer"></div>
@@ -82,7 +73,11 @@
 
         <div v-if="playedCards[i]" class="playingCard"
              :style="getCardStyle( playedCards[i].id )"></div>
+        <div v-else-if="!names[i] && isSpectator">
+          <button class="button btn-primary btn-lg join"
+                  @click="join(i)">Join</button></div>
         <div v-else class="unplayed playingCard"></div>
+
       </div>
       <div class="turnIndicator">
         <transition name="fade">
@@ -123,14 +118,14 @@
 
       <div>
         <div class="buttons">
-          <div v-if="!names[0] && isSpectator">
-            <button class="button btn-primary btn-lg" @click="join(0)">Join</button></div>
-
           <button  v-if="timeToDeal && weAreDealer && !saveInProgress"
                    @click="dealCards" class="btn btn-primary btn-lg">Deal</button>
 
           <div v-if="timeToDeal && !weAreDealer">
             Waiting for {{ dealerName }} to deal the cards...
+          </div>
+          <div v-if="numPlayers < 4">
+            Waiting for players to join...
           </div>
           <button v-if="ourTurn && bidding"
                   @click="pass" class="btn btn-primary btn-lg">Pass</button>
