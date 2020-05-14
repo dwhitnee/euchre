@@ -84,8 +84,7 @@
              :style="getCardStyle( playedCards[i].id )"></div>
         <div v-else class="unplayed playingCard"></div>
       </div>
-      <div class="turnIndicator" v-if="game.cardsDealt">
-
+      <div class="turnIndicator">
         <transition name="fade">
           <div v-if="message" class="message">{{ message }}</div>
         </transition>
@@ -147,8 +146,10 @@
     </div>
 
     <div class="gridCheat">
-      Hello cheater
-      <button v-if="cheating " @click="seeNextPlayer" class="btn btn-primary btn-lg">Next</button>
+      <div v-if="cheating">
+        Hello cheater
+        <button  @click="seeNextPlayer" class="btn btn-primary btn-lg">Next</button>
+      </div>
     </div>
 
   </div>

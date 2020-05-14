@@ -110,7 +110,7 @@ module.exports = {
 
     for (var i=0; i < 4; i++) {
       newGame.players[i] = {
-//         name: null,    FIXME, just for testing
+//         name: null,    FIXME, just for TESTING
         name: "Player " + i,
         score: 0,
         tricks: 0,

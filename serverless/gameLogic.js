@@ -68,9 +68,8 @@ function giveTeamPoints( game, playerId, points ) {
   game.players[playerId].score += points;
   game.players[teammateId].score += points;
 
-
   game.message = game.players[playerId].name + " wins " +
-    points + " point" + (points>1) ? "s":"";
+    points + " point" + ((points>1) ? "s":"");
 }
 
 //----------------------------------------
@@ -80,7 +79,7 @@ function assignPoints( game ) {
   let message;
   if (game.players[game.trumpCallerId].tricks < 3) {
     giveTeamPoints( game, game.trumpCallerId+1, 2);  // Euchred!
-    game.message += " Euchre!";
+    game.message += ". Euchre!";
   } else {
     if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
       if (game.goingAlone) {
@@ -126,6 +125,7 @@ module.exports = {
       for (var i=0; i < 4; i++) {
         let hand = deck.splice(0, 5);
         game.players[i].cardIds = [];
+        game.players[i].tricks = 0;
         hand.forEach( card => { game.players[i].cardIds.push( card.id ); });
       }
       // turn card face up for dealer
@@ -136,6 +136,7 @@ module.exports = {
       deck.forEach( card => { game.deck.push( card.id ); });
 
       game.cardsDealt = true;
+      game.bidding = true;
 
       // // hard coded unshuffled deck
       // game.deck = ["1:1","1:2","1:3"];  // blind

@@ -236,7 +236,7 @@ let app = new Vue({
     this.spectatorName = Util.getCookie("name");
 
     // remove this in PROD, used for inhabiting different players
-    if (this.playerId !== undefined) {
+    if (this.playerId != null) {
       console.log("CHEATING! I am player " + this.playerId);
       this.isSpectator = false;   // TESTING
       this.updateFromServer();    // TESTING
@@ -280,7 +280,7 @@ let app = new Vue({
 
     // cheater!!!
     seeNextPlayer: function() {
-      debugger
+      // debugger
       window.location = this.$route.path +
         "?id=" + this.game.id +
         "&playerId=" + (this.playerId+1)%4;
@@ -441,6 +441,9 @@ let app = new Vue({
           alert("No game found named " + this.gameId );
         }
         console.log("Loaded game for " + this.playerName );
+        if (this.game.message) {
+          this.message = this.game.message;
+        }
         this.gameDataReady = true;
       }
       catch( err ) {
@@ -560,7 +563,9 @@ let app = new Vue({
         {
           // finally play card
           this.game.playedCardIds[this.playerId] = playedCard.id;
-          this.nextPlayer();
+          if (!this.trickOver) {
+            this.nextPlayer();
+          }
           this.message = "";
 
         } else {
