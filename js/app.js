@@ -116,15 +116,33 @@ let app = new Vue({
     bidding: function() { return this.game.cardsDealt && this.game.bidding; },
     ourTurn: function() { return this.playerId == this.game.playerTurn; },
     canPickUp: function() { return this.game.bidding && this.upCard; },
-    weAreDealer: function() { return this.playerId == this.game.dealerId; },
-    timeToDeal: function() {
-      return (this.numPlayers == 4) &&
-        !this.game.cardsDealt &&
-        !this.game.winner;
-    },
+    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
     trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
     // The potential trump
-    upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
+    validSuits: function() {
+      let suits = [];
+      for (let i=0; i <4; i++) {
+        if (i != this.game.upCardSuit) {
+          suits.push( Card.suitNames[i] );
+        }
+      }
+      return suits;
+    },
+
+    weAreDealer: {
+      cache: false,    // uncached so Deal button shows up when 4th joins
+      get() {
+        return this.playerId == this.game.dealerId;
+      }
+    },
+    timeToDeal: {
+      cache: false,    // uncached so Deal button shows up when 4th joins
+      get() {
+        return (this.numPlayers == 4) &&
+          !this.game.cardsDealt &&
+          !this.game.winner;
+      }
+    },
     trickWinnerName: function() {
       if ((this.game.trickWinner != null) && !this.game.winner) {
         return this.game.players[this.game.trickWinner].name;
@@ -254,8 +272,8 @@ let app = new Vue({
       let playerName = Util.getCookie("name");
       if (this.isGameLoaded()) {
 
-        // keep it coming!
-        setInterval(() => { this.updateFromServer();}, 2000);
+        // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
+        setInterval(() => { this.updateFromServer(); }, 2500);
 
         // test, remove me
         if (!this.isSpectator) {
@@ -279,7 +297,8 @@ let app = new Vue({
   },
 
   //----------------------------------------------------------------------
-  // event handlers and other fns accessible from the web page
+  // event handlers and other things that should not be computed
+  //fns accessible from the web page
   //----------------------------------------------------------------------
   methods: {
 
@@ -420,7 +439,8 @@ let app = new Vue({
       // ES6 magic swapping
       [cards[a], cards[b]] = [cards[b], cards[a]];
 
-      this.$forceUpdate();   // need this so computed values update
+      this.$forceUpdate();   // need this so getCardStyle updates, why? FIXME
+      // need to make getCardStyle a computed method?  Component?
     },
 
 
@@ -446,22 +466,22 @@ let app = new Vue({
           alert("No game found named " + this.gameId );
         }
         console.log("Loaded game for " + this.playerName );
-        if (this.game.message) {
-          this.message = this.game.message;
-        }
-        // this.game.winner = 2;
+
+        this.message = this.game.message;
         if (this.game.winner) {
           this.message =
             this.game.players[this.game.winner].name + "'s team wins!!";
         }
         this.gameDataReady = true;
+        this.updateRetries = 0;
       }
       catch( err ) {
+        if (++this.updateRetries < 2) { return; }   // ignore first 2 fails
+
         alert("Problem reading game from server " + Util.sadface +
               (err.message || err));
 
         // redirect to home page if we can't load data?
-        // maybe a few retries?
         debugger;    // FIXME
       };
     },
@@ -485,6 +505,7 @@ let app = new Vue({
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
 
+        this.playerId = playerId;
         let playerData = Util.getCookie("player") || {};
         playerData[this.gameId] = playerId;
         Util.setCookie("player", playerData );
@@ -667,6 +688,31 @@ let app = new Vue({
       catch( err ) {
         console.error("Pickup failed: " + JSON.stringify( err ));
         alert("Try again. Pickup failed " + Util.sadface + (err.message || err));
+      };
+
+      this.saveInProgress = false;
+    },
+
+    //----------------------------------------
+    // Pick a suit. Bidding is over, start playing
+    //----------------------------------------
+    async callSuit( suit ) {
+      try {
+        this.saveInProgress = true;
+
+        let postData = {
+          gameId: this.gameId,
+          playerId: this.playerId,
+          suitName: suit
+        };
+        let response = await fetch( serverURL + "callSuit",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        console.error("Call suit failed: " + JSON.stringify( err ));
+        alert("Try again. Call suit failed " + Util.sadface + (err.message || err));
       };
 
       this.saveInProgress = false;

@@ -134,7 +134,9 @@ module.exports = {
         hand.forEach( card => { game.players[i].cardIds.push( card.id ); });
       }
       // turn card face up for dealer
-      game.playedCardIds[game.dealerId] = deck.pop().id;
+      let upCard = deck.pop();
+      game.playedCardIds[game.dealerId] = upCard.id;
+      game.upCardSuit = upCard.suit;   // for bidding restrictions
 
       // what's left;
       game.deck = [];
@@ -142,15 +144,8 @@ module.exports = {
 
       game.cardsDealt = true;
       game.bidding = true;
-
-      // // hard coded unshuffled deck
-      // game.deck = ["1:1","1:2","1:3"];  // blind
-      // game.playedCardIds = ["","","",""];
-      // for (var i=0; i < 4; i++) {
-      //   game.players[i].cardIds = ["12:"+i,"9:"+i,"10:"+i,"11:"+i, "13:"+i];
-      // }
-      // // turn card face up for dealer
-      // game.playedCardIds[game.dealerId] = ["1:0"];
+      game.message = "Play " +
+        Card.fromId( game.playedCardIds[game.dealerId] ).suitName + "?";
 
       thomas.updateGame( game, function( err, response ) {
         message.respond( err, response , callback );
@@ -178,7 +173,7 @@ module.exports = {
       console.log("Joining as " + params.playerName +
                   " at spot #" + params.playerId);
       game.players[params.playerId].name = params.playerName;
-
+      game.message = params.playerName + " has joined.";
       thomas.updateGame( game, function( err, response ) {
         message.respond( err, response , callback );
       });
@@ -251,6 +246,43 @@ module.exports = {
   },
 
   //----------------------------------------------------------------------
+  // PlayerId has called trump, set leader.
+  // This is much like pickItUp but simpler
+  //----------------------------------------------------------------------
+  callSuit: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+    if (!message.verifyParam( request, callback, "suitName")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+      console.log( params.playerId + " calls " + params.suitName);
+
+      // declare trump suit
+      game.trumpCallerId = parseInt( params.playerId );
+      // get suit id from name
+      game.trumpSuit = Card.suitNames.findIndex( suitName =>
+                                                 (suitName == params.suitName));
+      game.message = game.players[params.playerId].name +
+        " calls " + params.suitName;
+
+      // play will start at dealer's left
+      game.playerTurn = (game.dealerId + 1) % 4;
+      game.leadPlayerId = game.playerTurn;     // need this to check trick
+
+      // bidding isn't technically over because dealer still needs to discard
+      game.bidding = false;
+
+      thomas.updateGame( game, function( err, response ) {
+        message.respond( err, response , callback );
+      });
+    });
+  },
+
+
+
+  //----------------------------------------------------------------------
   // Move card from player's hand to table. Check for legality and trick ending
   // Special case for discarding 6th card from dealer's hand at beginning.
   //----------------------------------------------------------------------
@@ -284,6 +316,7 @@ module.exports = {
 
       if (discarding) {
         game.dealerMustDiscard = false;
+        game.message = game.players[game.leadPlayerId].name + " leads";
 
       } else {      // play card
         // FIXME, ensure player followed suit - can be done client side
