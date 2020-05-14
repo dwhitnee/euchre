@@ -333,7 +333,7 @@ module.exports = {
 
       // if all the cards are played, see who won and start next round
       if (game.players[0].cardIds.length == 0) {
-        assignPoints( game );   // FIXME - how to notify client of round result?
+        assignPoints( game );
 
         // setup next deal
         game.dealerId = (game.dealerId + 1) %4;

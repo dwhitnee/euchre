@@ -110,8 +110,8 @@ module.exports = {
 
     for (var i=0; i < 4; i++) {
       newGame.players[i] = {
-//         name: null,    FIXME, just for TESTING
-        name: "Player " + i,
+        name: null,
+        // name: "Player " + i,      // just for TESTING
         score: 0,
         tricks: 0,
         cardIds: [],

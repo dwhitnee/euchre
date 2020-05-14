@@ -90,7 +90,7 @@ module.exports = {
 
   //----------------------------------------
   // Some action occured, let's store the effect in DynamoDB
-  // FIXME -- this should optimistically lock on a versionId or something.
+  // Optimistically lock on a versionId.  Fail if conflict
   //
   // Params: gameData blob
   // Params: callback( err, data )  success IFF err==null
