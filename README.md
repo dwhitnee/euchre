@@ -1,24 +1,24 @@
-# Euchre
-Copyright (c) 2015 <a href="http://dwhitnee.s3-website-us-east-1.amazonaws.com/">David Whitney</a>
+# Online Euchre
+Copyright (c) 2015-2020 <a href="http://dwhitnee.s3-website-us-east-1.amazonaws.com/">David Whitney</a>
 
 ## Play it!
-http://dwhitnee.s3-website-us-east-1.amazonaws.com/js/euchre/  (coming soon)
+https://dwhitnee.github.io/euchre
 
 ## About
-Euchre card game playable by 3 or 4 people online.
+Euchre card game playable by 4 people online.
+
+Uses VueJS for webpage interaction, AWS DynamoDB and Lambda for game
+state (via serverless)
+
 TBD
-* Facebook login
-* central server to administer game (AWS Lambda or DynamoDB maybe)
+* login?
 
 No canvas, just HTML elements and CSS.
 
 ## Run locally
-TBD
+http://localhost/euchre/
 
 ## Credits
 All code written and directed by David Whitney.
 
-* Images stolen liberally from the web.
-** Playing cards: https://sourceforge.net/projects/svg-cards/files/
-* jQuery is used for DOM manipulation and event handling.
-* Google Closure Compiler for compilation and compression.
+* Playing cards: https://sourceforge.net/projects/svg-cards/files/
