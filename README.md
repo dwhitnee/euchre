@@ -10,6 +10,8 @@ Euchre card game playable by 4 people online.
 Uses VueJS for webpage interaction, AWS DynamoDB and Lambda for game
 state (via serverless)
 
+Roughly 100K, half of which is Vue and Bootstrap
+
 TBD
 * login?
 
