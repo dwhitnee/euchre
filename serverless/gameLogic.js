@@ -127,6 +127,11 @@ function prepareForNextDeal( game ) {
   game.trumpSuit = null;
   game.trickWinner = null;
   game.playedCardIds = [ null,null,null,null ];
+
+  for (var i=0; i < 4; i++) {
+    game.players[i].cardIds = [];
+    game.players[i].tricks = 0;
+  }
 }
 
 
