@@ -2,9 +2,10 @@
 //  AWS Lambda API -- Game logic stuff
 
 // Race conditions galore:  we have to load an existing game, modify
-// it, and stuff it back in.
-
+// it, and stuff it back in.  Optimistic locking in DB layer should cause 400's
+// if an overlap happens.
 //----------------------------------------------------------------------
+
 'use strict';
 
 let euchreDB = require('euchreDB');  // All the Dynamo stuff
@@ -66,6 +67,8 @@ function determineTrickWinner( cardIds, leadCardId, trumpSuit ) {
 
 
 //----------------------------------------
+// both players on a team get the same points.
+//----------------------------------------
 function giveTeamPoints( game, playerId, points ) {
   playerId = playerId % 4;
   let teammateId = (playerId+2) %4;
@@ -79,12 +82,13 @@ function giveTeamPoints( game, playerId, points ) {
 
 //----------------------------------------
 // if hand is over, dole out points to each team member
+// return a cute message to display.
 //----------------------------------------
 function assignPoints( game ) {
-  let message;
   if (game.players[game.trumpCallerId].tricks < 3) {
     giveTeamPoints( game, game.trumpCallerId+1, 2);  // Euchred!
     game.message += ". Euchre!";
+
   } else {
     if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
       if (game.goingAlone) {
@@ -95,14 +99,15 @@ function assignPoints( game ) {
         game.message += ". Sweep!";
       }
     } else {
-      giveTeamPoints( game, game.trumpCallerId, 1);
-      game.players[game.trumpCallerId].score += 1;    // simple win
+      giveTeamPoints( game, game.trumpCallerId, 1);     // simple win
     }
   }
 };
 
 
-// check if anyone has 10 points
+//----------------------------------------------------------------------
+// @return true if anyone has 10 points
+//----------------------------------------------------------------------
 function checkGameOver( game ) {
   for (let i=0; i<4; i++) {
     if (game.players[i].score >= 10) {
@@ -111,7 +116,28 @@ function checkGameOver( game ) {
   }
 }
 
+//----------------------------------------------------------------------
+// Clear the table and setup state for next deal
+//----------------------------------------------------------------------
+function prepareForNextDeal( game ) {
+  game.dealerId = (game.dealerId + 1) %4;
+  game.playerTurn = (game.dealerId + 1) % 4;
+  game.cardsDealt = false;
+  game.trumpCallerId = null;
+  game.trumpSuit = null;
+  game.trickWinner = null;
+  game.playedCardIds = [ null,null,null,null ];
 
+  for (var i=0; i < 4; i++) {
+    game.players[i].cardIds = [];
+    game.players[i].tricks = 0;
+  }
+}
+
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 module.exports = {
 
   //----------------------------------------------------------------------
@@ -165,24 +191,29 @@ module.exports = {
 
     let params = JSON.parse( request.body );
 
-    // FIXME, people can steal seats, prevent seat from being stolen
-    // (as opposed to setPlayerName)  Or is this a feature if someone
-    // change their mind? (would need to flush client side name/seat mapping)
-
     thomas.getGameData( params.gameId, function( err, game ) {
       console.log("Joining as " + params.playerName +
                   " at spot #" + params.playerId);
-      game.players[params.playerId].name = params.playerName;
-      game.message = params.playerName + " has joined.";
-      thomas.updateGame( game, function( err, response ) {
-        message.respond( err, response , callback );
-      });
+
+      // someone's already sitting here
+      if (game.players[params.playerId].name) {
+        message.respond( game.players[params.playerId].name +
+                         " is already sitting in seat " + params.playerId,
+                         "" , callback );
+      } else {
+        game.message = params.playerName + " has joined.";
+        game.players[params.playerId].name = params.playerName;
+        thomas.updateGame( game, function( err, response ) {
+          message.respond( err, response , callback );
+        });
+      }
     });
   },
 
 
   //----------------------------------------------------------------------
-  // Pass to next player
+  // Pass to next player.
+  // If dealer either turn down the up card, or throw in the cards
   //----------------------------------------------------------------------
   pass: function( request, context, callback ) {
     if (!message.verifyParam( request, callback, "gameId")) { return; }
@@ -195,9 +226,16 @@ module.exports = {
       game.playerTurn = (game.playerTurn + 1 ) % 4;
 
       if (params.playerId == game.dealerId) {
-        game.message = "Turning down the " +
-          Card.fromId( game.playedCardIds[game.dealerId] ).toString();
-        game.playedCardIds[game.dealerId] = null;
+
+        if (game.playedCardIds[game.dealerId]) {  // turn down the up card
+          game.message = "Turning down the " +
+            Card.fromId( game.playedCardIds[game.dealerId] ).toString();
+          game.playedCardIds[game.dealerId] = null;
+        } else {
+          // everyone passed, end the hand and restart the deal
+          prepareForNextDeal( game );
+          game.message = "Everyone passed, time for a new deal";
+        }
       }
 
       thomas.updateGame( game, function( err, response ) {
@@ -357,6 +395,11 @@ module.exports = {
     thomas.getGameData( params.gameId, function( err, game ) {
       console.log( params.playerId + " takes trick");
 
+      if (!game.trickWinner) {        // this is not my bueatiful house!
+        message.respond("No trick winner - double call?", null, callback );
+        return;
+      }
+
       // update team's count
       let teammate = (game.trickWinner + 2) % 4;
       game.players[game.trickWinner].tricks =
@@ -367,15 +410,8 @@ module.exports = {
       // if all the cards are played, see who won and start next round
       if (game.players[0].cardIds.length == 0) {
         assignPoints( game );
-
-        // setup next deal
-        game.dealerId = (game.dealerId + 1) %4;
-        game.playerTurn = (game.dealerId + 1) % 4;
-        game.cardsDealt = false;
-        game.trumpCallerId = null;
-        game.trumpSuit = null;
-
         checkGameOver( game );
+
         if (game.winner) {
           // Game over, don't proceed
           game.gameOver = "true";  // weird DB index hack
@@ -386,8 +422,7 @@ module.exports = {
       if (!game.winner) {
         // clear table and start next hand,
         // lead and turn was assigned in playCard or above in next deal
-        game.playedCardIds = [ null,null,null,null ];
-        game.trickWinner = null;
+        prepareForNextDeal( game );
       }
 
       thomas.updateGame( game, function( err, response ) {

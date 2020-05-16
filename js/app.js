@@ -21,22 +21,21 @@ let app = new Vue({
   // Game Model (drives the View, update these values only
   //----------------------------------------
   data: {
-    gameDataReady: false,          // wait to load the page
-    saveInProgress: false,
-    message: "",
-
-    playedCard: undefined,
-    movingCard: undefined,
+    gameDataReady: false,       // wait to load the page
+    saveInProgress: false,      // prevent other actions while this is going on
+    message: "",                // display in the middle
+    movingCard: undefined,      // dragging
 
     isSpectator: true,
     spectatorName: "",
     spectatorNameTmp: "",
     cheating: false,
-    playerId: undefined, // Loaded from game cookie, who user is
+    playerId: undefined,   // Loaded from game cookie, who user is
 
     // game data from server, players are in NESW/0123 order
     // player 0 is at the bottom
     game: undefined,
+
 /*    {
       id: "BasicBud-463046",
       dealerId: 0,
@@ -53,25 +52,7 @@ let app = new Vue({
           score: 0,
           tricks: 0,
           cardIds: ["12:0","9:0","10:0","12:1", "9:1"]
-        },
-        {
-          name: "Ernie",
-          score: 0,
-          tricks: 0,
-          cardIds: ["9:0","10:1","11:2","13:3", "1:3"]
-        },
-        {
-          name: "Sam",
-          score: 0,
-          tricks: 0,
-          cardIds: ["12:2","9:2","10:2","12:3","9:3"]
-        },
-        {
-          name: "Wendy",
-          score: 0,
-          tricks: 0,
-          cardIds: ["12:3","9:3","10:3","1:0", "1:1"]
-        }
+        },...
       ]
     }
 */
@@ -363,6 +344,9 @@ let app = new Vue({
       return playerId == this.game.dealerId;
     },
 
+    //----------------------------------------
+    // scores
+    //----------------------------------------
     teamTricks: function( seat ) {
       let playerId = this.getPlayerInSeat( seat );
       return this.game.players[playerId].tricks;
@@ -372,10 +356,12 @@ let app = new Vue({
       return this.game.players[playerId].score;
     },
 
+    //----------------------------------------
+    // advance the arrow pointer
+    //----------------------------------------
     nextPlayer: function() {
       this.game.playerTurn = (this.game.playerTurn+1)%4;
     },
-
     //----------------------------------------
     // point at who's up, account for seat locations
     //----------------------------------------
@@ -384,6 +370,9 @@ let app = new Vue({
       return "transform: rotate(" + angle + "deg";
     },
 
+    //----------------------------------------
+    // CSS from deck sprite
+    //----------------------------------------
     getCardStyle: function( id ) {
       let face = "";
 
@@ -520,9 +509,13 @@ let app = new Vue({
     // enter existing game, we are Player n+1
     //----------------------------------------
     async join( seatId ) {
-      try {
+      if (this.saveInProgress) {
+        return;   // debounce
+      } else {
         this.saveInProgress = true;
+      }
 
+      try {
         let playerId = this.getPlayerInSeat( seatId );
         console.log("Joining as " + this.spectatorName + " at spot #"+playerId);
 
@@ -556,9 +549,13 @@ let app = new Vue({
     // deal
     //----------------------------------------
     async dealCards() {
-      try {
+      if (this.saveInProgress) {
+        return;   // debounce
+      } else {
         this.saveInProgress = true;
+      }
 
+      try {
         console.log("Dealing: asking server to issue new cards");
 
         // animate?  FIXME  - make cards fly around until game load?
@@ -589,6 +586,10 @@ let app = new Vue({
     // If trick is done, determine winner (let server figure it out?)
     //----------------------------------------
     async playCard( event ) {
+      if (this.saveInProgress) {
+        return;   // debounce
+      }
+
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
       if (!card) {
@@ -633,7 +634,6 @@ let app = new Vue({
           // bad card played
           this.message = "The " + this.leadCard.toString() +
                 " was lead. You must follow suit if you can.";
-          setTimeout(() => { this.message = ""; }, 5000);
 
           // put card back and exit
           this.game.playedCardIds[this.playerId] = null;
@@ -667,10 +667,14 @@ let app = new Vue({
     },
 
     //----------------------------------------
-    // pass
+    // pass on the bid. If this is the dealer, turn down the card
     //----------------------------------------
     async pass() {
-      // if this is the dealer, turn down the card
+      if (this.saveInProgress) {
+        return;   // debounce
+      } else {
+        this.saveInProgress = true;
+      }
 
       if (this.playerId == this.game.dealerId) {
         // animate turning down card?  FIXME
@@ -680,8 +684,6 @@ let app = new Vue({
       this.nextPlayer();   // this is visual only, real state is on server
 
       try {
-        this.saveInProgress = true;
-
         let postData = {
           gameId: this.gameId,
           playerId: this.playerId,
@@ -703,9 +705,13 @@ let app = new Vue({
     // put up card in dealer's hand.  Bidding is over, start playing
     //----------------------------------------
     async pickUpCard() {
-      try {
+      if (this.saveInProgress) {
+        return;   // debounce
+      } else {
         this.saveInProgress = true;
+      }
 
+      try {
         let postData = {
           gameId: this.gameId,
           playerId: this.playerId,
@@ -727,6 +733,8 @@ let app = new Vue({
     // Pick a suit. Bidding is over, start playing
     //----------------------------------------
     async callSuit( suit ) {
+      if (this.saveInProgress) { return; }   // debounce
+
       try {
         this.saveInProgress = true;
 
@@ -754,9 +762,13 @@ let app = new Vue({
     // This is really a pause for people to look at the cards first
     //----------------------------------------
     async takeTrick() {
-      try {
+      if (this.saveInProgress) {
+        return;   // debounce
+      } else {
         this.saveInProgress = true;
+      }
 
+      try {
         let postData = {
           gameId: this.gameId,
           playerId: this.playerId,
