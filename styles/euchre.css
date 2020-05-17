@@ -88,10 +88,10 @@ a.button.disabled {
   text-align: center;
 }
 
-.scoreCards {
+.cardPile {
   display: grid;
 }
-.scoreCards > * {
+.cardPile > * {
   grid-column: 1;   /* all score cards overlap */
   grid-row: 1;
 }
@@ -306,3 +306,36 @@ a.button.disabled {
   border: .75em solid #33a532;
   border-radius: 0 50% 50% 50%;
 }
+
+
+/* Hack sequential animations by making 4 that only
+   run from 0-25%, 25-50%, 50-75% and 75-100%.
+   Move cards up/down/left/right and vanish when done.
+*/
+@keyframes dealPlayer1 {
+  0%   { transform: translate(0,0) rotate(0deg);       opacity: 100%; }
+  25%  { transform: translate(-20em,0) rotate(180deg); opacity: 0%; }
+  100% { transform: translate(-20em,0) rotate(180deg); }
+}
+@keyframes dealPlayer2 {
+  0%    { transform: translate(0,0) rotate(0deg); }
+  25%   { transform: translate(0,0) rotate(0deg);       opacity: 100%; }
+  50%   { transform: translate(0,-15em) rotate(180deg); opacity: 0; }
+  100%  { transform: translate(0,-15em) rotate(180deg) }
+}
+@keyframes dealPlayer3 {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  50%  { transform: translate(0,0) rotate(0deg);      opacity: 100%; }
+  75%  { transform: translate(20em,0) rotate(180deg); opacity: 0%; }
+  100% { transform: translate(20em,0) rotate(180deg) }
+}
+@keyframes dealPlayer4 {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  75%  { transform: translate(0,0) rotate(0deg);      opacity: 100%; }
+  100% { transform: translate(0,15em) rotate(180deg); opacity: 0%;  }
+}
+
+.deal1 { animation: dealPlayer1 2s 5; opacity: 0; }
+.deal2 { animation: dealPlayer2 2s 5; opacity: 0; }
+.deal3 { animation: dealPlayer3 2s 5; opacity: 0; }
+.deal4 { animation: dealPlayer4 2s 5; opacity: 0; }
