@@ -245,15 +245,16 @@ let app = new Vue({
     // remove this in PROD, used for inhabiting different players
     if (this.playerId != null) {
       console.log("CHEATING! I am player " + this.playerId);
-      this.isSpectator = false;   // TESTING
-      this.updateFromServer();    // TESTING
       this.cheating = true;
-      return;                     // TESTING
+      this.isSpectator = true;
+      // this.isSpectator = false;   // TESTING
+      // this.updateFromServer();    // TESTING
+      // return;                     // TESTING
+    } else {
+      // See who this is and where they sit at the table, cookie
+      let playerData = Util.getCookie("player");
+      this.playerId = playerData[this.gameId];
     }
-
-    // See who this is and where they sit at the table, cookie
-    let playerData = Util.getCookie("player");
-    this.playerId = playerData[this.gameId];
 
     this.updateFromServer().then( () => {
       let playerName = Util.getCookie("name");
@@ -280,7 +281,7 @@ let app = new Vue({
           this.isSpectator = true;
           this.playerId = 2;        // this should come from query FIXME TESTING
         } else {
-          this.isSpectator = false;
+          this.isSpectator = false || this.cheating;  // let cheaters spectate
         }
       }
     });
@@ -559,6 +560,7 @@ let app = new Vue({
     // deal
     //----------------------------------------
     async dealCards() {
+      if (this.isSpectator) { return ; }
       if (this.saveInProgress) {
         return;   // debounce
       } else {
@@ -596,6 +598,7 @@ let app = new Vue({
     // If trick is done, determine winner (let server figure it out?)
     //----------------------------------------
     async playCard( event ) {
+      if (this.isSpectator) { return ; }
       if (this.saveInProgress) {
         return;   // debounce
       }
@@ -681,6 +684,7 @@ let app = new Vue({
     // pass on the bid. If this is the dealer, turn down the card
     //----------------------------------------
     async pass() {
+      if (this.isSpectator) { return ; }
       if (this.saveInProgress) {
         return;   // debounce
       } else {
@@ -716,6 +720,7 @@ let app = new Vue({
     // put up card in dealer's hand.  Bidding is over, start playing
     //----------------------------------------
     async pickUpCard() {
+      if (this.isSpectator) { return ; }
       if (this.saveInProgress) {
         return;   // debounce
       } else {
@@ -744,11 +749,14 @@ let app = new Vue({
     // Pick a suit. Bidding is over, start playing
     //----------------------------------------
     async callSuit( suit ) {
-      if (this.saveInProgress) { return; }   // debounce
+      if (this.isSpectator) { return; }
+      if (this.saveInProgress) {
+        return;   // debounce
+      } else {
+        this.saveInProgress = true;
+      }
 
       try {
-        this.saveInProgress = true;
-
         let postData = {
           gameId: this.gameId,
           playerId: this.playerId,
@@ -773,6 +781,7 @@ let app = new Vue({
     // This is really a pause for people to look at the cards first
     //----------------------------------------
     async takeTrick() {
+      if (this.isSpectator) { return ; }
       if (this.saveInProgress) {
         return;   // debounce
       } else {
