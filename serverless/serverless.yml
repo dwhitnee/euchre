@@ -118,7 +118,7 @@ functions:
           cors: true
 
   setPlayerName:
-    handler: gameLogic.joinGame
+    handler: gameLogic.setPlayerName
     description: Change player's name in the game
     events:
       - http:

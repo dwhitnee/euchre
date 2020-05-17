@@ -211,6 +211,27 @@ module.exports = {
     });
   },
 
+  //----------------------------------------------------------------------
+  // same logic as joining, on the back end, just putting a name in a slot
+  // But allow overriding seat
+  //----------------------------------------------------------------------
+  setPlayerName: function( request, context, callback ) {
+    if (!message.verifyParam( request, callback, "gameId")) { return; }
+    if (!message.verifyParam( request, callback, "playerId")) { return; }
+    if (!message.verifyParam( request, callback, "playerName")) { return; }
+
+    let params = JSON.parse( request.body );
+
+    thomas.getGameData( params.gameId, function( err, game ) {
+      console.log("Changing player name " + params.playerName +
+                  " at spot #" + params);
+      game.players[params.playerId].name = params.playerName;
+        thomas.updateGame( game, function( err, response ) {
+          message.respond( err, response , callback );
+        });
+    });
+  },
+
 
   //----------------------------------------------------------------------
   // Pass to next player.
@@ -432,27 +453,4 @@ module.exports = {
     });
   },
 
-
-
-
-
-
-  /*
-  //----------------------------------------------------------------------
-  // same logic as joining, on the back end, just putting a name in a slot
-  //----------------------------------------------------------------------
-  setPlayerName: function( request, context, callback ) {
-    if (!message.verifyParam( request, callback, "gameId")) { return; }
-    if (!message.verifyParam( request, callback, "playerId")) { return; }
-    if (!message.verifyParam( request, callback, "playerName")) { return; }
-
-    let params = JSON.parse( request.body );
-
-    thomas.getGameData( params.gameId, function( err, game ) {
-      console.log("Joining as " + params.playerName + " at spot #" + params);
-      game.players[params.playerId].name = params.playerName;
-      thomas.updateGame( game, callback );
-    });
-  },
-*/
 };
