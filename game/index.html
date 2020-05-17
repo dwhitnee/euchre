@@ -45,7 +45,7 @@
       </div>
       <div>
         <div style="padding-bottom: 0.5em">tricks: {{ teamTricks(1) }}</div>
-        <div class="scoreCards">
+        <div class="cardPile">
           <div class="playingCard sixOfClubs"> </div>
           <div class="playingCard fourOfClubs" :class="'score'+teamScore(1)"></div>
         </div>
@@ -59,7 +59,7 @@
       </div>
       <div style="padding-left: 3em;">
         <div style="padding-bottom: 0.5em;">tricks: {{ teamTricks(2) }}</div>
-        <div class="scoreCards">
+        <div class="cardPile">
           <div class="playingCard sixOfHearts"> </div>
           <div class="playingCard fourOfHearts" :class="'score'+teamScore(2)"></div>
         </div>
@@ -89,10 +89,13 @@
         <transition name="fade">
           <div v-if="message" class="message">{{ message }}</div>
         </transition>
-        <div v-if="game.dealerMustDiscard" class="message">
-          Waiting for dealer to discard</div>
         <div v-if="trickWinnerName" class="winner message">{{ trickWinnerName }} takes the trick</div>
         <div class="arrow" :style="arrowRotation()"></div>
+        <div v-if="timeToDeal && !weAreDealer" class="cardPile">
+          <div v-for="i in [1,2,3,4]">    <!-- dealer animation -->
+            <div class="playingCard" :class="'deal'+i"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -144,7 +147,7 @@
           </div>
 
           <button v-if="game.trickWinner == playerId "
-                  @click="takeTrick" class="btn btn-primary btn-lg">Take trick</button>
+                  @click="takeTrick" class="btn btn-primary btn-lg">Pick up trick</button>
 
         </div>
       </div>
@@ -156,7 +159,6 @@
         <button  @click="seeNextPlayer" class="btn btn-primary btn-lg">Next</button>
       </div>
     </div>
-
   </div>
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"

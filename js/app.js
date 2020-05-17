@@ -484,13 +484,23 @@ let app = new Vue({
           this.game = undefined;
           alert("No game found named " + this.gameId );
         }
-        console.log("Loaded game for " + this.playerName );
 
         this.message = this.game.message;
+
+        if (this.game.dealerMustDiscard) {
+          this.message = this.trumpSuit + " are called.";
+          if (this.weAreDealer) {
+            this.message += " You must discard any card.";
+          } else {
+            this.message += " Waiting for dealer to discard.";
+          }
+        }
+
         if (this.game.winner) {
           this.message =
             this.game.players[this.game.winner].name + "'s team wins!!";
         }
+
         this.gameDataReady = true;
         this.updateRetries = 0;
       }
@@ -610,6 +620,7 @@ let app = new Vue({
         {
           // A misplay here should be self evident to user
           console.log("Can't play a card right now");
+          this.message = "It's not your turn yet.";
           return;
         }
       }

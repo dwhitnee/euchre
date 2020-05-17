@@ -125,6 +125,7 @@ function prepareForNextDeal( game ) {
   game.cardsDealt = false;
   game.trumpCallerId = null;
   game.trumpSuit = null;
+
   game.trickWinner = null;
   game.playedCardIds = [ null,null,null,null ];
 
@@ -395,7 +396,7 @@ module.exports = {
     thomas.getGameData( params.gameId, function( err, game ) {
       console.log( params.playerId + " takes trick");
 
-      if (!game.trickWinner) {        // this is not my bueatiful house!
+      if (game.trickWinner == null) {     // this is not my bueatiful house!
         message.respond("No trick winner - double call?", null, callback );
         return;
       }
@@ -407,22 +408,22 @@ module.exports = {
       game.players[teammate].tricks =
         game.players[teammate].tricks + 1;
 
+      // clear table for next trick
+      game.trickWinner = null;
+      game.playedCardIds = [ null,null,null,null ];
+
       // if all the cards are played, see who won and start next round
       if (game.players[0].cardIds.length == 0) {
+
         assignPoints( game );
         checkGameOver( game );
 
-        if (game.winner) {
-          // Game over, don't proceed
+        if (game.winner) {         // Game over, don't proceed
           game.gameOver = "true";  // weird DB index hack
           game.trickWinner = null;
+        } else {
+          prepareForNextDeal( game );
         }
-      }
-
-      if (!game.winner) {
-        // clear table and start next hand,
-        // lead and turn was assigned in playCard or above in next deal
-        prepareForNextDeal( game );
       }
 
       thomas.updateGame( game, function( err, response ) {
