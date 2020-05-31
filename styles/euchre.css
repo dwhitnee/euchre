@@ -5,6 +5,7 @@ html,body {
 #euchreApp {
   width: 100%;   /* full screen */
   height: 100%;
+  zoom: 1.1;
 }
 
 [v-cloak] {  display:none; }
@@ -78,6 +79,7 @@ a.button.disabled {
 
 
 .playingCard {
+  /* transform: scale(1.2); */
   background: url("../images/cards.png") 240px 120px no-repeat;
   height: 95px;
   width: 70px;
