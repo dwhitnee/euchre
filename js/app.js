@@ -278,7 +278,7 @@ let app = new Vue({
         // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
         this.autoLoad = setInterval(() => { this.updateFromServer(); }, 2500);
 
-        let gameTime = 1000 * 60 * 30 + 100;  // 30 min
+        let gameTime = 1000 * 60 * 60 + 100;  // 60 min
         // stop reloading after game should be over
         setTimeout(() => {
           clearInterval( this.autoLoad );
