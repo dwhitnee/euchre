@@ -101,7 +101,9 @@ let app = new Vue({
         }
       }
     },
-
+    trumpCallerName: function() {
+      return this.game.players[this.game.trumpCallerId].name;
+    },
     dealerName: function() {
       return this.game.players[this.game.dealerId].name;
     },
@@ -507,7 +509,7 @@ let app = new Vue({
         this.message = this.game.message;
 
         if (this.game.dealerMustDiscard) {
-          this.message = this.trumpSuit + " are called.";
+          this.message = this.trumpCallerName + " calls " + this.trumpSuit + ".";
           if (this.weAreDealer) {
             this.message += " You must discard any card.";
           } else {
