@@ -101,7 +101,9 @@ let app = new Vue({
         }
       }
     },
-
+    trumpCallerName: function() {
+      return this.game.players[this.game.trumpCallerId].name;
+    },
     dealerName: function() {
       return this.game.players[this.game.dealerId].name;
     },
@@ -278,7 +280,7 @@ let app = new Vue({
         // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
         this.autoLoad = setInterval(() => { this.updateFromServer(); }, 2500);
 
-        let gameTime = 1000 * 60 * 30 + 100;  // 30 min
+        let gameTime = 1000 * 60 * 60 + 100;  // 60 min
         // stop reloading after game should be over
         setTimeout(() => {
           clearInterval( this.autoLoad );
@@ -507,7 +509,7 @@ let app = new Vue({
         this.message = this.game.message;
 
         if (this.game.dealerMustDiscard) {
-          this.message = this.trumpSuit + " are called.";
+          this.message = this.trumpCallerName + " calls " + this.trumpSuit + ".";
           if (this.weAreDealer) {
             this.message += " You must discard any card.";
           } else {

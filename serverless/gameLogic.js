@@ -288,6 +288,9 @@ module.exports = {
       game.trumpCallerId = parseInt( params.playerId );
       game.trumpSuit = Card.fromId( upCardId ).suit;   // id
 
+      game.message = game.players[game.trumpCallerId].name +
+        " calls " + params.suitName;
+
       // put card in dealer's hand
       game.players[game.dealerId].cardIds.push( upCardId );
       game.dealerMustDiscard = true;
