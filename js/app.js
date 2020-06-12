@@ -285,7 +285,7 @@ let app = new Vue({
         // stop reloading after game should be over
         setTimeout(() => {
           clearInterval( this.autoLoad );
-          this.message = "Game timed out, refresh the page to continue.";
+          this.setMessage("Game timed out, refresh the page to continue.");
         }, gameTime);
 
         // test, remove me
@@ -325,6 +325,18 @@ let app = new Vue({
         "?id=" + this.game.id +
         "&playerId=" + (this.playerId+1)%4;
     },
+
+    // set the message to display lcoally, keep it for 2-3 cycles (6 seconds)
+    // (otherwise local messages disappear too fast)
+    setMessage: function( message, pause ) {
+      this.message = message;
+      pause = pause || 0;
+      this.messageCountdown = pause + 1;
+    },
+    addToMessage: function( message ) {
+      this.message += message;
+    },
+
 
     //----------------------------------------
     //----------------------------------------
@@ -511,32 +523,25 @@ let app = new Vue({
         // if not, keep our local message for 2 cycles (6 seconds)
         // (otherwise local messages disappear too fast)
         if (this.game.message) {
-          this.message = this.game.message;
-          this.messageCountdown = 0;
+          this.setMessage( this.game.message );
         } else {
-          if (this.message) {
-            this.messageCountdown++;   // message has been up for 3 seconds
-          } else {
-            this.messageCountdown = 0;  // reset, no message
-          }
-          if (this.messageCountdown > 2) {
+          if (--this.messageCountdown <= 0) {
             this.message = "";
-            this.messageCountdown = 0;
           }
         }
 
         if (this.game.dealerMustDiscard) {
-          this.message = this.trumpCallerName + " calls " + this.trumpSuit + ".";
+          this.setMessage( this.trumpCallerName + " calls " + this.trumpSuit + ".");
           if (this.weAreDealer) {
-            this.message += " You must discard any card.";
+            this.addToMessage(" You must discard any card.");
           } else {
-            this.message += " Waiting for dealer to discard.";
+            this.addToMessage(" Waiting for dealer to discard.");
           }
         }
 
         if (this.game.winner) {
-          this.message =
-            this.game.players[this.game.winner].name + "'s team wins!!";
+          this.setMessage( this.game.players[this.game.winner].name +
+                           "'s team wins!!");
         }
 
         this.gameDataReady = true;
@@ -661,7 +666,7 @@ let app = new Vue({
         {
           // A misplay here should be self evident to user
           console.log("Can't play a card right now");
-          this.message = "It's not your turn yet.";
+          this.setMessage("It's not your turn yet.");
           return;
         }
       }
@@ -680,12 +685,12 @@ let app = new Vue({
           if (!this.trickOver) {
             this.nextPlayer();
           }
-          this.message = "";
+          this.setMessage("");
 
         } else {
           // bad card played
-          this.message = "The " + this.leadCard.toString() +
-                " was lead. You must follow suit if you can.";
+          this.setMessage("The " + this.leadCard.toString() +
+                          " was lead. You must follow suit if you can.", 2);
 
           // put card back and exit
           this.game.playedCardIds[this.playerId] = null;
