@@ -641,10 +641,15 @@ let app = new Vue({
             this.game.dealerMustDiscard ||               // waiting for dealer
             this.game.bidding)                           // while hand is going
         {
-          // A misplay here should be self evident to user
-          console.log("Can't play a card right now");
-          this.message = "It's not your turn yet.";
-          return;
+          if (this.cards.length == 1) {
+            // last card, who cares when you play
+            console.log("You played out of order, but it's the last card");
+          } else {
+            // A misplay here should be self evident to user
+            console.log("Can't play a card right now");
+            this.message = "It's not your turn yet.";
+            return;
+          }
         }
       }
 

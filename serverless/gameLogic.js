@@ -364,17 +364,20 @@ module.exports = {
           (game.players[game.dealerId].cardIds.length == 6) &&
           (params.playerId == game.dealerId);
 
+      let cards = game.players[params.playerId].cardIds;
+
       if (!discarding) {
         if ((game.playedCardIds[params.playerId]) ||    // already played
             (params.playerId !== game.playerTurn) ||    // not her turn
             game.bidding)                        // not playing yet
         {
-          callback("Can't play a card now"); // doh! fail
+          if (cards.length != 1) {  // let players toss last card
+            callback("Can't play a card now"); // doh! fail
+          }
         }
       }
 
       // remove card from player's hand
-      let cards = game.players[params.playerId].cardIds;
       cards.splice( cards.indexOf(params.cardId), 1);
 
       if (discarding) {
