@@ -506,7 +506,8 @@ let app = new Vue({
           alert("No game found named " + this.gameId );
         }
 
-        this.message = this.game.message;
+        // FIXME: leave old message up for 10 seconds (otherwise local messages disappear in 3 seconds)
+        this.message = this.game.message || this.message;
 
         if (this.game.dealerMustDiscard) {
           this.message = this.trumpCallerName + " calls " + this.trumpSuit + ".";
@@ -804,6 +805,8 @@ let app = new Vue({
     //----------------------------------------
     // hand is over, update scores and start next hand
     // This is really a pause for people to look at the cards first
+    // TODO: Delay a bit here so everyone can see trick?
+    // Nice animation before calling server.
     //----------------------------------------
     async takeTrick() {
       if (this.isSpectator) { return ; }
