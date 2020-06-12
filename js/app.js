@@ -46,6 +46,7 @@ let app = new Vue({
     spectatorNameTmp: "",
     cheating: false,
     playerId: undefined,   // Loaded from game cookie, who user is
+    messageCountdown: 0,
 
     // game data from server, players are in NESW/0123 order
     // player 0 is at the bottom
@@ -506,8 +507,23 @@ let app = new Vue({
           alert("No game found named " + this.gameId );
         }
 
-        // FIXME: leave old message up for 10 seconds (otherwise local messages disappear in 3 seconds)
-        this.message = this.game.message || this.message;
+        // if the server has a message, override ours immediately
+        // if not, keep our local message for 2 cycles (6 seconds)
+        // (otherwise local messages disappear too fast)
+        if (this.game.message) {
+          this.message = this.game.message;
+          this.messageCountdown = 0;
+        } else {
+          if (this.message) {
+            this.messageCountdown++;   // message has been up for 3 seconds
+          } else {
+            this.messageCountdown = 0;  // reset, no message
+          }
+          if (this.messageCountdown > 2) {
+            this.message = "";
+            this.messageCountdown = 0;
+          }
+        }
 
         if (this.game.dealerMustDiscard) {
           this.message = this.trumpCallerName + " calls " + this.trumpSuit + ".";
@@ -638,19 +654,15 @@ let app = new Vue({
       // Is a play allowed now?
       if (!discarding) {
         if ((this.game.playedCardIds[this.playerId]) ||  // play one card
-            (this.playerId !== this.game.playerTurn) ||  // on your turn
             this.game.dealerMustDiscard ||               // waiting for dealer
-            this.game.bidding)                           // while hand is going
+            this.game.bidding ||                         // while hand is going
+            ((this.playerId !== this.game.playerTurn) &&
+             (this.cards.length != 1)))  // on your turn, unless last turn
         {
-          if (this.cards.length == 1) {
-            // last card, who cares when you play
-            console.log("You played out of order, but it's the last card");
-          } else {
-            // A misplay here should be self evident to user
-            console.log("Can't play a card right now");
-            this.message = "It's not your turn yet.";
-            return;
-          }
+          // A misplay here should be self evident to user
+          console.log("Can't play a card right now");
+          this.message = "It's not your turn yet.";
+          return;
         }
       }
 
