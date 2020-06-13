@@ -60,12 +60,6 @@ a.button.disabled {
     text-shadow: none;
 }
 
-/* I hate !important, but this class needs to make things invisible and
-   preserve previous display style of element */
-.hidden {
-  display: none !important;
-}
-
 .fadeOut {
   opacity: 0;
   transition: all 0.5s ease-in-out;
@@ -282,6 +276,14 @@ a.button.disabled {
 /*   left: -3.5em; */
 /* } */
 
+.pass {
+  position: absolute;
+  z-index: 1;
+  font-weight: bold;
+  font-size: 3em;
+  text-shadow: 2px 2px white;
+}
+
 .dummy {
   opacity: 30%;
 }
@@ -290,7 +292,6 @@ a.button.disabled {
   position: absolute;
   font-size: 3em;
   z-index: 1;
-  font-family: serif;
 }
 
 .dummyHorizontal {  transform: rotate(-15deg); }

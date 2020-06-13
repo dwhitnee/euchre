@@ -471,7 +471,8 @@ module.exports = {
       game.playedCardIds = [ null,null,null,null ];
 
       // if all the cards are played, see who won and start next round
-      if (game.players[0].cardIds.length == 0) {
+      // check callers hand because others might be the dummy hand
+      if (game.players[game.trumpCallerId].cardIds.length == 0) {
 
         assignPoints( game );
         checkGameOver( game );

@@ -379,6 +379,12 @@ let app = new Vue({
       return playerId == this.game.dealerId;
     },
 
+    // @return true if player in this seat recently passed their bid
+    playerPassed: function( seatId ) {
+      let playerId = this.getPlayerInSeat( seatId );
+      return playerId == this.passer;
+    },
+
     //----------------------------------------
     // scores
     //----------------------------------------
@@ -496,6 +502,8 @@ let app = new Vue({
     // See what's changed in the wide world
     //----------------------------------------
     async updateFromServer() {
+      this.passer = null;   // start fresh
+
       if (this.timeToDeal) {
         this.isAloneCall = false;  // reset for new hand
       }
@@ -514,6 +522,12 @@ let app = new Vue({
         if (!response.ok) { throw await response.json(); }
         let updatedGame = await response.json();
 
+        // see if someone passed
+        if (this.game && (updatedGame.playerTurn != this.game.playerTurn)) {
+          if (updatedGame.bidding) {
+            this.passer = this.game.playerTurn; // last guy must have passed
+          }
+        }
         // this seems to trigger only on deal and pickItUp, not on playCard
         // if we don't do this, this.cards updates every 3 seconds
         if (cards &&
@@ -868,7 +882,7 @@ let app = new Vue({
     },
 
     setSpectatorName: function() {
-      // use tmp or else page updates as soon as first key is pressed
+      // use tmp or else page update sas soon as first key is pressed
       this.spectatorName = this.spectatorNameTmp;
       Util.setCookie("name", this.spectatorNameTmp.trim());
     },
