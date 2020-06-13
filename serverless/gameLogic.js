@@ -33,6 +33,17 @@ function getShuffledDeck() {
 }
 
 //----------------------------------------
+// advance to next valid player. ie, skip the dummy if there is one.
+//----------------------------------------
+function moveToNextPlayer( game ) {
+  game.playerTurn = (game.playerTurn + 1 ) % 4;
+
+  if (game.playerTurn === game.dummyPlayerId) {
+    moveToNextPlayer();
+  }
+}
+
+//----------------------------------------
 // If 4 cards where played, which card is highest of lead suit, unless trumped
 // @return winning playerId or undefined if any card is null
 //----------------------------------------
@@ -121,7 +132,7 @@ function checkGameOver( game ) {
 //----------------------------------------------------------------------
 function prepareForNextDeal( game ) {
   game.dealerId = (game.dealerId + 1) %4;
-  game.playerTurn = (game.dealerId + 1) % 4;
+  moveToNextPlayer( game );
   game.cardsDealt = false;
   game.trumpCallerId = null;
   game.trumpSuit = null;
@@ -245,7 +256,7 @@ module.exports = {
 
     thomas.getGameData( params.gameId, function( err, game ) {
       console.log( params.playerId + "Passes ");
-      game.playerTurn = (game.playerTurn + 1 ) % 4;
+      moveToNextPlayer( game );
 
       if (params.playerId == game.dealerId) {
 
@@ -274,6 +285,7 @@ module.exports = {
   pickItUp: function( request, context, callback ) {
     if (!message.verifyParam( request, callback, "gameId")) { return; }
     if (!message.verifyParam( request, callback, "playerId")) { return; }
+    if (!message.verifyParam( request, callback, "isAlone")) { return; }
 
     let params = JSON.parse( request.body );
 
@@ -296,7 +308,8 @@ module.exports = {
       game.dealerMustDiscard = true;
 
       // play will start at dealer's left
-      game.playerTurn = (game.dealerId + 1) % 4;
+      game.playerTurn = game.dealerId;
+      moveToNextPlayer( game );
       game.leadPlayerId = game.playerTurn;     // need this to check trick
 
       // bidding isn't technically over because dealer still needs to discard
@@ -316,6 +329,7 @@ module.exports = {
     if (!message.verifyParam( request, callback, "gameId")) { return; }
     if (!message.verifyParam( request, callback, "playerId")) { return; }
     if (!message.verifyParam( request, callback, "suitName")) { return; }
+    if (!message.verifyParam( request, callback, "isAlone")) { return; }
 
     let params = JSON.parse( request.body );
 
@@ -331,7 +345,8 @@ module.exports = {
         " calls " + params.suitName;
 
       // play will start at dealer's left
-      game.playerTurn = (game.dealerId + 1) % 4;
+      game.playerTurn = game.dealerId;
+      moveToNextPlayer( game );
       game.leadPlayerId = game.playerTurn;     // need this to check trick
 
       // bidding isn't technically over because dealer still needs to discard
@@ -392,8 +407,7 @@ module.exports = {
         // put card on table
         game.playedCardIds[params.playerId] = params.cardId;
 
-        // next player's turn
-        game.playerTurn = (game.playerTurn + 1) % 4;
+        moveToNextPlayer( game );
 
         let winner = determineTrickWinner( game.playedCardIds,
                                            game.leadPlayerId, game.trumpSuit );

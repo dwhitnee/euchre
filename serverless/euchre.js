@@ -98,6 +98,7 @@ module.exports = {
       // hand data
       bidding: true,   // we're either bidding or playing tricks
       leadPlayerId: null,
+      dummyPlayerId: null,
       cardsDealt: false,
       trickWinner: null,
       deck: [],

@@ -47,6 +47,7 @@ let app = new Vue({
     cheating: false,
     playerId: undefined,   // Loaded from game cookie, who user is
     messageCountdown: 0,
+    isAloneCall: false,
 
     // game data from server, players are in NESW/0123 order
     // player 0 is at the bottom
@@ -395,7 +396,11 @@ let app = new Vue({
     //----------------------------------------
     nextPlayer: function() {
       this.game.playerTurn = (this.game.playerTurn+1)%4;
+      if (this.game.playerTurn === this.game.dummyPlayerId) {
+        this.nextPlayer();
+      }
     },
+
     //----------------------------------------
     // point at who's up, account for seat locations
     //----------------------------------------
@@ -774,6 +779,7 @@ let app = new Vue({
         let postData = {
           gameId: this.gameId,
           playerId: this.playerId,
+          isAlone: this.isAloneCall
         };
         let response = await fetch( serverURL + "pickItUp",
                                     Util.makeJsonPostParams( postData ));
@@ -803,8 +809,10 @@ let app = new Vue({
         let postData = {
           gameId: this.gameId,
           playerId: this.playerId,
-          suitName: suit
+          suitName: suit,
+          isAlone: this.isAloneCall
         };
+        debugger
         let response = await fetch( serverURL + "callSuit",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
