@@ -79,7 +79,7 @@
     <div id="cardTable" class="cardTable gridCardTable withBorder"
          @dragover.prevent @drop="playCard">
       <div v-for="(card, i) in playedCards" :class="'player'+i">
-        <div v-if="playerPassed(i)">PASS</div>
+        <div v-if="playerPassed(i)" class="pass">PASS</div>
         <div v-if="playedCards[i]" class="playingCard"
              :style="getCardStyle( playedCards[i].id )"></div>
         <div v-else-if="!names[i] && isSpectator">

@@ -502,6 +502,8 @@ let app = new Vue({
     // See what's changed in the wide world
     //----------------------------------------
     async updateFromServer() {
+      this.passer = null;   // start fresh
+
       if (this.timeToDeal) {
         this.isAloneCall = false;  // reset for new hand
       }
