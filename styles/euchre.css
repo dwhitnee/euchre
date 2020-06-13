@@ -271,12 +271,14 @@ a.button.disabled {
   vertical-align: text-bottom;
 }
 
-/* button.join { */
-/*   position: relative; */
-/*   left: -3.5em; */
-/* } */
+
+@keyframes passFadeOut {
+  0%   { opacity: 100%; }
+  100% { opacity: 0%; transform: translate( 1em, -1em );  }
+}
 
 .pass {
+  animation: passFadeOut ease 3s;
   position: absolute;
   z-index: 1;
   font-weight: bold;
