@@ -286,6 +286,16 @@ a.button.disabled {
   opacity: 30%;
 }
 
+.watermark {
+  position: absolute;
+  font-size: 3em;
+  z-index: 1;
+  font-family: serif;
+}
+
+.dummyHorizontal {  transform: rotate(-15deg); }
+.dummyVertical   {  transform: rotate(-75deg) translate(-2.5em, -0.5em); }
+
 .winner.message {
   background: none;
 }
