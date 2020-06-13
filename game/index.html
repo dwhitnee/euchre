@@ -38,7 +38,7 @@
       </i></small>
     </div>
 
-    <div class="playerName gridPlayer1">
+    <div class="playerName gridPlayer1" :class="{ dummy: isDummy(1) }">
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[1] }}</div>
         <div v-if="dealerIs(1)" class="dealer"></div>
@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <div class="playerName gridPlayer2">
+    <div class="playerName gridPlayer2" :class="{ dummy: isDummy(2) }">
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[2] }}</div>
         <div v-if="dealerIs(2)" class="dealer"></div>
@@ -66,7 +66,7 @@
       </div>
     </div>
 
-    <div class="playerName gridPlayer3">
+    <div class="playerName gridPlayer3" :class="{ dummy: isDummy(3) }">
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[3] }}</div>
         <div v-if="dealerIs(3)" class="dealer"></div>
@@ -110,7 +110,7 @@
       <span v-if="saveInProgress" class="spinner-border spinner-border-sm"></span>
     </div>
 
-    <div class="gridPlayer0">
+    <div class="gridPlayer0" :class="{ dummy: isDummy(0) }">
       <div class="cards">
         <div v-for="(card,i) in cards">
           <div class="playingCard"
@@ -154,6 +154,11 @@
     </div>
 
     <div class="gridCheat">
+      <div  v-if="ourTurn && bidding" class="alone-check">
+        <input v-model="isAloneCall" type="checkbox" id="goalone">
+        <label for="goalone">Go alone?</label>
+      </div>
+
       <div v-if="cheating">
         Hello cheater
         <button  @click="seeNextPlayer" class="btn btn-primary btn-lg">See next</button>

@@ -33,10 +33,21 @@ function getShuffledDeck() {
 }
 
 //----------------------------------------
+// advance to next valid player. ie, skip the dummy if there is one.
+//----------------------------------------
+function moveToNextPlayer( game ) {
+  game.playerTurn = (game.playerTurn + 1) % 4;
+
+  if (game.playerTurn === game.dummyPlayerId) {
+    moveToNextPlayer( game );
+  }
+}
+
+//----------------------------------------
 // If 4 cards where played, which card is highest of lead suit, unless trumped
 // @return winning playerId or undefined if any card is null
 //----------------------------------------
-function determineTrickWinner( cardIds, leadCardId, trumpSuit ) {
+function determineTrickWinner( cardIds, leadCardId, trumpSuit, dummyPlayerId ) {
   console.log("Trick " + JSON.stringify(cardIds));
   console.log("lead player: " + leadCardId + ", trump: " + trumpSuit );
 
@@ -52,6 +63,10 @@ function determineTrickWinner( cardIds, leadCardId, trumpSuit ) {
   }
 
   for (let i=0; i < 4; i++) {
+    if (i == dummyPlayerId) {  // no one likes the dummy
+      continue;
+    }
+
     if (!cardIds[i]) {
       return undefined;    // hand not done
     }
@@ -91,7 +106,7 @@ function assignPoints( game ) {
 
   } else {
     if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
-      if (game.goingAlone) {
+      if (game.dummyPlayerId != null) {
         giveTeamPoints( game, game.trumpCallerId, 4);
         game.message += ". Solo sweep!";
       } else {
@@ -121,7 +136,8 @@ function checkGameOver( game ) {
 //----------------------------------------------------------------------
 function prepareForNextDeal( game ) {
   game.dealerId = (game.dealerId + 1) %4;
-  game.playerTurn = (game.dealerId + 1) % 4;
+  game.dummyPlayerId = null;
+  moveToNextPlayer( game );
   game.cardsDealt = false;
   game.trumpCallerId = null;
   game.trumpSuit = null;
@@ -245,7 +261,7 @@ module.exports = {
 
     thomas.getGameData( params.gameId, function( err, game ) {
       console.log( params.playerId + "Passes ");
-      game.playerTurn = (game.playerTurn + 1 ) % 4;
+      moveToNextPlayer( game );
 
       if (params.playerId == game.dealerId) {
 
@@ -274,6 +290,7 @@ module.exports = {
   pickItUp: function( request, context, callback ) {
     if (!message.verifyParam( request, callback, "gameId")) { return; }
     if (!message.verifyParam( request, callback, "playerId")) { return; }
+    if (!message.verifyParam( request, callback, "isAlone")) { return; }
 
     let params = JSON.parse( request.body );
 
@@ -291,12 +308,18 @@ module.exports = {
       game.message = game.players[game.trumpCallerId].name +
         " calls " + params.suitName;
 
+      if (params.isAlone) {
+        game.dummyPlayerId = (game.trumpCallerId + 2) % 4;  // caller's partner
+        game.message += " ALONE";
+      }
+
       // put card in dealer's hand
       game.players[game.dealerId].cardIds.push( upCardId );
       game.dealerMustDiscard = true;
 
       // play will start at dealer's left
-      game.playerTurn = (game.dealerId + 1) % 4;
+      game.playerTurn = game.dealerId;
+      moveToNextPlayer( game );
       game.leadPlayerId = game.playerTurn;     // need this to check trick
 
       // bidding isn't technically over because dealer still needs to discard
@@ -316,6 +339,7 @@ module.exports = {
     if (!message.verifyParam( request, callback, "gameId")) { return; }
     if (!message.verifyParam( request, callback, "playerId")) { return; }
     if (!message.verifyParam( request, callback, "suitName")) { return; }
+    if (!message.verifyParam( request, callback, "isAlone")) { return; }
 
     let params = JSON.parse( request.body );
 
@@ -330,8 +354,14 @@ module.exports = {
       game.message = game.players[params.playerId].name +
         " calls " + params.suitName;
 
+      if (params.isAlone) {
+        game.dummyPlayerId = (game.trumpCallerId + 2) % 4;  // caller's partner
+        game.message += " ALONE";
+      }
+
       // play will start at dealer's left
-      game.playerTurn = (game.dealerId + 1) % 4;
+      game.playerTurn = game.dealerId;
+      moveToNextPlayer( game );
       game.leadPlayerId = game.playerTurn;     // need this to check trick
 
       // bidding isn't technically over because dealer still needs to discard
@@ -392,11 +422,12 @@ module.exports = {
         // put card on table
         game.playedCardIds[params.playerId] = params.cardId;
 
-        // next player's turn
-        game.playerTurn = (game.playerTurn + 1) % 4;
+        moveToNextPlayer( game );
 
-        let winner = determineTrickWinner( game.playedCardIds,
-                                           game.leadPlayerId, game.trumpSuit );
+        let winner = determineTrickWinner(
+          game.playedCardIds, game.leadPlayerId, game.trumpSuit,
+          game.dummyPlayerId);
+
         if (winner !== undefined) {
           game.trickWinner = winner;   // takeTrick resets this
           game.playerTurn = winner;
