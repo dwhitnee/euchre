@@ -39,6 +39,7 @@
     </div>
 
     <div class="playerName gridPlayer1" :class="{ dummy: isDummy(1) }">
+      <div v-if="isDummy(1)" class="watermark dummyVertical">Dummy</div>
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[1] }}</div>
         <div v-if="dealerIs(1)" class="dealer"></div>
@@ -53,6 +54,7 @@
     </div>
 
     <div class="playerName gridPlayer2" :class="{ dummy: isDummy(2) }">
+      <div v-if="isDummy(2)" class="watermark dummyHorizontal">Dummy</div>
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[2] }}</div>
         <div v-if="dealerIs(2)" class="dealer"></div>
@@ -67,6 +69,7 @@
     </div>
 
     <div class="playerName gridPlayer3" :class="{ dummy: isDummy(3) }">
+      <div v-if="isDummy(3)" class="watermark dummyVertical">Dummy</div>
       <div class="playingCard pile" :style="getCardStyle()">
         <div class="nameOverlay">{{ names[3] }}</div>
         <div v-if="dealerIs(3)" class="dealer"></div>
@@ -111,6 +114,7 @@
     </div>
 
     <div class="gridPlayer0" :class="{ dummy: isDummy(0) }">
+      <div v-if="isDummy(0)" class="watermark dummyHorizontal">Dummy</div>
       <div class="cards">
         <div v-for="(card,i) in cards">
           <div class="playingCard"
