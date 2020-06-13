@@ -58,7 +58,7 @@ let app = new Vue({
       dealerId: 0,
       trumpCallerId: 1,
       trumpSuit: 3,
-      goingAlone: false,
+      dummyPlayerId: null,
       leadPlayerId: 1,   // left of dealer or taker of last trick
 
       deck: [],
@@ -409,6 +409,10 @@ let app = new Vue({
       return "transform: rotate(" + angle + "deg";
     },
 
+    isDummy: function( seatId ) {
+      return (this.getPlayerInSeat( seatId) == this.game.dummyPlayerId);
+    },
+
     //----------------------------------------
     // CSS from deck sprite
     //----------------------------------------
@@ -492,6 +496,9 @@ let app = new Vue({
     // See what's changed in the wide world
     //----------------------------------------
     async updateFromServer() {
+      if (this.timeToDeal) {
+        this.isAloneCall = false;  // reset for new hand
+      }
 
       // preserve hand sort order if we can, dont trigger this.cards cache flush
       let cards = null;
@@ -536,11 +543,14 @@ let app = new Vue({
         }
 
         if (this.game.dealerMustDiscard) {
-          this.setMessage( this.trumpCallerName + " calls " + this.trumpSuit + ".");
+          this.setMessage( this.trumpCallerName + " calls " + this.trumpSuit + "");
+          if (this.game.dummyPlayerId != null) {
+            this.addToMessage(" ALONE");
+          }
           if (this.weAreDealer) {
-            this.addToMessage(" You must discard any card.");
+            this.addToMessage(". You must discard any card.");
           } else {
-            this.addToMessage(" Waiting for dealer to discard.");
+            this.addToMessage(". Waiting for dealer to discard.");
           }
         }
 
@@ -812,7 +822,6 @@ let app = new Vue({
           suitName: suit,
           isAlone: this.isAloneCall
         };
-        debugger
         let response = await fetch( serverURL + "callSuit",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }

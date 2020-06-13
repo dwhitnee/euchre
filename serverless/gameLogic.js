@@ -36,10 +36,10 @@ function getShuffledDeck() {
 // advance to next valid player. ie, skip the dummy if there is one.
 //----------------------------------------
 function moveToNextPlayer( game ) {
-  game.playerTurn = (game.playerTurn + 1 ) % 4;
+  game.playerTurn = (game.playerTurn + 1) % 4;
 
   if (game.playerTurn === game.dummyPlayerId) {
-    moveToNextPlayer();
+    moveToNextPlayer( game );
   }
 }
 
@@ -47,7 +47,7 @@ function moveToNextPlayer( game ) {
 // If 4 cards where played, which card is highest of lead suit, unless trumped
 // @return winning playerId or undefined if any card is null
 //----------------------------------------
-function determineTrickWinner( cardIds, leadCardId, trumpSuit ) {
+function determineTrickWinner( cardIds, leadCardId, trumpSuit, dummyPlayerId ) {
   console.log("Trick " + JSON.stringify(cardIds));
   console.log("lead player: " + leadCardId + ", trump: " + trumpSuit );
 
@@ -63,6 +63,10 @@ function determineTrickWinner( cardIds, leadCardId, trumpSuit ) {
   }
 
   for (let i=0; i < 4; i++) {
+    if (i == dummyPlayerId) {  // no one likes the dummy
+      continue;
+    }
+
     if (!cardIds[i]) {
       return undefined;    // hand not done
     }
@@ -102,7 +106,7 @@ function assignPoints( game ) {
 
   } else {
     if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
-      if (game.goingAlone) {
+      if (game.dummyPlayerId != null) {
         giveTeamPoints( game, game.trumpCallerId, 4);
         game.message += ". Solo sweep!";
       } else {
@@ -132,6 +136,7 @@ function checkGameOver( game ) {
 //----------------------------------------------------------------------
 function prepareForNextDeal( game ) {
   game.dealerId = (game.dealerId + 1) %4;
+  game.dummyPlayerId = null;
   moveToNextPlayer( game );
   game.cardsDealt = false;
   game.trumpCallerId = null;
@@ -303,6 +308,11 @@ module.exports = {
       game.message = game.players[game.trumpCallerId].name +
         " calls " + params.suitName;
 
+      if (params.isAlone) {
+        game.dummyPlayerId = (game.trumpCallerId + 2) % 4;  // caller's partner
+        game.message += " ALONE";
+      }
+
       // put card in dealer's hand
       game.players[game.dealerId].cardIds.push( upCardId );
       game.dealerMustDiscard = true;
@@ -343,6 +353,11 @@ module.exports = {
                                                  (suitName == params.suitName));
       game.message = game.players[params.playerId].name +
         " calls " + params.suitName;
+
+      if (params.isAlone) {
+        game.dummyPlayerId = (game.trumpCallerId + 2) % 4;  // caller's partner
+        game.message += " ALONE";
+      }
 
       // play will start at dealer's left
       game.playerTurn = game.dealerId;
@@ -409,8 +424,10 @@ module.exports = {
 
         moveToNextPlayer( game );
 
-        let winner = determineTrickWinner( game.playedCardIds,
-                                           game.leadPlayerId, game.trumpSuit );
+        let winner = determineTrickWinner(
+          game.playedCardIds, game.leadPlayerId, game.trumpSuit,
+          game.dummyPlayerId);
+
         if (winner !== undefined) {
           game.trickWinner = winner;   // takeTrick resets this
           game.playerTurn = winner;

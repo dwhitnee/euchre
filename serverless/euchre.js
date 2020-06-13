@@ -92,7 +92,6 @@ module.exports = {
       dealerId: Math.floor(4*Math.random()),
       trumpCallerId: null,   // who needs to take all the tricks
       trumpSuit: null,
-      goingAlone: false,
       gameOver: "false",   // Dynamo hack: indexes can't be BOOL
 
       // hand data

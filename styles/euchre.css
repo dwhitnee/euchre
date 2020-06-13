@@ -282,6 +282,10 @@ a.button.disabled {
 /*   left: -3.5em; */
 /* } */
 
+.dummy {
+  opacity: 30%;
+}
+
 .winner.message {
   background: none;
 }
