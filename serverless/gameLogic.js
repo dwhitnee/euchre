@@ -137,6 +137,7 @@ function checkGameOver( game ) {
 function prepareForNextDeal( game ) {
   game.dealerId = (game.dealerId + 1) %4;
   game.dummyPlayerId = null;
+  game.playerTurn = game.dealerId;
   moveToNextPlayer( game );
   game.cardsDealt = false;
   game.trumpCallerId = null;
@@ -239,8 +240,8 @@ module.exports = {
     let params = JSON.parse( request.body );
 
     thomas.getGameData( params.gameId, function( err, game ) {
-      console.log("Changing player name " + params.playerName +
-                  " at spot #" + params);
+      console.log("Changing player name '" + params.playerName +
+                  "' at spot #" + params.playerId);
       game.players[params.playerId].name = params.playerName;
         thomas.updateGame( game, function( err, response ) {
           message.respond( err, response , callback );

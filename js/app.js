@@ -924,7 +924,7 @@ let app = new Vue({
               Util.sadface + (err.message || err));
 
         // D'oh. revert
-        event.target.innerHTML = this.playerName;
+        event.target.innerText = this.playerName;
       };
 
       this.saveInProgress = false;
