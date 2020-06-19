@@ -123,7 +123,9 @@
                draggable="true"
                @dragenter.prevent
                @dragover.prevent
-               @dragstart="dragCardStart(card, $event)"
+               @mouseover="mouseOverCard( card, $event )"
+               @mouseleave="mouseLeaveCard( $event )"
+               @dragstart="dragCardStart( card, $event )"
                @dragenter="moveCard( card, $event )">
           </div>
         </div>

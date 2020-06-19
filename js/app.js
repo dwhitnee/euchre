@@ -14,6 +14,7 @@
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
 
+Vue.config.devtools = true;
 
 let serverURL = "https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/";
 
@@ -117,7 +118,14 @@ let app = new Vue({
     ourTurn: function() { return this.playerId == this.game.playerTurn; },
     canPickUp: function() { return this.game.bidding && this.upCard; },
     upCard: function()  { return this.game.playedCardIds[this.game.dealerId]; },
-    trumpSuit: function() { return Card.suitNames[this.game.trumpSuit];  },
+    trumpSuit: function() {
+      let suit = Card.suitNames[this.game.trumpSuit];
+      let emojis = ["♣","♦","♥","♠"];
+      if (this.game.trumpSuit != null) {
+        suit += " " + emojis[this.game.trumpSuit];
+      }
+      return suit;
+    },
     // The potential trump
     validSuits: function() {
       let suits = [];
@@ -470,13 +478,33 @@ let app = new Vue({
     dragCardStart: function( card, event ) {
       this.movingCard = card;
       event.dataTransfer.setData("card", JSON.stringify( card ));
+      event.target.style.marginTop = "";
 
       // event.target.style.opacity = '0.2';
       console.log("Dragging the " + card);
     },
 
     //----------------------------------------
-    // remove card from old place, swpa with target card
+    // on mouse over, make card jump only if it's playable
+    //----------------------------------------
+    mouseOverCard: function( card, event ) {
+      if (!this.leadCard) {
+        event.target.style.marginTop = "-.5em";
+        return;
+      }
+      // check if card is playable
+      if (this.followsSuit( card ) ||
+          this.playerIsVoid( this.leadCard, this.game.trumpSuit ))
+      {
+        event.target.style.marginTop = "-.5em";
+      }
+    },
+    mouseLeaveCard: function( event ) {
+      event.target.style.marginTop = "";
+    },
+
+    //----------------------------------------
+    // remove card from old place, swap with target card
     //----------------------------------------
     moveCard: function( overCard, event ) {
       if (this.movingCard === overCard) {
