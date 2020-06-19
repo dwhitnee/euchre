@@ -893,7 +893,8 @@ let app = new Vue({
     async setPlayerName(event) {
       event.target.blur();  // done editing
 
-      let playerName = event.target.innerHTML.trim();
+      let playerName = event.target.innerText.trim();
+      playerName = playerName || " ";
 
       // don't make spurrious or duplicate requests
       if (this.saveInProgress || this.isSpectator ||
