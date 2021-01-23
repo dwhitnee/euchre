@@ -1,6 +1,6 @@
 /*global fetch, Vue, VueRouter, Card, Util */
 //-----------------------------------------------------------------------
-//  Copyright 2015-2020, David Whitney
+//  Copyright 2015-2021, David Whitney
 // This file is part of Quarantine Euchre
 
 // Quaratine Euchre is free software: you can redistribute it and/or modify
@@ -16,6 +16,7 @@
 
 Vue.config.devtools = true;
 
+// AWS Lambda serverless API deployment endpoint
 let serverURL = "https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/";
 
 var router = new VueRouter({
@@ -143,6 +144,13 @@ let app = new Vue({
         return this.playerId == this.game.dealerId;
       }
     },
+    deckHasCards: {
+      cache: false, // uncached because this.game.deck changed and we don't know because it's not a property?  FIXME maybe
+      get() {
+        return this.game.deck.length > 0;
+      }
+    },
+
     timeToDeal: {
       cache: false,    // uncached so Deal button shows up when 4th joins
       get() {
@@ -188,8 +196,14 @@ let app = new Vue({
           return [];
         }
 
-        return this.game.players[this.playerId].cardIds.map(
-          id => Card.fromId( id ));
+        // special case, if round is over show the blind (rest of the deck)
+        // but not on very first round
+        if (this.game.deck.length > 0) {
+          return this.game.deck.map( id => Card.fromId( id ));
+        } else {
+          return this.game.players[this.playerId].cardIds.map(
+            id => Card.fromId( id ));
+        }
       }
     },
 

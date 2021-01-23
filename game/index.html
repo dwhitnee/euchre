@@ -115,6 +115,8 @@
 
     <div class="gridPlayer0" :class="{ dummy: isDummy(0) }">
       <div v-if="isDummy(0)" class="watermark dummyHorizontal">Dummy</div>
+      <!-- show blind if all hands played out or everyone passed -->
+      <div v-if="timeToDeal && deckHasCards" class="watermark dummyHorizontal">Blind</div>
       <div class="cards">
         <div v-for="(card,i) in cards">
           <div class="playingCard"

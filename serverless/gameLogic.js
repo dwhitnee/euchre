@@ -269,6 +269,7 @@ module.exports = {
         if (game.playedCardIds[game.dealerId]) {  // turn down the up card
           game.message = "Turning down the " +
             Card.fromId( game.playedCardIds[game.dealerId] ).toString();
+          game.deck.push( game.playedCardIds[game.dealerId] ); //return to blind
           game.playedCardIds[game.dealerId] = null;
         } else {
           // everyone passed, end the hand and restart the deal
