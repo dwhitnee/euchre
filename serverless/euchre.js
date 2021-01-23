@@ -49,17 +49,21 @@ module.exports = {
 
     euchreDB.getGameData( query.gameId, function( err, game ) {
       if (!err) {
+        let roundStillGoing = false;
         for (var i=0; i < 4; i++) {
           if (i != query.playerId) {
+            // post process gameData to remove face down cards unless
+            // EVERY player has played their hand entire hand
+            if (game.players[i].cardIds.length > 0) {
+              roundStillGoing = true;
+            }
             game.players[i].cardIds = [];
           }
         }
-
-        // post process gameData to remove face down cards unless player
-        // has played their hand entire hand
-        if (game.players[i].cardIds.length > 0) {
+        if (roundStillGoing) {
           game.deck = [];  // card up is considered "played", blind is invisible
         }
+
         message.respond( err, game, callback );
       }
     });
