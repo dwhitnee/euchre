@@ -39,7 +39,7 @@
     </div>
 
     <div class="blind">
-      <div v-if="blind" class="watermark dummyHorizontal">BLIND</div>
+      <div v-if="blind.length" class="watermark dummyHorizontal">BLIND</div>
       <div class="cards">
         <div v-for="(card,i) in blind">
           <div class="playingCard" :style="getCardStyle( card.id )"></div>
