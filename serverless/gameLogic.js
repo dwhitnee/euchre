@@ -415,6 +415,7 @@ module.exports = {
       if (discarding) {
         game.dealerMustDiscard = false;
         game.message = game.players[game.leadPlayerId].name + " leads";
+        game.deck.push( params.cardId ); // return to blind
 
       } else {      // play card
         // FIXME, ensure player followed suit - can be done client side

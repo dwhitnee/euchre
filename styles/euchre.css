@@ -170,6 +170,7 @@ a.button.disabled {
 }
 
 .playGrid > .gridGameInfo { grid-area: info; }
+.playGrid > .blind { grid-area: blind; }
 .playGrid > .gridPlayer0  { grid-area: player0;
   border-top: 3px solid;
   padding-top: 1em;
@@ -188,7 +189,7 @@ a.button.disabled {
   grid-template-rows: auto;
   /* grid-template-rows: 1fr 3fr 1fr; */
   grid-template-areas:
-    "info       player2   ."
+    "info       player2   blind"
     "player1    table     player3"
     "playerName  player0 cheat";
 
@@ -290,10 +291,15 @@ a.button.disabled {
   opacity: 30%;
 }
 
+.blind {
+  opacity: 50%;
+}
+
 .watermark {
   position: absolute;
   font-size: 3em;
   z-index: 1;
+  color: #555;
 }
 
 .dummyHorizontal {  transform: rotate(-15deg); }

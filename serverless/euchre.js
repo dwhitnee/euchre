@@ -51,12 +51,13 @@ module.exports = {
       if (!err) {
         let roundStillGoing = false;
         for (var i=0; i < 4; i++) {
+          // post process gameData to remove face down cards unless
+          // EVERY player has played their hand entire hand
+          if (game.players[i].cardIds.length > 0) {
+            roundStillGoing = true;
+          }
+          // remove other players cards from client
           if (i != query.playerId) {
-            // post process gameData to remove face down cards unless
-            // EVERY player has played their hand entire hand
-            if (game.players[i].cardIds.length > 0) {
-              roundStillGoing = true;
-            }
             game.players[i].cardIds = [];
           }
         }

@@ -144,11 +144,9 @@ let app = new Vue({
         return this.playerId == this.game.dealerId;
       }
     },
-    deckHasCards: {
-      cache: false, // uncached because this.game.deck changed and we don't know because it's not a property?  FIXME maybe
-      get() {
-        return this.game.deck.length > 0;
-      }
+    // assumes server will only return what's left in the deck if round is over
+    blind: function() {
+      return this.game.deck.map( id => Card.fromId( id ));
     },
 
     timeToDeal: {
@@ -195,15 +193,8 @@ let app = new Vue({
         if (!this.isGameLoaded() || !this.player || !this.player.cardIds) {
           return [];
         }
-
-        // special case, if round is over show the blind (rest of the deck)
-        // but not on very first round
-        if (this.game.deck.length > 0) {
-          return this.game.deck.map( id => Card.fromId( id ));
-        } else {
-          return this.game.players[this.playerId].cardIds.map(
-            id => Card.fromId( id ));
-        }
+        return this.game.players[this.playerId].cardIds.map(
+          id => Card.fromId( id ));
       }
     },
 

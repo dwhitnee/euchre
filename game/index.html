@@ -38,6 +38,15 @@
       </i></small>
     </div>
 
+    <div class="blind">
+      <div v-if="blind" class="watermark dummyHorizontal">BLIND</div>
+      <div class="cards">
+        <div v-for="(card,i) in blind">
+          <div class="playingCard" :style="getCardStyle( card.id )"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="playerName gridPlayer1" :class="{ dummy: isDummy(1) }">
       <div v-if="isDummy(1)" class="watermark dummyVertical">Dummy</div>
       <div class="playingCard pile" :style="getCardStyle()">
@@ -86,8 +95,8 @@
           <button class="button btn-primary btn-lg join"
                   @click="join(i)">Join</button></div>
         <div v-else class="unplayed playingCard"></div>
-
       </div>
+
       <div class="turnIndicator">
         <transition name="fade">
           <div v-if="message" class="message">{{ message }}</div>
@@ -115,8 +124,6 @@
 
     <div class="gridPlayer0" :class="{ dummy: isDummy(0) }">
       <div v-if="isDummy(0)" class="watermark dummyHorizontal">Dummy</div>
-      <!-- show blind if all hands played out or everyone passed -->
-      <div v-if="timeToDeal && deckHasCards" class="dummy watermark dummyHorizontal">Blind</div>
       <div class="cards">
         <div v-for="(card,i) in cards">
           <div class="playingCard"
@@ -148,7 +155,7 @@
                   @click="pass" class="btn btn-primary btn-lg">Pass</button>
           <small v-if ="ourTurn && canPickUp && !weAreDealer">Tell dealer to</small>
           <button v-if="ourTurn && canPickUp"
-                  @click="pickUpCard" class="btn btn-primary btn-lg">Pick It Up</button>
+                  @click="pickUpCard" class="btn btn-danger btn-lg">Pick It Up</button>
           <div v-if="ourTurn && bidding && !upCard">
             <button v-for="suit in validSuits"
                   @click="callSuit( suit )" class="btn btn-primary btn-sm">Call {{ suit }}</button>
