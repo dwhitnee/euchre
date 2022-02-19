@@ -317,7 +317,12 @@ module.exports = {
 
       // put card in dealer's hand
       game.players[game.dealerId].cardIds.push( upCardId );
-      game.dealerMustDiscard = true;
+	  game.dealerMustDiscard = true;
+
+      // don't make dummy discard
+      if (game.dummyPlayerId == game.dealerId) {
+        game.dealerMustDiscard = false;
+      }
 
       // play will start at dealer's left
       game.playerTurn = game.dealerId;
