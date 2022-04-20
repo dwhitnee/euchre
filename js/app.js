@@ -14,15 +14,22 @@
 // GNU General Public License for more details.
 //-----------------------------------------------------------------------
 
-Vue.config.devtools = true;
+//----------------------------------------------------------------------
+// The Vue application UI.
+// This is the browser code that the local player interacts with.
+// Interactions results in server calls. Server is polled every ~3 seconds
+// to update state and display.
+// ---------------------------------------------------------------------
+
 
 // AWS Lambda serverless API deployment endpoint
 let serverURL = "https://f7c3878i78.execute-api.us-west-2.amazonaws.com/dev/";
 
-var router = new VueRouter({
-  mode: 'history',
-  routes: [ ]
-});
+// Vue.config.devtools = true;
+// var router = new VueRouter({
+//   mode: 'history',
+//   routes: [ ]
+// });
 
 // Need either a compiler or inline template -- time for webpack?
 // Vue.component("modal", {
@@ -30,30 +37,45 @@ var router = new VueRouter({
 // });
 
 
-let app = new Vue({
-  router,
-  el: '#euchreApp',
+const router = VueRouter.createRouter({
+  history: VueRouter.createWebHistory(),
+  routes: []
+});
+
+
+let euchreApp = {
 
   //----------------------------------------
   // Game Model (drives the View, update these values only
   //----------------------------------------
-  data: {
-    gameDataReady: false,       // wait to load the page
-    saveInProgress: false,      // prevent other actions while this is going on
-    message: "",                // display in the middle
-    movingCard: undefined,      // dragging
+  data() {
+    return {
+      gameDataReady: false,       // wait to load the page
+      saveInProgress: false,      // prevent other actions while this is going on
+      message: "",                // display in the middle
+      movingCard: undefined,      // dragging
 
-    isSpectator: true,
-    spectatorName: "",
-    spectatorNameTmp: "",
-    cheating: false,
-    playerId: undefined,   // Loaded from game cookie, who user is
-    messageCountdown: 0,
-    isAloneCall: false,
+      isSpectator: true,
+      spectatorName: "",
+      spectatorNameTmp: "",
+      cheating: false,
+      playerId: undefined,   // Loaded from game cookie, who user is
+      messageCountdown: 0,
+      isAloneCall: false,
+      stats: {
+        wins: 0,
+        losses: 0,
+        streak: 0,
+        points: 0,
+        names: ["Joe","schmo","crazy warts"]
+      },
 
-    // game data from server, players are in NESW/0123 order
-    // player 0 is at the bottom
-    game: undefined,
+      // game data from server, players are in NESW/0123 order
+      // player 0 is at the bottom
+      game: undefined,
+
+      showCredits: false,
+      version: "1.0",
 
 /*    {
       id: "BasicBud-463046",
@@ -75,6 +97,7 @@ let app = new Vue({
       ]
     }
 */
+    };
   },
 
   //----------------------------------------
@@ -110,6 +133,14 @@ let app = new Vue({
     },
     dealerName: function() {
       return this.game.players[this.game.dealerId].name;
+    },
+    pastPlayerNames: {
+      cache: false,
+      get () {
+        let cacheBuster = this.playerName;  // cache key trigger
+        let names = this.loadData("pastPlayerNames") || [];
+        return names.join(", ");
+      }
     },
 
     //----------------------------------------
@@ -246,7 +277,20 @@ let app = new Vue({
         names.push( player.name );
       });
       return names;   // assumes players are already rotated to face user
-    }
+    },
+
+    // for feedback, this gets cached in DOM when <a> tag built
+    deviceData() {
+	  let CRLF = "%0D%0A";
+	  return CRLF + "----" + CRLF +
+		"build: " + this.version + CRLF +
+ 		"Resolution: " + window.screen.availWidth + "x" +
+		window.screen.availHeight + CRLF +
+ 		"Viewport: " + window.innerWidth + "x" + window.innerHeight + CRLF +
+ 		"UserAgent: " + navigator.userAgent + CRLF +
+		"";
+	},
+
   },
 
   //----------------------------------------
@@ -288,6 +332,8 @@ let app = new Vue({
       this.playerId = playerData[this.gameId];
     }
 
+    this.stats = this.loadData("stats") || this.stats;
+
     this.updateFromServer().then( () => {
       let playerName = Util.getCookie("name");
       if (this.isGameLoaded()) {
@@ -295,7 +341,7 @@ let app = new Vue({
         // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
         this.autoLoad = setInterval(() => { this.updateFromServer(); }, 2500);
 
-        let gameTime = 1000 * 60 * 60 + 100;  // 60 min
+        let gameTime = 1000 * 60 * 90;  // 90 min
         // stop reloading after game should be over
         setTimeout(() => {
           clearInterval( this.autoLoad );
@@ -604,6 +650,8 @@ let app = new Vue({
         if (this.game.winner) {
           this.setMessage( this.game.players[this.game.winner].name +
                            "'s team wins!!");
+          this.updateStats();
+          clearInterval( this.autoLoad );   // kill updates
         }
 
         this.gameDataReady = true;
@@ -618,6 +666,28 @@ let app = new Vue({
         // redirect to home page if we can't load data?
         debugger;    // FIXME
       };
+    },
+
+    // store player stats locally. Keeping data on server a hassle
+    updateStats: function() {
+      let stats = this.loadData("stats");
+      let score = this.teamScore( 0 );
+
+      stats.wins = stats.wins || 0;
+      stats.losses = stats.losses || 0;
+      stats.streak = stats.streak || 0;
+      stats.points = stats.points || 0;
+
+      if (score >= 10) {
+        stats.wins++;
+        stats.streak++;
+      } else {
+        stats.losses++;
+        stats.streak = 0;
+      }
+      stats.points += score;
+
+      this.saveData("stats", stats );
     },
 
     //----------------------------------------
@@ -920,6 +990,14 @@ let app = new Vue({
       Util.setCookie("name", this.spectatorNameTmp.trim());
     },
 
+    savePlayerName( name ) {
+      Util.setCookie("name", name );
+
+      let names = this.loadData("pastPlayerNames") || [];
+      names.push( name );
+      this.saveData("pastPlayerNames", names);
+    },
+
     //----------------------------------------
     // Update local name, save to cookie, update name in server-side Game also
     //----------------------------------------
@@ -949,7 +1027,7 @@ let app = new Vue({
         let response = await fetch( serverURL + "setPlayerName",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
-        Util.setCookie("name", playerName );
+        this.savePlayerName( playerName );
         await this.updateFromServer();
       }
       catch( err ) {
@@ -964,5 +1042,108 @@ let app = new Vue({
       this.saveInProgress = false;
     },
 
+
+    //----------------------------------------
+    // Dialog handlers
+    //----------------------------------------
+    openDialog( name, openCallback ) {
+	  this.openDialogElement( document.getElementById( name ));
+	  if (openCallback)
+		openCallback();
+	},
+	// @input button click that caused the close (ie, button),
+	//    assumes it's the immediate child of the dialog
+ 	closeDialog( event ) {
+	  this.closeDialogElement( event.target.parentElement );
+	},
+	// @input dialog element itself
+	openDialogElement( dialog ) {
+	  if (this.dialogIsOpen) {  // can't open two dialogs at once
+		return;
+	  }
+	  // grey out game
+ 	  document.getElementById("dialogBackdrop").classList.add("backdropObscured");
+	  this.dialogIsOpen = true;  // flag to disable other dialogs. Vue doesn't respect this on change(in v-if)?
+
+	  dialog.open = true;           // Chrome
+	  dialog.style.display="flex";  // Firefox/Safari
+
+	  this.addDialogDismissHandlers( dialog );  // outside click and ESC
+	},
+
+    //----------------------------------------------------------------------
+	// close dialog, restore background, remove event handlers.
+	// @input dialog element itself
+	//----------------------------------------------------------------------
+ 	closeDialogElement( dialog ) {
+  	  document.getElementById("dialogBackdrop").classList.remove("backdropObscured");
+
+	  this.dialogIsOpen = false;   // FIXME: Vue is not seeing this; Do we just need to add it to the data() section?
+	  dialog.open = false;
+ 	  dialog.style.display="none";
+
+	  // dialog gone, stop listening for dismiss events
+	  let backdrop = document.getElementById("dialogBackdrop");
+	  backdrop.removeEventListener('click', this.closeDialogOnOutsideClick );
+	  document.body.removeEventListener("keydown", this.closeDialogOnESC );
+	},
+
+    //----------------------------------------------------------------------
+	// Close on click outside dialog or ESC key.
+	// Save functions for removal after close()
+	//----------------------------------------------------------------------
+	addDialogDismissHandlers( dialog ) {
+	  // FIXME, these event handlers happen after Vue event
+	  // handlers so you can play the game while a dialog is
+	  // open.  How to disable all of game wile dialog is open?
+
+  	  this.closeDialogOnOutsideClick = (event) => {
+		const clickWithinDialog = event.composedPath().includes( dialog );
+		if (!clickWithinDialog) {
+		  this.closeDialogElement( dialog );
+		}
+	  };
+  	  this.closeDialogOnESC = (event) => {
+		if (event.keyCode === 27) {
+		  this.closeDialogElement( dialog );
+		}
+	  };
+
+	  // Could also use dialog::backdrop, but it is not fully supported
+	  // Fake our own backdrop element to swallow clicks and grey out screen
+	  // by not using "body" we don't need to worry about click bubbling
+	  let backdrop = document.getElementById("dialogBackdrop");
+ 	  backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
+	  document.body.addEventListener("keydown", this.closeDialogOnESC );
+	},
+
+    //----------------------------------------------------------------------
+	// localstorage wrapper - handles marshalling/stringifying of everything
+	// and maintains objectness of values stored in a string database
+ 	// @return null if no value is stored (or an error)
+	//----------------------------------------------------------------------
+	loadData( key ) {
+ 	  let json = window.localStorage.getItem( key );
+  	  try {
+		return JSON.parse( json );
+	  }
+	  catch (e) {
+		console.error("Loading data " + key + ": " + e );
+	  }
+	  return null;
+	},
+	saveData( key, value ) {
+	  try {
+		window.localStorage.setItem( key, JSON.stringify( value ));
+	  }
+	  catch (e) {
+		console.error("Saving data " + key + ": " + e );
+	  }
+	},
+
   }
-});
+};
+
+let app = Vue.createApp( euchreApp );
+app.use( router );
+router.isReady().then(() => app.mount('#euchreApp'));

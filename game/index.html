@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="../styles/euchre.css"/>
+  <link rel="stylesheet" type="text/css" href="../styles/icons.css"/>
 
 </head>
 
@@ -24,17 +25,17 @@
   </div>
 
   <!--
-        <modal v-if="isSpectator && !spectatorName">
-          <h3 slot="header">What's your name?</h3>
-        </modal>
-        -->
+      <modal v-if="isSpectator && !spectatorName">
+      <h3 slot="header">What's your name?</h3>
+      </modal>
+  -->
   <div v-else class="playGrid withBorder">
 
     <div class="gridGameInfo" style="display:block;">
       <div class="title">Euchre</div>
       <small v-if="isSpectator" class="text-muted">You are spectating as "{{ spectatorName }}"</small>
       <small v-if="trumpSuit"><i>
-          {{ game.players[game.trumpCallerId].name }} called<b> {{trumpSuit }}</b>
+        {{ game.players[game.trumpCallerId].name }} called<b> {{trumpSuit }}</b>
       </i></small>
     </div>
 
@@ -94,7 +95,7 @@
         <div v-else-if="!names[i] && isSpectator">
           <button class="button btn-primary btn-lg join"
                   @click="join(i)">Join</button></div>
-        <div v-else class="unplayed playingCard"></div>
+          <div v-else class="unplayed playingCard"></div>
       </div>
 
       <div class="turnIndicator">
@@ -119,7 +120,9 @@
            @keypress.enter.prevent>{{ playerName }}</div>
 
       <div v-if="weAreDealer" class="dealer"></div>
-      <span v-if="saveInProgress" class="spinner-border spinner-border-sm"></span>
+      <div v-if="saveInProgress" class="spinner-border spinner-border-sm"></div>
+      <div class="icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
+
     </div>
 
     <div class="gridPlayer0" :class="{ dummy: isDummy(0) }">
@@ -149,28 +152,28 @@
             Waiting for {{ dealerName }} to deal the cards...
           </div>
           <div v-if="numPlayers < 4">
-            Waiting for players to join...
-          </div>
-          <button v-if="ourTurn && bidding"
-                  @click="pass" class="btn btn-primary btn-lg">Pass</button>
-          <small v-if ="ourTurn && canPickUp && !weAreDealer">Tell dealer to</small>
-          <button v-if="ourTurn && canPickUp"
-                  @click="pickUpCard" class="btn btn-danger btn-lg">Pick It Up</button>
-          <div v-if="ourTurn && bidding && !upCard">
-            <button v-for="suit in validSuits"
-                  @click="callSuit( suit )" class="btn btn-primary btn-sm">Call {{ suit }}</button>
-          </div>
-
-          <button v-if="game.trickWinner == playerId "
-                  @click="takeTrick" class="btn btn-primary btn-lg">Pick up trick</button>
-
+          Waiting for players to join...
         </div>
+        <button v-if="ourTurn && bidding"
+                @click="pass" class="btn btn-primary btn-lg">Pass</button>
+        <small v-if ="ourTurn && canPickUp && !weAreDealer">Tell dealer to</small>
+        <button v-if="ourTurn && canPickUp"
+                @click="pickUpCard" class="btn btn-danger btn-lg">Pick It Up</button>
+        <div v-if="ourTurn && bidding && !upCard">
+          <button v-for="suit in validSuits"
+                  @click="callSuit( suit )" class="btn btn-primary btn-sm">Call {{ suit }}</button>
+        </div>
+
+        <button v-if="game.trickWinner == playerId "
+                @click="takeTrick" class="btn btn-primary btn-lg">Pick up trick</button>
+
       </div>
     </div>
+  </div>
 
-    <div class="gridCheat">
-      <div  v-if="ourTurn && bidding" class="alone-check">
-        <input v-model="isAloneCall" type="checkbox" id="goalone">
+  <div class="gridCheat">
+    <div  v-if="ourTurn && bidding" class="alone-check">
+      <input v-model="isAloneCall" type="checkbox" id="goalone">
         <label for="goalone">Go alone?</label>
       </div>
 
@@ -179,20 +182,77 @@
         <button  @click="seeNextPlayer" class="btn btn-primary btn-lg">See next</button>
       </div>
     </div>
+
+
+    <div id="dialogBackdrop"></div>
+    <dialog id="settings">
+      <button class="close" @click="closeDialog( $event )"></button>
+
+      <div class="settings">
+        <h2>Stats</h2>
+
+        <div>
+          <b>{{ player.name }}</b>
+          <ul>
+            <li> Streak: {{ stats.streak }}</li>
+            <li> Record: {{ stats.wins }} - {{ stats.losses }}</li>
+            <li> Total Points: {{ stats.points }}</li>
+            <li> Average Points: {{ stats.points/(stats.wins + stats.losses) }}</li>
+            <li> Past names: {{ pastPlayerNames }} </li>
+          </ul>
+        </div>
+
+        <div class="feedback">
+          <div>Feedback:</div>
+          <div><ul>
+            <li><a :href="'mailto:dwhitnee@gmail.com?subject=Euchre%20Feedback&body='+deviceData">Email</a></li>
+            <li><a href="https://twitter.com/intent/tweet?url=http://dwhitnee.github.io/euchre /&amp;text=Online%20Euchre%20Card%20Game" target="_blank" rel="noopener">Twitter</a></li>
+            <li><a href="https://www.facebook.com/sharer.php?u=http://dwhitnee.github.io/euchre/" target="_blank" rel="noopener">Facebook</a></li>
+          </ul>
+          </div>
+        </div>
+
+        <div>
+          Acknowledgements:
+          <button v-on:click="this.showCredits = !this.showCredits">View</button>
+          <div v-if="showCredits">
+            Author: <ul><li>David Whitney</li></ul>
+            Play Testers: <ul>
+            <li>Matt, Chris, Paul, Aileen, Deb</li>
+          </ul>
+          Credits:
+          <ul>
+            <li><a href="https://vuejs.org/">Vue.js</a></li>
+          </ul>
+          </div>
+        </div>
+        <div class="version">build: {{ version }}</div>
+      </div>
+    </dialog>
+
+
   </div>
+</div>
 
-  <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"
-          integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68="
-          crossorigin="anonymous"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/vue-router/3.1.3/vue-router.min.js"
-          integrity="sha256-r/vPIUvTobCpYZsMmvU7HM58cNd4D6/vdICqDFapV7Y="
-          crossorigin="anonymous"></script>
 
-  <script src="../js/DragDropTouch.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.33/vue.global.prod.min.js"
+           integrity="sha512-0iutDUhdPATJxtLxUQeakh5i6m0XgfrmLsr+J6ThPkWPDXsjc+55OgmPaRxu0UhgQZ3sWlklQBgDcUZfVhE5iA=="
+           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-  <script src="../js/util.js"></script>
-  <script src="../js/card.js"></script>
-  <script src="../js/app.js"></script>
+   <script  src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/4.0.14/vue-router.global.prod.min.js"
+            integrity="sha512-RfYSruXiMtNZ9MzGNmxl3ljuCJsnlgj/KFabVMUh/gla9c7mjyggP9iTwFtrGYJhi0Qw7J3z0VMSeLRsNT92Fg=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-</body>
+   <!--
+       <script src="//cdnjs.cloudflare.com/ajax/libs/vue-router/3.1.3/vue-router.min.js"
+               integrity="sha256-r/vPIUvTobCpYZsMmvU7HM58cNd4D6/vdICqDFapV7Y="
+               crossorigin="anonymous"></script>
+       -->
+       <script src="../js/DragDropTouch.js"></script>
+
+       <script src="../js/util.js"></script>
+       <script src="../js/card.js"></script>
+       <script src="../js/app.js"></script>
+
+   </body>
 </html>
