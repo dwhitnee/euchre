@@ -670,13 +670,24 @@ let euchreApp = {
 
     // store player stats locally. Keeping data on server a hassle
     updateStats: function() {
-      let stats = this.loadData("stats");
+      let stats = this.loadData("stats") || {};
       let score = this.teamScore( 0 );
 
+      // combined team game stats
       stats.wins = stats.wins || 0;
       stats.losses = stats.losses || 0;
       stats.streak = stats.streak || 0;
       stats.points = stats.points || 0;
+
+      // FIXME: how to determine these?  Need to see if points changed by 4 or 2? ick
+      // really need a server-side notification
+
+      // individual round stats
+      stats.calledWins = stats.calledWins || 0;
+      stats.calledLosses = stats.calledLosses || 0;  // got euchred
+      stats.euchreWins = stats.euchreWins || 0;
+      stats.aloneCallWins = stats.aloneCallWins || 0;
+      stats.aloneCallLosses = stats.aloneCallLosses || 0;  // got euchred
 
       if (score >= 10) {
         stats.wins++;
