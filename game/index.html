@@ -197,7 +197,7 @@
             <li> Streak: {{ stats.streak }}</li>
             <li> Record: {{ stats.wins }} - {{ stats.losses }}</li>
             <li> Total Points: {{ stats.points }}</li>
-            <li> Average Points: {{ stats.points/(stats.wins + stats.losses) }}</li>
+            <li> Average Points: {{ stats.points/((stats.wins + stats.losses)||1) }}</li>
             <li> Past names: {{ pastPlayerNames }} </li>
           </ul>
         </div>
