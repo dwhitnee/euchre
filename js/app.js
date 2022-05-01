@@ -134,7 +134,7 @@ let app = new Vue({
       cache: false,
       get () {
         let cacheBuster = this.playerName;  // cache key trigger
-        let names = this.loadData("pastPlayerNames") || [];
+        let names = Util.loadData("pastPlayerNames") || [];
         return names.join(", ");
       }
     },
@@ -311,7 +311,7 @@ let app = new Vue({
     console.log("Viewing from the perspective of player " + this.playerId );
 
     // we may not need this, but it is used in page logic.  Oof
-    this.spectatorName = this.loadData("name");
+    this.spectatorName = Util.loadData("name");
 
     // remove this in PROD, used for inhabiting different players
     if (this.playerId != null) {
@@ -323,14 +323,14 @@ let app = new Vue({
       // return;                     // TESTING
     } else {
       // See who this is and where they sit at the table, cookie
-      let playerData = this.loadData("player");
+      let playerData = Util.loadData("player") || {};
       this.playerId = playerData[this.gameId];
     }
 
-    this.stats = this.loadData("stats") || this.stats;
+    this.stats = Util.loadData("stats") || this.stats;
 
     this.updateFromServer().then( () => {
-      let playerName = this.loadData("name");
+      let playerName = Util.loadData("name");
       if (this.isGameLoaded()) {
 
         // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
@@ -666,7 +666,7 @@ let app = new Vue({
 
     // store player stats locally. Keeping data on server a hassle
     updateStats: function() {
-      let stats = this.loadData("stats") || {};
+      let stats = Util.loadData("stats") || {};
       let score = this.teamScore( 0 );
 
       // combined team game stats
@@ -694,7 +694,7 @@ let app = new Vue({
       }
       stats.points += score;
 
-      this.saveData("stats", stats );
+      Util.saveData("stats", stats );
     },
 
 
@@ -722,10 +722,10 @@ let app = new Vue({
         if (!response.ok) { throw await response.json(); }
 
         this.playerId = playerId;
-        let playerData = this.loadData("player") || {};
+        let playerData = Util.loadData("player") || {};
         playerData[this.gameId] = playerId;
 
-        this.saveData("player", playerData );
+        Util.saveData("player", playerData );
 
         this.isSpectator = false;
 
@@ -996,15 +996,15 @@ let app = new Vue({
     setSpectatorName: function() {
       // use tmp or else page updates as soon as first key is pressed
       this.spectatorName = this.spectatorNameTmp.trim();
-      this.saveData("name", this.spectatorName );
+      Util.saveData("name", this.spectatorName );
     },
 
     savePlayerName( name ) {
-      this.saveData("name", name );
+      Util.saveData("name", name );
 
-      let names = this.loadData("pastPlayerNames") || [];
+      let names = Util.loadData("pastPlayerNames") || [];
       names.push( name );
-      this.saveData("pastPlayerNames", names);
+      Util.saveData("pastPlayerNames", names);
     },
     //----------------------------------------
     // Update local name, save to cookie, update name in server-side Game also
@@ -1126,30 +1126,5 @@ let app = new Vue({
  	  backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
 	  document.body.addEventListener("keydown", this.closeDialogOnESC );
 	},
-
-    //----------------------------------------------------------------------
-	// localstorage wrapper - handles marshalling/stringifying of everything
-	// and maintains objectness of values stored in a string database
- 	// @return null if no value is stored (or an error)
-	//----------------------------------------------------------------------
-	loadData( key ) {
- 	  let json = window.localStorage.getItem( key );
-  	  try {
-		return JSON.parse( json );
-	  }
-	  catch (e) {
-		console.error("Loading data " + key + ": " + e );
-	  }
-	  return null;
-	},
-	saveData( key, value ) {
-	  try {
-		window.localStorage.setItem( key, JSON.stringify( value ));
-	  }
-	  catch (e) {
-		console.error("Saving data " + key + ": " + e );
-	  }
-	},
-
   }
 });

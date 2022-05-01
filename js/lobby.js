@@ -48,7 +48,7 @@ let app = new Vue({
       debugger;
     });
 
-    this.playerName = Util.getCookie("name") || this.playerName;
+    this.playerName = Util.loadData("name") || this.playerName;
     this.getGameList();
   },
 
@@ -103,7 +103,7 @@ let app = new Vue({
 
         let playerGameData = {};
         playerGameData[gameId] = playerId;
-        Util.setCookie("player", playerGameData );
+        Util.saveData("player", playerGameData );
 
         // remove playerId...eventually?  FIXME TESTING
         window.location.href = "game/?id=" + gameId; // + "&playerId=" + playerId;
@@ -121,7 +121,7 @@ let app = new Vue({
     //----------------------------------------
     saveName: function( e ) {
       this.playerName = e.target.innerHTML.trim();
-      Util.setCookie("name", this.playerName);
+      Util.saveData("name", this.playerName);
       console.log( this.playerName + " to cookie" );
     },
 

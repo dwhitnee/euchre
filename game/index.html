@@ -120,7 +120,7 @@
 
       <div class="icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
       <div v-if="weAreDealer" class="dealer"></div>
-      <span v-if="saveInProgress" class="spinner-border spinner-border-sm"></span>
+      <div v-if="saveInProgress" class="spinner-border spinner-border-sm"></div>
     </div>
 
     <div class="gridPlayer0" :class="{ dummy: isDummy(0) }">
