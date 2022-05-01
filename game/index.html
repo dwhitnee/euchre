@@ -119,9 +119,9 @@
            @keypress.enter="setPlayerName"
            @keypress.enter.prevent>{{ playerName }}</div>
 
+      <div class="icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
       <div v-if="weAreDealer" class="dealer"></div>
       <div v-if="saveInProgress" class="spinner-border spinner-border-sm"></div>
-      <div class="icon settingsIcon" title="Settings" @click="openDialog('settings')"></div>
 
     </div>
 
