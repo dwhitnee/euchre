@@ -169,6 +169,13 @@ module.exports = {
 
     thomas.getGameData( params.gameId, function( err, game ) {
 
+      // clear out end-of-hand game data (mostly for statistics)
+      game.euchredCaller = null;  // playerId who called
+      game.aloneWinner = null;
+      game.aloneLoser = null;
+      game.aloneSweeper = null;
+      // send package of data for each player? (called/uncalled/lone win/loss)
+
       // convert Cards to ids
       let deck = getShuffledDeck();
       for (var i=0; i < 4; i++) {
