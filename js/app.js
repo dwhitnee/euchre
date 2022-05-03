@@ -68,7 +68,7 @@ let app = new Vue({
       names: ["Joe","schmo","crazy warts"]
     },
     showCredits: false,
-    version: "1.0",
+    version: "1.1",  // stats
 
     // game data from server, players are in NESW/0123 order
     // player 0 is at the bottom
