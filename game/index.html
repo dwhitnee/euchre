@@ -194,10 +194,14 @@
           <ul>
             <li> Streak: {{ stats.streak }}</li>
             <li> Record: {{ stats.wins }} - {{ stats.losses }}</li>
-            <li> Total Points: {{ stats.points }}</li>
-            <li> Average Points: {{ stats.points/((stats.wins + stats.losses)||1) }}</li>
-            <li> Past names: {{ pastPlayerNames }} </li>
-          </ul>
+            <li> Points per game: {{stats.points/((stats.wins + stats.losses)||1) }}
+                ({{ stats.points }} total) </li>
+            <li>Hands called: {{ stats.calledWins }}      -
+                {{stats.calledLosses }}      ({{ stats.calledSweeps }} sweeps)  </li>
+            <li>Alone calls: {{ stats.aloneCallWins }} -
+                {{stats.aloneCallLosses }}  ({{ stats.aloneCallSweeps }} sweeps)  </li>
+                <li> Past names: {{ pastPlayerNames }} </li>
+              </ul>
         </div>
 
         <div class="feedback">
@@ -212,7 +216,7 @@
 
         <div>
           Acknowledgements:
-          <button v-on:click="this.showCredits = !this.showCredits">View</button>
+          <button v-on:click="showCredits = !showCredits">View</button>
           <div v-if="showCredits">
             Author: <ul><li>David Whitney</li></ul>
             Play Testers: <ul>

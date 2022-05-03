@@ -646,12 +646,16 @@ let app = new Vue({
           this.setMessage( this.game.players[this.game.winner].name +
                            "'s team wins!!");
           this.updateGameStats();
-
           if (this.game.handStats) {
             for (let i=0; i < this.game.handStats.length; i++) {
               this.updateHandStats( this.game.handStats[i] );
             }
           }
+
+          // horrible DB locking hack (localstorage)
+          let stats = Util.loadData("stats") || { games: {} };
+          stats.games[this.gameId] = 1;  // make stats update idempotent
+          Util.saveData("stats", stats );
 
           clearInterval( this.autoLoad );   // kill updates
         }
@@ -674,12 +678,18 @@ let app = new Vue({
     //----------------------------------------------------------------------
     // store player stats locally. Keeping data on server a hassle
     // called when every game (10 pts) is done
+    //  FIXME: must be idempotent (reload causes this to be called twice)
     //----------------------------------------------------------------------
     updateGameStats: function() {
       let stats = Util.loadData("stats") || {};
       let score = this.teamScore( 0 );
 
+      if (stats.games && stats.games[this.gameId]) {
+        return;
+      }
+
       // combined team game stats
+      stats.games = stats.games || {};
       stats.wins = stats.wins || 0;
       stats.losses = stats.losses || 0;
       stats.streak = stats.streak || 0;
@@ -703,6 +713,10 @@ let app = new Vue({
     //----------------------------------------------------------------------
     updateHandStats: function( hand ) {
       let stats = Util.loadData("stats") || {};
+
+      if (stats.games && stats.games[this.gameId]) {
+        return;
+      }
 
       // callerId: 0
       // isAlone: false

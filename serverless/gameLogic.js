@@ -111,23 +111,26 @@ function assignPoints( game ) {
     points: 0
   };
 
+  let extraMessage = "";
+
   if (hand.isEuchre) {
     giveTeamPoints( game, hand.callerId+1, 2);  // Euchred!
-    game.message += ". Euchre!";
+    extraMessage = ". Euchre!";
     hand.isEuchre = true;
   } else {
     if (hand.tricksTaken == 5) {  // sweep!
       if (hand.isAlone) {
         hand.points = 4;
-        game.message += ". Solo sweep!";
+        extraMessage = ". Solo sweep!";
       } else {
         hand.points = 2;
-        game.message += ". Sweep!";
+        extraMessage = ". Sweep!";
       }
     } else {
       hand.points = 1;   // simple win
     }
     giveTeamPoints( game, hand.callerId, hand.points);
+    game.message += extraMessage;
   }
 
   if (!game.handStats) {
