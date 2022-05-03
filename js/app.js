@@ -645,7 +645,14 @@ let app = new Vue({
         if (this.game.winner) {
           this.setMessage( this.game.players[this.game.winner].name +
                            "'s team wins!!");
-          this.updateStats();
+          this.updateGameStats();
+
+          if (this.game.handStats) {
+            for (let i=0; i < this.game.handStats.length; i++) {
+              this.updateHandStats( this.game.handStats[i] );
+            }
+          }
+
           clearInterval( this.autoLoad );   // kill updates
         }
 
@@ -664,8 +671,11 @@ let app = new Vue({
     },
 
 
+    //----------------------------------------------------------------------
     // store player stats locally. Keeping data on server a hassle
-    updateStats: function() {
+    // called when every game (10 pts) is done
+    //----------------------------------------------------------------------
+    updateGameStats: function() {
       let stats = Util.loadData("stats") || {};
       let score = this.teamScore( 0 );
 
@@ -675,16 +685,6 @@ let app = new Vue({
       stats.streak = stats.streak || 0;
       stats.points = stats.points || 0;
 
-      // FIXME: how to determine these?  Need to see if points changed by 4 or 2? ick
-      // really need a server-side notification
-
-      // individual round stats
-      stats.calledWins = stats.calledWins || 0;
-      stats.calledLosses = stats.calledLosses || 0;  // got euchred
-      stats.euchreWins = stats.euchreWins || 0;
-      stats.aloneCallWins = stats.aloneCallWins || 0;
-      stats.aloneCallLosses = stats.aloneCallLosses || 0;  // got euchred
-
       if (score >= 10) {
         stats.wins++;
         stats.streak++;
@@ -693,6 +693,53 @@ let app = new Vue({
         stats.streak = 0;
       }
       stats.points += score;
+
+      Util.saveData("stats", stats );
+    },
+
+    //----------------------------------------------------------------------
+    // update stats for person who picked trump suit, and defending team
+    // called after every hand is done? Or just at end of game...FIXME
+    //----------------------------------------------------------------------
+    updateHandStats: function( hand ) {
+      let stats = Util.loadData("stats") || {};
+
+      // callerId: 0
+      // isAlone: false
+      // isEuchre: false   // optional (tricks <3)
+      // points: 1
+      // tricksTaken: 4
+
+      // initialize individual round stats
+      stats.calledWins = stats.calledWins || 0;
+      stats.calledLosses = stats.calledLosses || 0;  // got euchred
+      stats.calledSweeps = stats.calledSweeps || 0;  // 2 pts
+      stats.aloneCallWins = stats.aloneCallWins || 0;
+      stats.aloneCallLosses = stats.aloneCallLosses || 0;  // got euchred
+      stats.aloneCallSweeps = stats.aloneCallSweeps || 0;  // 4 pts
+      stats.euchreWins = stats.euchreWins || 0;  // 2 pts defending
+
+      if (this.playerId == hand.callerId) {  // caller points only
+
+        if (hand.tricksTaken >= 3) {
+          stats.calledWins++;
+          if (hand.tricksTaken == 5) {
+            stats.calledSweeps++; // 2 pts
+            if (hand.isAlone) { stats.aloneCallSweeps++; } // 4 pts
+          }
+          if (hand.isAlone) { stats.aloneCallWins++; }
+
+        } else {  // euchred
+          stats.calledLosses++;
+          if (hand.isAlone) { stats.aloneCallLosses++; }
+        }
+
+      } else {   // defending team points
+        let callerPartnerId = (hand.callerId + 2) % 4;
+        if ((this.playerId != callerPartnerId) && hand.isEuchre) {
+          stats.euchreWins++;
+        }
+      }
 
       Util.saveData("stats", stats );
     },

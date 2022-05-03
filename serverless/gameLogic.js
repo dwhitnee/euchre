@@ -96,27 +96,44 @@ function giveTeamPoints( game, playerId, points ) {
 }
 
 //----------------------------------------
-// if hand is over, dole out points to each team member
+// If hand is over, dole out points to each team member
+// Update the game stats for this hand.
 // return a cute message to display.
 //----------------------------------------
 function assignPoints( game ) {
-  if (game.players[game.trumpCallerId].tricks < 3) {
-    giveTeamPoints( game, game.trumpCallerId+1, 2);  // Euchred!
-    game.message += ". Euchre!";
 
+  // stats for this hand to put in DB and send to client
+  let hand = {
+    callerId: game.trumpCallerId,
+    tricksTaken: game.players[game.trumpCallerId].tricks,
+    isAlone: (game.dummyPlayerId != null),
+    isEuchre: (game.players[game.trumpCallerId].tricks < 3),
+    points: 0
+  };
+
+  if (hand.isEuchre) {
+    giveTeamPoints( game, hand.callerId+1, 2);  // Euchred!
+    game.message += ". Euchre!";
+    hand.isEuchre = true;
   } else {
-    if (game.players[game.trumpCallerId].tricks == 5) {  // sweep!
-      if (game.dummyPlayerId != null) {
-        giveTeamPoints( game, game.trumpCallerId, 4);
+    if (hand.tricksTaken == 5) {  // sweep!
+      if (hand.isAlone) {
+        hand.points = 4;
         game.message += ". Solo sweep!";
       } else {
-        giveTeamPoints( game, game.trumpCallerId, 2);
+        hand.points = 2;
         game.message += ". Sweep!";
       }
     } else {
-      giveTeamPoints( game, game.trumpCallerId, 1);     // simple win
+      hand.points = 1;   // simple win
     }
+    giveTeamPoints( game, hand.callerId, hand.points);
   }
+
+  if (!game.handStats) {
+    game.handStats = [];   // should never get called, but old games might
+  }
+  game.handStats.push( hand );
 };
 
 
@@ -308,7 +325,7 @@ module.exports = {
       game.trumpSuit = Card.fromId( upCardId ).suit;   // id
 
       game.message = game.players[game.trumpCallerId].name +
-        " calls " + params.suitName;
+        " calls " + Card.suitNames[game.trumpSuit];
 
       if (params.isAlone) {
         game.dummyPlayerId = (game.trumpCallerId + 2) % 4;  // caller's partner
@@ -482,7 +499,7 @@ module.exports = {
       // check callers hand because others might be the dummy hand
       if (game.players[game.trumpCallerId].cardIds.length == 0) {
 
-        assignPoints( game );
+        assignPoints( game );      // update stats, too
         checkGameOver( game );
 
         if (game.winner) {         // Game over, don't proceed

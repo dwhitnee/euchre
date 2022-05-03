@@ -111,7 +111,8 @@ module.exports = {
       trickWinner: null,
       deck: [],
       playedCardIds: [null,null,null,null],   // so this array is always "full"
-      players: []
+      players: [],
+      handStats: []
     };
 
     // always start to the left of the dealer
