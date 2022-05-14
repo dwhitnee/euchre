@@ -331,6 +331,12 @@ let app = new Vue({
 
     this.updateFromServer().then( () => {
       let playerName = Util.loadData("name");
+
+      let names = Util.loadData("pastPlayerNames");
+      if (!names) {  // save first name ever
+        Util.saveData("pastPlayerNames", [playerName]);
+      }
+
       if (this.isGameLoaded()) {
 
         // keep it coming! Every 2.5 seconds. 3 seems slow, 2 seems fast
@@ -656,6 +662,7 @@ let app = new Vue({
           let stats = Util.loadData("stats") || { games: {} };
           stats.games[this.gameId] = 1;  // make stats update idempotent
           Util.saveData("stats", stats );
+          this.stats = Util.loadData("stats");
 
           clearInterval( this.autoLoad );   // kill updates
         }
