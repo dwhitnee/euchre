@@ -430,6 +430,7 @@ module.exports = {
         {
           if (cards.length != 1) {  // let players toss last card
             callback("Can't play a card now"); // doh! fail
+            return;
           }
         }
       }

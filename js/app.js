@@ -853,6 +853,7 @@ let app = new Vue({
       if (this.saveInProgress) {
         return;   // debounce
       }
+      let playFaceDown = false;
 
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
@@ -865,18 +866,28 @@ let app = new Vue({
 
       let discarding = this.weAreDealer && this.game.dealerMustDiscard;
 
-      // Is a play allowed now?
+      // Is a play allowed now?  Only if we haven't played, we're the
+      // dealer, hand has started, or it's our turn
       if (!discarding) {
-        if ((this.game.playedCardIds[this.playerId]) ||  // play one card
-            this.game.dealerMustDiscard ||               // waiting for dealer
-            this.game.bidding ||                         // while hand is going
+        if ((this.game.playedCardIds[this.playerId]) ||  // already played a card (no take backs)
+            this.game.dealerMustDiscard ||               // waiting for dealer to be ready
+            this.game.bidding ||                         // hand hasn't started
             ((this.playerId !== this.game.playerTurn) &&
-             (this.cards.length != 1)))  // on your turn, unless last turn
+             (this.cards.length != 1))               // on your turn, unless last turn
+           )
         {
-          // A misplay here should be self evident to user
-          console.log("Can't play a card right now");
-          this.setMessage("It's not your turn yet.");
-          return;
+          // Play is not yet allowed, hold your horses.
+
+          // Exception: allow a card to played face down once hand has started even if it is not our turn
+          if (this.leadCard) {
+            // TODO: do something cool here like wait to play card a few seconds
+            playFaceDown = true;
+          } else {
+            // A misplay here should be self evident to user
+            console.log("Can't play a card right now");
+            this.setMessage("It's not your turn yet.");
+            return;
+          }
         }
       }
 
@@ -911,10 +922,12 @@ let app = new Vue({
       let cards = this.game.players[this.playerId].cardIds;
       cards.splice( cards.indexOf( playedCard.id), 1);
 
+      let postData;
+
       try {
         this.saveInProgress = true;
 
-        let postData = {
+        postData = {
           gameId: this.gameId,
           playerId: this.playerId,
           cardId: playedCard.id
@@ -927,9 +940,37 @@ let app = new Vue({
       catch( err ) {
         console.error("playCard failed: " + JSON.stringify( err ));
         alert("Try again. Card play failed " + Util.sadface + (err.message || err));
-        await this.updateFromServer();
+
+        if (playFaceDown) {
+          // wait until it's our turn to make this play officially, but keep trying in the background
+          // NOTE: if the server is down this is will loop forever, but oh well
+
+          this.playFaceDownCardUntilItsOurTurn( postData );
+        } else {
+          await this.updateFromServer();
+        }
       };
       this.saveInProgress = false;
+    },
+
+    //----------------------------------------------------------------------
+    // blindly play this darn card until it's a legal play
+    //----------------------------------------------------------------------
+    async playFaceDownCardUntilItsOurTurn( postData ) {
+      try {
+        this.setMessage("Waiting for slower players...");
+        let response = await fetch( serverURL + "playCard",
+                                    Util.makeJsonPostParams( postData ));
+        if (!response.ok) { throw await response.json(); }
+        this.setMessage("");
+        await this.updateFromServer();
+      }
+      catch( err ) {
+        // try, try again
+        setTimeout( () => {
+          this.playFaceDownCardUntilItsOurTurn( postData );
+        }, 2000 );
+      }
     },
 
     //----------------------------------------
