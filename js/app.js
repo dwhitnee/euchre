@@ -59,6 +59,7 @@ let app = new Vue({
     playerId: undefined,   // Loaded from game cookie, who user is
     messageCountdown: 0,
     isAloneCall: false,
+    cardScale: 100,
 
     stats: {
       wins: 0,
@@ -277,14 +278,14 @@ let app = new Vue({
 
     // for feedback, this gets cached in DOM when <a> tag built
     deviceData() {
-	  let CRLF = "%0D%0A";
-	  return CRLF + "----" + CRLF +
-	    "build: " + this.version + CRLF +
- 	    "Resolution: " + window.screen.availWidth + "x" +
-	    window.screen.availHeight + CRLF +
- 	    "Viewport: " + window.innerWidth + "x" + window.innerHeight + CRLF +
- 	    "UserAgent: " + navigator.userAgent + CRLF +
-	    "";
+          let CRLF = "%0D%0A";
+          return CRLF + "----" + CRLF +
+            "build: " + this.version + CRLF +
+            "Resolution: " + window.screen.availWidth + "x" +
+            window.screen.availHeight + CRLF +
+            "Viewport: " + window.innerWidth + "x" + window.innerHeight + CRLF +
+            "UserAgent: " + navigator.userAgent + CRLF +
+            "";
     },
   },
 
@@ -484,14 +485,16 @@ let app = new Vue({
     //----------------------------------------
     getCardStyle: function( id ) {
       let face = "";
+      let scale = "scale: ";
 
       if (id) {
         let card = Card.fromId( id );
         face = "background-position: " + this.getCardFaceStyle( card );
+        scale += this.cardScale/100.0;
       }
 
       let entropy =  "transform: rotate(" + (this.random(10)-5) + "deg";
-      return entropy + ";" + face;
+      return entropy + ";" + face + "; " + scale;
     },
 
     //----------------------------------------
@@ -1166,74 +1169,74 @@ let app = new Vue({
     // Dialog handlers
     //----------------------------------------
     openDialog( name, openCallback ) {
-	  this.openDialogElement( document.getElementById( name ));
-	  if (openCallback)
-		openCallback();
-	},
-	// @input button click that caused the close (ie, button),
-	//    assumes it's the immediate child of the dialog
- 	closeDialog( event ) {
-	  this.closeDialogElement( event.target.parentElement );
-	},
-	// @input dialog element itself
-	openDialogElement( dialog ) {
-	  if (this.dialogIsOpen) {  // can't open two dialogs at once
-		return;
-	  }
-	  // grey out game
- 	  document.getElementById("dialogBackdrop").classList.add("backdropObscured");
-	  this.dialogIsOpen = true;  // flag to disable other dialogs. Vue doesn't respect this on change(in v-if)?
+          this.openDialogElement( document.getElementById( name ));
+          if (openCallback)
+                openCallback();
+        },
+        // @input button click that caused the close (ie, button),
+        //    assumes it's the immediate child of the dialog
+        closeDialog( event ) {
+          this.closeDialogElement( event.target.parentElement );
+        },
+        // @input dialog element itself
+        openDialogElement( dialog ) {
+          if (this.dialogIsOpen) {  // can't open two dialogs at once
+                return;
+          }
+          // grey out game
+          document.getElementById("dialogBackdrop").classList.add("backdropObscured");
+          this.dialogIsOpen = true;  // flag to disable other dialogs. Vue doesn't respect this on change(in v-if)?
 
-	  dialog.open = true;           // Chrome
-	  dialog.style.display="flex";  // Firefox/Safari
+          dialog.open = true;           // Chrome
+          dialog.style.display="flex";  // Firefox/Safari
 
-	  this.addDialogDismissHandlers( dialog );  // outside click and ESC
-	},
-
-    //----------------------------------------------------------------------
-	// close dialog, restore background, remove event handlers.
-	// @input dialog element itself
-	//----------------------------------------------------------------------
- 	closeDialogElement( dialog ) {
-  	  document.getElementById("dialogBackdrop").classList.remove("backdropObscured");
-
-	  this.dialogIsOpen = false;   // FIXME: Vue is not seeing this; Do we just need to add it to the data() section?
-	  dialog.open = false;
- 	  dialog.style.display="none";
-
-	  // dialog gone, stop listening for dismiss events
-	  let backdrop = document.getElementById("dialogBackdrop");
-	  backdrop.removeEventListener('click', this.closeDialogOnOutsideClick );
-	  document.body.removeEventListener("keydown", this.closeDialogOnESC );
-	},
+          this.addDialogDismissHandlers( dialog );  // outside click and ESC
+        },
 
     //----------------------------------------------------------------------
-	// Close on click outside dialog or ESC key.
-	// Save functions for removal after close()
-	//----------------------------------------------------------------------
-	addDialogDismissHandlers( dialog ) {
-	  // FIXME, these event handlers happen after Vue event
-	  // handlers so you can play the game while a dialog is
-	  // open.  How to disable all of game wile dialog is open?
+        // close dialog, restore background, remove event handlers.
+        // @input dialog element itself
+        //----------------------------------------------------------------------
+        closeDialogElement( dialog ) {
+          document.getElementById("dialogBackdrop").classList.remove("backdropObscured");
 
-  	  this.closeDialogOnOutsideClick = (event) => {
-		const clickWithinDialog = event.composedPath().includes( dialog );
-		if (!clickWithinDialog) {
-		  this.closeDialogElement( dialog );
-		}
-	  };
-  	  this.closeDialogOnESC = (event) => {
-		if (event.keyCode === 27) {
-		  this.closeDialogElement( dialog );
-		}
-	  };
+          this.dialogIsOpen = false;   // FIXME: Vue is not seeing this; Do we just need to add it to the data() section?
+          dialog.open = false;
+          dialog.style.display="none";
 
-	  // Could also use dialog::backdrop, but it is not fully supported
-	  // Fake our own backdrop element to swallow clicks and grey out screen
-	  // by not using "body" we don't need to worry about click bubbling
-	  let backdrop = document.getElementById("dialogBackdrop");
- 	  backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
-	  document.body.addEventListener("keydown", this.closeDialogOnESC );
-	},
+          // dialog gone, stop listening for dismiss events
+          let backdrop = document.getElementById("dialogBackdrop");
+          backdrop.removeEventListener('click', this.closeDialogOnOutsideClick );
+          document.body.removeEventListener("keydown", this.closeDialogOnESC );
+        },
+
+    //----------------------------------------------------------------------
+        // Close on click outside dialog or ESC key.
+        // Save functions for removal after close()
+        //----------------------------------------------------------------------
+        addDialogDismissHandlers( dialog ) {
+          // FIXME, these event handlers happen after Vue event
+          // handlers so you can play the game while a dialog is
+          // open.  How to disable all of game wile dialog is open?
+
+          this.closeDialogOnOutsideClick = (event) => {
+                const clickWithinDialog = event.composedPath().includes( dialog );
+                if (!clickWithinDialog) {
+                  this.closeDialogElement( dialog );
+                }
+          };
+          this.closeDialogOnESC = (event) => {
+                if (event.keyCode === 27) {
+                  this.closeDialogElement( dialog );
+                }
+          };
+
+          // Could also use dialog::backdrop, but it is not fully supported
+          // Fake our own backdrop element to swallow clicks and grey out screen
+          // by not using "body" we don't need to worry about click bubbling
+          let backdrop = document.getElementById("dialogBackdrop");
+          backdrop.addEventListener('click', this.closeDialogOnOutsideClick );
+          document.body.addEventListener("keydown", this.closeDialogOnESC );
+        },
   }
 });

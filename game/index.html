@@ -190,6 +190,13 @@
         <h2>Stats</h2>
 
         <div>
+          <div class="slider">
+            <label for="cardScale">Card size: {{ cardScale }}%</label>
+            <input v-model="cardScale" type="range" min="80" max="150" id="cardScale">
+            <div class="playingCard" :style="getCardStyle( Card.getByRankAndSuit( 1, Card.suits.Spades ).id )"></div>
+        </div>
+
+        <div>
           <b>{{ player.name }}</b>
           <ul>
             <li> Streak: {{ stats.streak }}</li>

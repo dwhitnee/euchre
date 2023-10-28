@@ -71,6 +71,11 @@ a.button.disabled {
   -ms-user-select:     none;
 }
 
+.slider .playingCard {
+  display: inline-block;
+  float: right;
+  margin-left: 2em;
+}
 
 .playingCard {
   /* transform: scale(1.2); */
