@@ -191,8 +191,8 @@
 
         <div>
           <div class="slider">
-            <label for="cardScale">Card size: {{ cardScale }}%</label>
-            <input v-model="cardScale" type="range" min="80" max="150" id="cardScale">
+            <label for="cardScale">Card size: {{ prefs.cardScale }}%</label>
+            <input v-model="prefs.cardScale" type="range" min="80" max="150" id="cardScale">
             <div class="playingCard" :style="getCardStyle( Card.getByRankAndSuit( 1, Card.suits.Spades ).id )"></div>
         </div>
 

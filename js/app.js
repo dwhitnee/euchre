@@ -59,7 +59,10 @@ let app = new Vue({
     playerId: undefined,   // Loaded from game cookie, who user is
     messageCountdown: 0,
     isAloneCall: false,
-    cardScale: 100,
+
+    prefs: {
+      cardScale: 100,      // TODO: persist this value to settings, what event?
+    },
 
     stats: {
       wins: 0,
@@ -329,6 +332,7 @@ let app = new Vue({
     }
 
     this.stats = Util.loadData("stats") || this.stats;
+    this.prefs = Util.loadData("prefs") || this.prefs;
 
     this.updateFromServer().then( () => {
       let playerName = Util.loadData("name");
@@ -490,7 +494,7 @@ let app = new Vue({
       if (id) {
         let card = Card.fromId( id );
         face = "background-position: " + this.getCardFaceStyle( card );
-        scale += this.cardScale/100.0;
+        scale += this.prefs.cardScale/100.0;
       }
 
       let entropy =  "transform: rotate(" + (this.random(10)-5) + "deg";
@@ -715,6 +719,7 @@ let app = new Vue({
       stats.points += score;
 
       Util.saveData("stats", stats );
+      Util.saveData("prefs", this.prefs );  // FIXME: need better event for pref change (closeDialog?)
     },
 
     //----------------------------------------------------------------------
@@ -1193,7 +1198,7 @@ let app = new Vue({
           this.addDialogDismissHandlers( dialog );  // outside click and ESC
         },
 
-    //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // close dialog, restore background, remove event handlers.
         // @input dialog element itself
         //----------------------------------------------------------------------
@@ -1210,7 +1215,7 @@ let app = new Vue({
           document.body.removeEventListener("keydown", this.closeDialogOnESC );
         },
 
-    //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // Close on click outside dialog or ESC key.
         // Save functions for removal after close()
         //----------------------------------------------------------------------
