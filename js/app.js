@@ -169,6 +169,12 @@ let app = new Vue({
       return suits;
     },
 
+    // start game in tutorial mode and leave once bidding starts
+    inTutorialMode: function() {
+      let isFirstHand = !((this.teamScore(0) + this.teamScore(1)) > 0);
+      return isFirstHand && this.bidding;
+    },
+
     weAreDealer: {
       cache: false,    // uncached so Deal button shows up when 4th joins
       get() {
