@@ -867,7 +867,7 @@ let app = new Vue({
       if (this.saveInProgress) {
         return;   // debounce
       }
-      let playFaceDown = true;  // allow people to play cards early (BETA)
+      let playFaceDown = false;  // allow people to play cards early (BETA)
 
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
@@ -894,7 +894,7 @@ let app = new Vue({
 
           // Exception: allow a card to played face down once hand has started even if it is not our turn
           if (this.leadCard) {
-            // TODO: do something cool here like wait to play card a few seconds
+            // TODO: do something cool here like show card greyed out?
             playFaceDown = true;
           } else {
             // A misplay here should be self evident to user
