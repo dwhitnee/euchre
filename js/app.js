@@ -59,6 +59,7 @@ let app = new Vue({
     playerId: undefined,   // Loaded from game cookie, who user is
     messageCountdown: 0,
     isAloneCall: false,
+    faceDownCard: undefined,
 
     prefs: {
       cardScale: 100,      // TODO: persist this value to settings, what event?
@@ -505,6 +506,17 @@ let app = new Vue({
 
       let entropy =  "transform: rotate(" + (this.random(10)-5) + "deg";
       return entropy + ";" + face + "; " + scale;
+    },
+
+    //----------------------------------------
+    // if a card is played early allow it to shown as an "unplayed" card
+    //----------------------------------------
+    getUnplayedCardStyle: function( playerId ) {
+      if ((playerId == 0) && this.faceDownCard) {
+        return "rotate: 110deg; " + this.getCardStyle( this.faceDownCard );
+      } else {
+        return "";
+      }
     },
 
     //----------------------------------------
@@ -958,8 +970,13 @@ let app = new Vue({
           // wait until it's our turn to make this play officially, but keep trying in the background
           // NOTE: if the server is down this is will loop forever, but oh well
 
-          alert("So impatient! Fine...");
+          this.setMessage("So impatient! Fine...");
+
+          this.faceDownCard = playedCard.id;
+          console.log("Played " + this.faceDownCard + " face down");
+
           this.playFaceDownCardUntilItsOurTurn( postData );
+
         } else {
           alert("Try again. Card play failed " + Util.sadface + (err.message || err));
           await this.updateFromServer();
@@ -973,16 +990,19 @@ let app = new Vue({
     //----------------------------------------------------------------------
     async playFaceDownCardUntilItsOurTurn( postData ) {
       try {
-        this.setMessage("Waiting for slower players...");
         let response = await fetch( serverURL + "playCard",
                                     Util.makeJsonPostParams( postData ));
         if (!response.ok) { throw await response.json(); }
+
+        // finally it's our turn!
         this.setMessage("");
+        this.faceDownCard = undefined;
         await this.updateFromServer();
       }
       catch( err ) {
         // try, try again
         setTimeout( () => {
+          this.setMessage("Waiting for slower players...");
           this.playFaceDownCardUntilItsOurTurn( postData );
         }, 2000 );
       }

@@ -94,7 +94,7 @@
         <div v-else-if="!names[i] && isSpectator">
           <button class="button btn-primary btn-lg join"
                   @click="join(i)">Join</button></div>
-        <div v-else class="unplayed playingCard"></div>
+        <div v-else class="unplayed playingCard" :style="getUnplayedCardStyle(i)"></div>
       </div>
 
       <div class="turnIndicator">
