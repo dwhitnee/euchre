@@ -867,7 +867,7 @@ let app = new Vue({
       if (this.saveInProgress) {
         return;   // debounce
       }
-      let playFaceDown = false;
+      let playFaceDown = true;  // allow people to play cards early (BETA)
 
       let card = JSON.parse( event.dataTransfer.getData("card"));
 
@@ -953,14 +953,15 @@ let app = new Vue({
       }
       catch( err ) {
         console.error("playCard failed: " + JSON.stringify( err ));
-        alert("Try again. Card play failed " + Util.sadface + (err.message || err));
 
         if (playFaceDown) {
           // wait until it's our turn to make this play officially, but keep trying in the background
           // NOTE: if the server is down this is will loop forever, but oh well
 
+          alert("So impatient! Fine...");
           this.playFaceDownCardUntilItsOurTurn( postData );
         } else {
+          alert("Try again. Card play failed " + Util.sadface + (err.message || err));
           await this.updateFromServer();
         }
       };

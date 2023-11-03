@@ -36,7 +36,7 @@ configValidationMode: error
 provider:
   name: aws
   region: us-west-2
-  runtime: nodejs18.x
+  runtime: nodejs16.x
   versionFunctions: false
 
   iam:
@@ -48,6 +48,12 @@ provider:
           Resource: [
             "arn:aws:dynamodb:us-west-2:*:table/Euchre*"
           ]
+
+# needed for Node18 and beyond so aws-sdk is included?
+#custom:
+#  esbuild:
+#    exclude: []
+
 
 #----------------------------------------
 # if we put DB config here, then every deploy fails with "Table already exists"
