@@ -53,6 +53,10 @@ module.exports = {
         for (var i=0; i < 4; i++) {
           // post process gameData to remove face down cards unless
           // EVERY player has played their hand entire hand
+
+          // FIXME: when going alone, lone player still has cards in hand
+          // skip game.dummyPlayerId
+
           if (game.players[i].cardIds.length > 0) {
             roundStillGoing = true;
           }

@@ -98,6 +98,7 @@
       </div>
 
       <div class="turnIndicator">
+        <div v-if="inTutorialMode" class="tutorial">Cards can be organized by clicking and dragging</div>
         <transition name="fade">
           <div v-if="message" class="message">{{ message }}</div>
         </transition>
@@ -126,7 +127,6 @@
     <div class="gridPlayer0" :class="{ dummy: isDummy(0) }">
       <div v-if="isDummy(0)" class="watermark dummyHorizontal">Dummy</div>
       <div class="cards">
-        <div v-if="inTutorialMode" class="tutorial">Cards can be organized by clicking and dragging</div>
         <div v-for="(card,i) in cards">
           <div class="playingCard"
                :style="getCardStyle( card.id )"
