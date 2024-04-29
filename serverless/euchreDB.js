@@ -3,8 +3,26 @@
 // No HTTP here, just Dynamo. Therefore most callbacks jsut return data
 // and no HTTP response stuff.
 //----------------------------------------------------------------------
+// Migrate to AWS SDK v3
+// https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/
+// https://thomasstep.com/blog/how-to-use-the-dynamodb-document-client
+// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html
+// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/migrating.html
 
 let tableName = "EuchreGames";
+
+// sdk v2
+// let AWS = require('aws-sdk');
+// let dynamoDB = new AWS.DynamoDB.DocumentClient();
+
+// after: npx aws-sdk-js-codemod -t v2-to-v3 file.js
+
+// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/dynamodb-example-dynamodb-utilities.html
+// sdk v3
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
+const dynamoDB = DynamoDBDocument.from(new DynamoDBClient());
+
 
 module.exports = {
 
@@ -14,7 +32,6 @@ module.exports = {
   // Params: gameId and callback( error, gameData )
   //----------------------------------------------------------------------
   getGameData: function( gameId, callback ) {
-
     console.log("Getting game data for " + gameId );
 
     let dbRequest = {
@@ -24,9 +41,6 @@ module.exports = {
     // KeyConditions
 
     console.log( dbRequest );
-
-    let AWS = require('aws-sdk');
-    let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
     dynamoDB.get( dbRequest, function( err, data ) {
       if (err) {
@@ -38,6 +52,23 @@ module.exports = {
         callback( null, data.Item );
       }
     });
+
+  /*
+    // async v3 way
+    try {
+      const response = await dynamoDB.send( new GetCommand( dbRequest ));
+      console.log(response);
+      if (!response.Item) {  // no data returns undefined, not an object
+        callback( null, {} );   // return empty object instead
+      }
+      callback( null, response.Item );  // baby steps
+    }
+    catch (err) {
+      console.log("DynamoDB error: " + err );
+      callback( err );
+    }
+  */
+
   },
 
   //----------------------------------------------------------------------
@@ -73,9 +104,6 @@ module.exports = {
     };
 
     console.log( dbRequest );
-
-    let AWS = require('aws-sdk');
-    let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
     dynamoDB.query( dbRequest, function( err, data ) {
       if (err) {
@@ -126,9 +154,6 @@ module.exports = {
 
     console.log("PUT request: " +  JSON.stringify( dbParams ));
 
-    let AWS = require('aws-sdk');
-    let dynamoDB = new AWS.DynamoDB.DocumentClient();
-
     // Put and not Update, we want to clobber old entry
     dynamoDB.put( dbParams, function( err, data ) {
       if (err) {
@@ -138,6 +163,18 @@ module.exports = {
         callback( null );  // success! Nothing to report
       }
     });
+
+  /*
+    //  v3 new way
+    try {
+      const response = await dynamoDB.send( new PutCommand( dbParams ));
+      console.log(response);
+      callback( null );  // success! Nothing to report
+    }
+    catch (err) {
+      callback( err );
+    }
+  */
   },
 
   //----------------------------------------
@@ -150,9 +187,6 @@ module.exports = {
     let dbRequest = {
       TableName : tableName,
       Key: {"id": gameId }};
-
-    let AWS = require('aws-sdk');
-    let dynamoDB = new AWS.DynamoDB.DocumentClient();
 
     dynamoDB.delete( dbRequest, function( err, data ) {
       if (err) {
