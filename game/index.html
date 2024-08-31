@@ -202,7 +202,7 @@
           <ul>
             <li> Streak: {{ stats.streak }}</li>
             <li> Record: {{ stats.wins }} - {{ stats.losses }}</li>
-            <li> Points per game: {{stats.points/((stats.wins + stats.losses)||1) }}
+            <li> Points per game: {{ (stats.points/((stats.wins + stats.losses)||1)).toFixed(2) }}
                 ({{ stats.points }} total) </li>
             <li>Hands called: {{ stats.calledWins }}      -
                 {{stats.calledLosses }}      ({{ stats.calledSweeps }} sweeps)  </li>

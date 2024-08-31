@@ -1,4 +1,5 @@
 /*global fetch, Vue, VueRouter, Card, Util */
+/*jslint esversion: 8 */
 //-----------------------------------------------------------------------
 //  Copyright 2015-2021, David Whitney
 // This file is part of Quarantine Euchre
