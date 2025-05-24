@@ -111,6 +111,9 @@ a.button.disabled {
 .score8 {  transform: translate(5px,50px) rotate(85deg); }
 .score9 {  transform: translate(55px,20px) rotate(38deg); }
 .score10 { transform: translate(75px,0) rotate(10deg); }
+.score11 { transform: translate(75px,0) rotate(10deg); }
+.score12 { transform: translate(75px,0) rotate(10deg); }
+.score13 { transform: translate(75px,0) rotate(10deg); }
 
 .fourOfClubs  { background-position: -221px -2px; }
 .sixOfClubs   { background-position: -367px -2px; }
